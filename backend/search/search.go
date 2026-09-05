@@ -485,6 +485,9 @@ func fetchResult(db *sql.DB, docID int64, score float64) (*SearchResult, error) 
 	if metadataStr.Valid && metadataStr.String != "" {
 		_ = json.Unmarshal([]byte(metadataStr.String), &metadata)
 	}
+	if metadata == nil {
+		metadata = map[string]any{}
+	}
 
 	return &SearchResult{
 		Content:    content,

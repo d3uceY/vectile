@@ -127,9 +127,12 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 		}
 		// The whole index-all run is done (all collections, or the first
 		// cancellation): the frontend reloads the library exactly once here
-		// instead of once per collection.
-		s.core.App.Event.Emit("indexing:all-done", nil)
-		s.core.sendNotification("index-all", "Indexing finished", "All collections indexed")
+		// instead of once per collection. Only announce a finished run; a
+		// cancellation already told the frontend its state.
+		if ctx.Err() == nil {
+			s.core.App.Event.Emit("indexing:all-done", nil)
+			s.core.sendNotification("index-all", "Indexing finished", "All collections indexed")
+		}
 		s.core.clearIndexRun()
 	}()
 	return true, nil

@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type JSX } from "solid-js";
+import { createSignal, For, Show, onCleanup, type JSX } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import { daysSince } from "../../lib/time";
 import type { SearchFilters } from "../../lib/types";
@@ -27,6 +27,11 @@ export function SearchView() {
   const [showAdvanced, setShowAdvanced] = createSignal(false);
   const [debounce, setDebounce] = createSignal<number | null>(null);
   const [filterDebounce, setFilterDebounce] = createSignal<number | null>(null);
+
+  onCleanup(() => {
+    window.clearTimeout(debounce() ?? undefined);
+    window.clearTimeout(filterDebounce() ?? undefined);
+  });
 
   const collectionOptions = () => [
     { value: "", label: "All collections" },

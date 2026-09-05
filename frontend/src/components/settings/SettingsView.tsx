@@ -799,9 +799,11 @@ export function SettingsView() {
   const [modelCtx, setModelCtx] = createSignal(0);
   const [modelBatch, setModelBatch] = createSignal(32);
   const [modelThreads, setModelThreads] = createSignal(0);
+  const [syncedActivePath, setSyncedActivePath] = createSignal<string | null>(null);
   createEffect(() => {
     const m = activeModel();
-    if (m) {
+    if (m && m.path !== syncedActivePath()) {
+      setSyncedActivePath(m.path);
       setModelCtx(m.contextWindow);
       setModelBatch(m.batchSize);
       setModelThreads(m.threads);

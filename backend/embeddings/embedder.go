@@ -79,9 +79,11 @@ func (e *Embedder) ModelPath() string { return e.modelPath }
 // Callers must ensure no index run is in flight, so a mid-run model change
 // can't mix embedding dimensions.
 func (e *Embedder) SetModel(path string, ctxSize, threads int) error {
+	e.inferMu.Lock()
+	defer e.inferMu.Unlock()
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if e.ctx != nil {
+	if e.ctx != nil { 
 		_ = e.ctx.Close()
 		e.ctx = nil
 	}
@@ -155,26 +157,28 @@ func (e *Embedder) ensureLoaded() error {
 
 // Embed returns the embedding vector for a single text.
 func (e *Embedder) Embed(text string) ([]float32, error) {
+	e.inferMu.Lock()
+	defer e.inferMu.Unlock()
 	if err := e.ensureLoaded(); err != nil {
 		return nil, err
 	}
-	e.inferMu.Lock()
-	defer e.inferMu.Unlock()
 	return e.ctx.GetEmbeddings(text)
 }
 
 // EmbedBatch returns one vector per input text in one model call.
 func (e *Embedder) EmbedBatch(texts []string) ([][]float32, error) {
+	e.inferMu.Lock()
+	defer e.inferMu.Unlock()
 	if err := e.ensureLoaded(); err != nil {
 		return nil, err
 	}
-	e.inferMu.Lock()
-	defer e.inferMu.Unlock()
 	return e.ctx.GetEmbeddingsBatch(texts)
 }
 
 // Close releases the model and context.
 func (e *Embedder) Close() {
+	e.inferMu.Lock()
+	defer e.inferMu.Unlock()
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if e.ctx != nil {

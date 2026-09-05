@@ -34,7 +34,7 @@ function Highlighted(props: { text: string; terms: string[] }) {
 
 function metaLine(r: SearchResult): string[] {
   const out: string[] = [];
-  const m = r.metadata;
+  const m = r.metadata ?? {};
   if (typeof m.sender === "string") out.push(`from ${m.sender}`);
   if (typeof m.author === "string") out.push(m.author as string);
   if (Array.isArray(m.authors)) out.push((m.authors as string[]).join(", "));
