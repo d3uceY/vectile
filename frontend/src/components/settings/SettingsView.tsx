@@ -888,7 +888,7 @@ export function SettingsView() {
 
   return (
     <div class="relative flex h-full flex-col">
-      <ViewHeading title="Settings" note="Model, chunking, search, and sources. Everything stays on this machine." />
+      <ViewHeading title="Settings" note="Model, chunking, search, and sources." />
 
       <Show when={draft()} fallback={<p class="note text-muted">Loading settings…</p>}>
         <div class="scroll-quiet -mr-2 flex-1 overflow-y-auto pb-20 pr-2">
