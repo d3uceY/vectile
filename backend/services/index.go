@@ -138,6 +138,24 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 	return true, nil
 }
 
+// IndexSynchronous indexes one collection in the calling goroutine and
+// returns the run summary. It is used by the MCP vectile_index write tool so
+// the client gets the result directly. It still emits the indexing events, so
+// an open frontend Index view stays in sync. Errors when another index run is
+// already in progress.
+func (s *IndexService) IndexSynchronous(name string, force bool) (*indexer.IndexResult, error) {
+	if !s.lockIndex() {
+		return nil, fmt.Errorf("an index run is already in progress")
+	}
+	defer s.unlockIndex()
+	s.core.resetIndexRun(false)
+	ctx := s.core.newIndexContext()
+	defer s.core.clearIndexContext()
+	result := s.runIndex(ctx, name, force)
+	s.core.clearIndexRun()
+	return result, nil
+}
+
 // CancelIndexing aborts the active index run, if any, and reports whether one
 // was running.
 func (s *IndexService) CancelIndexing() bool {
@@ -315,7 +333,9 @@ func (s *IndexService) unlockIndex() {
 }
 
 // runIndex dispatches one collection to its indexer and emits progress events.
-func (s *IndexService) runIndex(ctx context.Context, name string, force bool) {
+// It returns the run summary so a synchronous caller (the MCP write tool) can
+// report it; the async IndexCollection/IndexAll discard the value.
+func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *indexer.IndexResult {
 	cfg := s.core.Cfg
 	progress := func(current, total int, item string) {
 		// Per-file event: the frontend increments its per-collection count.
@@ -357,7 +377,7 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) {
 			Collection: name, Indexed: result.Indexed, Skipped: result.Skipped, Errors: result.Errors,
 		})
 		s.core.clearIndexProgress(name)
-		return
+		return result
 	}
 
 	s.core.App.Event.Emit("indexing:complete", IndexComplete{
@@ -374,6 +394,7 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) {
 			fmt.Sprintf("Indexed %s · %d new", name, result.Indexed))
 	}
 	s.core.clearIndexProgress(name)
+	return result
 }
 
 // configuredCollections returns the enabled, configured collections in a

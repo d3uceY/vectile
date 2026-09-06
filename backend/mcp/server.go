@@ -1,7 +1,8 @@
 // Package mcp exposes vectile's local library to MCP (Model Context Protocol)
 // clients over a loopback SSE server. Claude Desktop, Claude Code, and any
-// other MCP client can search the library and inspect collections. The tools
-// are read-only: nothing here triggers indexing or pruning.
+// other MCP client can search the library and inspect collections, and can
+// trigger indexing and pruning when the user has enabled allow-write. Write
+// tools are gated at call time by config.MCPConfig.AllowWrite.
 package mcp
 
 import (
@@ -11,21 +12,26 @@ import (
 	"vectile/backend/services"
 )
 
-// CreateServer builds the MCP server with the read-only vectile tools.
+// CreateServer builds the MCP server with the vectile tools. Search and
+// inspection tools are always registered; the write tools (index/prune) are
+// registered too but refuse to run unless allow-write is enabled.
 func CreateServer(core *services.Core) *server.MCPServer {
 	s := server.NewMCPServer(
 		"vectile",
-		"1.0.0",
+		"1.1.0",
 		server.WithInstructions(
 			"Search a private, local knowledge library: Obsidian vaults, books, "+
 				"code, and project documents indexed with hybrid vector + full-text "+
-				"search. Read-only: queries never modify the library."),
+				"search. Search and inspection are always available; indexing and "+
+				"pruning are enabled only when allow-write is on in Settings."),
 	)
 
 	s.AddTools(
 		server.ServerTool{Tool: searchTool, Handler: handleSearch(core)},
 		server.ServerTool{Tool: listCollectionsTool, Handler: handleListCollections(core)},
 		server.ServerTool{Tool: collectionInfoTool, Handler: handleCollectionInfo(core)},
+		server.ServerTool{Tool: indexTool, Handler: handleIndex(core)},
+		server.ServerTool{Tool: pruneTool, Handler: handlePrune(core)},
 	)
 
 	return s
@@ -83,4 +89,28 @@ var collectionInfoTool = mcp.NewTool("vectile_collection_info",
 		mcp.Required(),
 		mcp.Description("The collection name. Use vectile_list_collections() to "+
 			"discover available names.")),
+)
+
+var indexTool = mcp.NewTool("vectile_index",
+	mcp.WithDescription(
+		"Trigger an indexing run for one collection: an Obsidian vault, a "+
+			"Calibre library, or a configured project/repo collection. Blocks until "+
+			"the run finishes and returns the summary (indexed/skipped/errors). "+
+			"Requires 'Allow write tools' to be enabled in vectile Settings."),
+	mcp.WithString("collection",
+		mcp.Required(),
+		mcp.Description("The collection name. Use vectile_list_collections() to "+
+			"discover available names.")),
+	mcp.WithBoolean("force",
+		mcp.Description("Re-index everything, clearing existing data (default: "+
+			"false, incremental).")),
+)
+
+var pruneTool = mcp.NewTool("vectile_prune",
+	mcp.WithDescription(
+		"Remove stale indexed entries whose originals no longer exist: deleted "+
+			"files from a library, removed books, and deleted code files. "+
+			"Requires 'Allow write tools' to be enabled in vectile Settings."),
+	mcp.WithString("collection",
+		mcp.Description("Collection to prune. Omit to prune all collections.")),
 )

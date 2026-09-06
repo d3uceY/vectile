@@ -1,9 +1,12 @@
 package mcp
 
 import (
+	"context"
 	"net/url"
 	"path/filepath"
 	"testing"
+
+	"github.com/mark3labs/mcp-go/mcp"
 
 	"vectile/backend/config"
 	"vectile/backend/services"
@@ -21,7 +24,10 @@ func TestCreateServerRegistersTools(t *testing.T) {
 	}
 
 	tools := s.ListTools()
-	want := []string{"vectile_search", "vectile_list_collections", "vectile_collection_info"}
+	want := []string{
+		"vectile_search", "vectile_list_collections", "vectile_collection_info",
+		"vectile_index", "vectile_prune",
+	}
 	if len(tools) != len(want) {
 		t.Fatalf("expected %d tools, got %d", len(want), len(tools))
 	}
@@ -29,6 +35,38 @@ func TestCreateServerRegistersTools(t *testing.T) {
 		if tools[name] == nil {
 			t.Errorf("tool %q not registered", name)
 		}
+	}
+}
+
+func TestWriteToolsGated(t *testing.T) {
+	cfg, err := config.Load(filepath.Join(t.TempDir(), "config.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// AllowWrite defaults to false, so the write tools must refuse to run.
+	core := &services.Core{Cfg: cfg}
+	req := mcp.CallToolRequest{
+		Params: mcp.CallToolParams{
+			Name:      "vectile_index",
+			Arguments: map[string]any{"collection": "obsidian"},
+		},
+	}
+
+	res, err := handleIndex(core)(context.Background(), req)
+	if err != nil {
+		t.Fatalf("handleIndex unexpected error: %v", err)
+	}
+	if !res.IsError {
+		t.Fatalf("expected an error result when write tools are disabled, got %+v", res)
+	}
+
+	req.Params.Name = "vectile_prune"
+	pr, err := handlePrune(core)(context.Background(), req)
+	if err != nil {
+		t.Fatalf("handlePrune unexpected error: %v", err)
+	}
+	if !pr.IsError {
+		t.Fatalf("expected an error result when write tools are disabled, got %+v", pr)
 	}
 }
 

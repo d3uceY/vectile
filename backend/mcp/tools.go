@@ -205,6 +205,76 @@ func handleCollectionInfo(core *services.Core) server.ToolHandlerFunc {
 	}
 }
 
+// --- vectile_index ---
+
+func handleIndex(core *services.Core) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if !core.Cfg.MCP.AllowWrite {
+			return mcp.NewToolResultError(
+				"write tools are disabled: enable 'Allow write tools' in vectile Settings"), nil
+		}
+		collection, err := request.RequireString("collection")
+		if err != nil {
+			return mcp.NewToolResultError("collection parameter is required"), nil
+		}
+		force := request.GetBool("force", false)
+
+		result, err := services.NewIndexService(core).IndexSynchronous(collection, force)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("index failed: %v", err)), nil
+		}
+
+		output := map[string]any{
+			"collection":  collection,
+			"indexed":     result.Indexed,
+			"skipped":     result.Skipped,
+			"errors":      result.Errors,
+			"total_found": result.TotalFound,
+		}
+		if len(result.ErrorMessages) > 0 {
+			output["error_messages"] = result.ErrorMessages
+		}
+		data, _ := json.MarshalIndent(output, "", "  ")
+		if result.Errors > 0 {
+			return mcp.NewToolResultError(string(data)), nil
+		}
+		return mcp.NewToolResultText(string(data)), nil
+	}
+}
+
+// --- vectile_prune ---
+
+func handlePrune(core *services.Core) server.ToolHandlerFunc {
+	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if !core.Cfg.MCP.AllowWrite {
+			return mcp.NewToolResultError(
+				"write tools are disabled: enable 'Allow write tools' in vectile Settings"), nil
+		}
+		collection := request.GetString("collection", "")
+
+		result, err := services.NewIndexService(core).Prune(collection)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("prune failed: %v", err)), nil
+		}
+
+		name := collection
+		if name == "" {
+			name = "all"
+		}
+		output := map[string]any{
+			"collection": name,
+			"pruned":     result.Pruned,
+			"checked":    result.Checked,
+			"errors":     result.Errors,
+		}
+		if len(result.ErrorMessages) > 0 {
+			output["error_messages"] = result.ErrorMessages
+		}
+		data, _ := json.MarshalIndent(output, "", "  ")
+		return mcp.NewToolResultText(string(data)), nil
+	}
+}
+
 // describeCollection turns a collection's stored description into something
 // fit for a client. The description column is overloaded: system and project
 // collections keep a human string there, but code collections store git

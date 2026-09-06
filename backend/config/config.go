@@ -39,11 +39,12 @@ type GUIConfig struct {
 }
 
 // MCPConfig holds the in-app MCP (Model Context Protocol) server settings.
-// The server binds to 127.0.0.1 only, exposing read-only search tools to AI
-// clients on the same machine.
+// The server binds to 127.0.0.1 only. Search tools are always available;
+// AllowWrite gates the write tools (index/prune) that can change the library.
 type MCPConfig struct {
-	Enabled bool `json:"enabled"`
-	Port    int  `json:"port"`
+	Enabled    bool `json:"enabled"`
+	Port       int  `json:"port"`
+	AllowWrite bool `json:"allow_write"`
 }
 
 // Config is the full application configuration.

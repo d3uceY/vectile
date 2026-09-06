@@ -549,16 +549,33 @@ function Snippet(props: { label: string; code: string; multiline?: boolean }) {
   );
 }
 
-/* The read-only MCP tools vectile serves, shown in the Connect section. */
-const MCP_TOOLS: { name: string; desc: string }[] = [
+/* The MCP tools vectile serves, shown in the Connect section. The write tools
+   index or prune the library and only run when allow-write is on. */
+const MCP_TOOLS: { name: string; desc: string; kind: "read" | "write" }[] = [
   {
     name: "vectile_search",
     desc: "Hybrid semantic + keyword search, filterable by collection, source type, path, and date.",
+    kind: "read",
   },
-  { name: "vectile_list_collections", desc: "List your collections with file and chunk counts." },
+  {
+    name: "vectile_list_collections",
+    desc: "List your collections with file and chunk counts.",
+    kind: "read",
+  },
   {
     name: "vectile_collection_info",
     desc: "Details for one collection: counts, source types, and sample titles.",
+    kind: "read",
+  },
+  {
+    name: "vectile_index",
+    desc: "Index one collection: Obsidian vault, Calibre library, or a project/repo group.",
+    kind: "write",
+  },
+  {
+    name: "vectile_prune",
+    desc: "Remove stale entries for files or books that no longer exist.",
+    kind: "write",
   },
 ];
 
@@ -763,6 +780,7 @@ export function SettingsView() {
     });
 
   const running = () => store.mcpStatus()?.running ?? false;
+  const mcpWriteAllowed = () => draft()?.mcp.allow_write ?? false;
   const mcpUrl = () => `http://127.0.0.1:${draft()!.mcp.port}/sse`;
   const claudeJson = () => `{\n  "mcpServers": {\n    "vectile": { "url": "${mcpUrl()}" }\n  }\n}`;
   const [urlCopied, setUrlCopied] = createSignal(false);
@@ -1333,6 +1351,13 @@ export function SettingsView() {
                 max={STATIC_BOUNDS.mcp_port.max}
                 step={STATIC_BOUNDS.mcp_port.step}
               />
+              <Toggle
+                checked={draft()!.mcp.allow_write}
+                onChange={(v) => setMCP({ allow_write: v })}
+                label="Allow write tools"
+                description="Let AI tools index and prune your library."
+                hint="Off by default. When on, vectile_index and vectile_prune become callable. The server still binds to 127.0.0.1 only."
+              />
             </Show>
 
             <div>
@@ -1341,7 +1366,9 @@ export function SettingsView() {
                 What your AI can do
               </h4>
               <p class="note mb-2 mt-0.5 text-[12.5px] leading-4 text-muted">
-                Three read-only tools, scoped to your library.
+                {mcpWriteAllowed()
+                  ? "Search, plus index and prune, scoped to your library."
+                  : "Read-only search now. Turn on Allow write tools to let an AI index and prune."}
               </p>
               <ul class="divide-y divide-line/60 overflow-hidden rounded-control border border-line bg-paper">
                 <For each={MCP_TOOLS}>
@@ -1349,6 +1376,15 @@ export function SettingsView() {
                     <li class="flex items-start gap-3 px-3 py-2">
                       <span class="data mt-px shrink-0 font-mono text-[11.5px] text-leaf-deep">{t.name}</span>
                       <span class="text-[12.5px] leading-5 text-ink-soft">{t.desc}</span>
+                      <Show when={t.kind === "write"}>
+                        <span
+                          class={`ml-auto shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide ${
+                            mcpWriteAllowed() ? "bg-leaf/10 text-leaf-deep" : "bg-surface text-faint"
+                          }`}
+                        >
+                          write
+                        </span>
+                      </Show>
                     </li>
                   )}
                 </For>

@@ -175,12 +175,13 @@ export class GUIConfig {
 
 /**
  * MCPConfig holds the in-app MCP (Model Context Protocol) server settings.
- * The server binds to 127.0.0.1 only, exposing read-only search tools to AI
- * clients on the same machine.
+ * The server binds to 127.0.0.1 only. Search tools are always available;
+ * AllowWrite gates the write tools (index/prune) that can change the library.
  */
 export class MCPConfig {
     "enabled": boolean;
     "port": number;
+    "allow_write": boolean;
 
     /** Creates a new MCPConfig instance. */
     constructor($$source: Partial<MCPConfig> = {}) {
@@ -189,6 +190,9 @@ export class MCPConfig {
         }
         if (!("port" in $$source)) {
             this["port"] = 0;
+        }
+        if (!("allow_write" in $$source)) {
+            this["allow_write"] = false;
         }
 
         Object.assign(this, $$source);

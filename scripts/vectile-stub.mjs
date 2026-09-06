@@ -80,7 +80,7 @@ const config = {
     start_on_login: false,
     mascot: { show_searching: true, show_indexing: true, show_nothing: true },
   },
-  mcp: { enabled: true, port: 31123 },
+  mcp: { enabled: true, port: 31123, allow_write: false },
 };
 
 // Live MCP server state returned by GetMCPStatus; StartServer/StopServer

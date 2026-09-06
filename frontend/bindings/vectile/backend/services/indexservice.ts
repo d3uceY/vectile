@@ -114,6 +114,19 @@ export function IndexCollection(name: string, force: boolean): $CancellablePromi
 }
 
 /**
+ * IndexSynchronous indexes one collection in the calling goroutine and
+ * returns the run summary. It is used by the MCP vectile_index write tool so
+ * the client gets the result directly. It still emits the indexing events, so
+ * an open frontend Index view stays in sync. Errors when another index run is
+ * already in progress.
+ */
+export function IndexSynchronous(name: string, force: boolean): $CancellablePromise<indexer$0.IndexResult | null> {
+    return $Call.ByID(2915466095, name, force).then(($result: any) => {
+        return $$createType4($result);
+    });
+}
+
+/**
  * IsIndexing reports whether an index run is in progress.
  */
 export function IsIndexing(): $CancellablePromise<boolean> {
@@ -125,7 +138,7 @@ export function IsIndexing(): $CancellablePromise<boolean> {
  */
 export function Prune(name: string): $CancellablePromise<indexer$0.PruneResult> {
     return $Call.ByID(624196390, name).then(($result: any) => {
-        return $$createType3($result);
+        return $$createType5($result);
     });
 }
 
@@ -155,4 +168,6 @@ export function ToggleCollectionEnabled(name: string, enabled: boolean): $Cancel
 const $$createType0 = config$0.Config.createFrom;
 const $$createType1 = $Create.Nullable($$createType0);
 const $$createType2 = $models.IndexState.createFrom;
-const $$createType3 = indexer$0.PruneResult.createFrom;
+const $$createType3 = indexer$0.IndexResult.createFrom;
+const $$createType4 = $Create.Nullable($$createType3);
+const $$createType5 = indexer$0.PruneResult.createFrom;

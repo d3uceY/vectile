@@ -113,6 +113,8 @@ export interface GUIConfig {
 export interface MCPConfig {
   enabled: boolean;
   port: number;
+  /** Gates the write tools (vectile_index / vectile_prune). */
+  allow_write: boolean;
 }
 
 /** Mirrors mcp.MCPStatus (live server state from the backend). */

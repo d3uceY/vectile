@@ -15,7 +15,7 @@ Supported sources:
 - Code repositories. Git repos parsed with tree-sitter. Each function or class becomes a chunk. Commit history is indexed too.
 - Calibre libraries. Book metadata plus the text of EPUB and PDF files.
 
-Left out on purpose: email and RSS (they read macOS-only app databases), PDF OCR, the MCP server, the HTTP server, and the Ollama-specific settings (hosts, num_batch, worker count). MCP and OCR come later.
+Left out on purpose: email and RSS (they read macOS-only app databases), PDF OCR, the HTTP server, and the Ollama-specific settings (hosts, num_batch, worker count). OCR comes later.
 ## Where the code lives
 
 ```

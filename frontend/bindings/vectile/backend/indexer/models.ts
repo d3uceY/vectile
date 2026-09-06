@@ -6,6 +6,50 @@
 import { Create as $Create } from "@wailsio/runtime";
 
 /**
+ * IndexResult summarises an indexing run.
+ */
+export class IndexResult {
+    "Indexed": number;
+    "Skipped": number;
+    "Errors": number;
+    "TotalFound": number;
+    "ErrorMessages": string[];
+
+    /** Creates a new IndexResult instance. */
+    constructor($$source: Partial<IndexResult> = {}) {
+        if (!("Indexed" in $$source)) {
+            this["Indexed"] = 0;
+        }
+        if (!("Skipped" in $$source)) {
+            this["Skipped"] = 0;
+        }
+        if (!("Errors" in $$source)) {
+            this["Errors"] = 0;
+        }
+        if (!("TotalFound" in $$source)) {
+            this["TotalFound"] = 0;
+        }
+        if (!("ErrorMessages" in $$source)) {
+            this["ErrorMessages"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IndexResult instance from a string or object.
+     */
+    static createFrom($$source: any = {}): IndexResult {
+        const $$createField4_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("ErrorMessages" in $$parsedSource) {
+            $$parsedSource["ErrorMessages"] = $$createField4_0($$parsedSource["ErrorMessages"]);
+        }
+        return new IndexResult($$parsedSource as Partial<IndexResult>);
+    }
+}
+
+/**
  * PruneResult summarises a pruning run.
  */
 export class PruneResult {
