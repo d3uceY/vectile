@@ -1050,7 +1050,7 @@ export function SettingsView() {
                 <Section
                   icon={<BoltIcon size={16} />}
                   title="Model"
-                  note="The embedding engine runs in-process. Drop a .gguf into the models folder, or import one below."
+                  note="Drop a .gguf into the models folder, or import one below."
                 >
                   <div class="space-y-6">
                     <div class="space-y-2">
@@ -1304,7 +1304,7 @@ export function SettingsView() {
                 <Section
                   icon={<FolderOpenIcon size={16} />}
                   title="Sources"
-                  note="Folders are walked recursively; nested git repos are discovered automatically."
+                  note="Folders are walked recursively;"
                 >
                   <div class="space-y-8">
                     <SourceGroup
@@ -1512,7 +1512,7 @@ export function SettingsView() {
                 <Section
                   icon={<PlugIcon size={16} />}
                   title="Connect"
-                  note="Let AI assistants on this machine search your library. Read-only: they can search, never change."
+                  note="Let AI assistants on this machine search your library."
                 >
                   <div class="space-y-6">
                     {/* Status plate: live from the backend, not the draft */}
