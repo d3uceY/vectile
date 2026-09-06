@@ -47,10 +47,10 @@ const MODEL_PATH = "C:\\Users\\you\\AppData\\Roaming\\vectile\\models\\bge-m3-Q4
 // ---------------------------------------------------------------------------
 
 const status = {
-  collections: 5,
-  sources: 26,
-  chunks: 23867,
-  dbSize: 53687091, // ~51.2 MB
+  collections: 4,
+  sources: 20,
+  chunks: 7029,
+  dbSize: 20971520, // ~20 MB
   modelState: "loaded",
   modelName: MODEL_NAME,
   modelPath: MODEL_PATH,
@@ -109,45 +109,37 @@ let downloadState = { active: false, key: "", status: "", downloaded: 0, total: 
 // ---------------------------------------------------------------------------
 
 const collections = [
-  { id: 1, name: "calibre", type: "system", description: "your ebook library — chunked for search", sources: 2, chunks: 3810, created: "2025-11-02", enabled: true, lastIndexed: "2025-11-02" },
-  { id: 2, name: "email", type: "system", description: "Gmail export — invoices, receipts, long threads", sources: 4, chunks: 2310, created: "2025-09-14", enabled: true, lastIndexed: "2025-09-14" },
-  { id: 3, name: "notes", type: "project", description: "Obsidian vault — daily notes, zettels, project journals", sources: 8, chunks: 9812, created: "2025-06-30", enabled: true, lastIndexed: "2026-08-24" },
-  { id: 4, name: "rss", type: "system", description: "feeds on Go, databases, and photography", sources: 6, chunks: 3104, created: "2025-10-11", enabled: true, lastIndexed: "2025-10-11" },
-  { id: 5, name: "vectile", type: "code", description: "this repo — backend, frontend, and git history", sources: 6, chunks: 4831, created: "2026-08-24", enabled: true, lastIndexed: "2026-08-24" },
+  { id: 1, name: "calibre", type: "system", description: "ebook library — titles, authors, and text, chunked for search", sources: 2, chunks: 1130, created: "2025-11-02", enabled: true, lastIndexed: "2025-11-02" },
+  { id: 2, name: "obsidian", type: "system", description: "Obsidian vault — daily notes, zettels, project journals", sources: 8, chunks: 812, created: "2025-06-30", enabled: true, lastIndexed: "2026-08-24" },
+  { id: 3, name: "field-notes", type: "project", description: "project folder — runbooks, retrospectives, working notes", sources: 4, chunks: 256, created: "2026-05-18", enabled: true, lastIndexed: "2026-08-24" },
+  { id: 4, name: "vectile", type: "code", description: "this repo — backend, frontend, and git history", sources: 6, chunks: 4831, created: "2026-08-24", enabled: true, lastIndexed: "2026-08-24" },
 ];
 
 let sources = [
   // calibre
   { id: 11, collectionId: 1, sourceType: "epub", path: "C:\\Users\\you\\Calibre Library\\Bronson\\The Nudist on the Late Shift", chunks: 310, lastIndexed: "2025-11-02" },
   { id: 12, collectionId: 1, sourceType: "pdf", path: "C:\\Users\\you\\Calibre Library\\Luksa\\Kubernetes in Action", chunks: 820, lastIndexed: "2025-11-02" },
-  // email
-  { id: 21, collectionId: 2, sourceType: "email", path: "C:\\Users\\you\\mail\\2026\\jan.mbox", chunks: 402, lastIndexed: "2025-09-14" },
-  { id: 22, collectionId: 2, sourceType: "email", path: "C:\\Users\\you\\mail\\2026\\sre.mbox", chunks: 318, lastIndexed: "2025-09-14" },
-  { id: 23, collectionId: 2, sourceType: "email", path: "C:\\Users\\you\\mail\\2026\\orders.mbox", chunks: 891, lastIndexed: "2025-09-14" },
-  { id: 24, collectionId: 2, sourceType: "email", path: "C:\\Users\\you\\mail\\2026\\feb.mbox", chunks: 699, lastIndexed: "2025-09-14" },
-  // notes
-  { id: 31, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\zettelkasten", chunks: 412, lastIndexed: "2026-08-24" },
-  { id: 32, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\inbox", chunks: 57, lastIndexed: "2026-08-24" },
-  { id: 33, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\projects\\k8s-upgrade", chunks: 96, lastIndexed: "2026-08-22" },
-  { id: 34, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\camera", chunks: 88, lastIndexed: "2026-08-20" },
-  { id: 35, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\cooking", chunks: 71, lastIndexed: "2026-08-18" },
-  { id: 36, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\reading", chunks: 39, lastIndexed: "2026-08-15" },
-  { id: 37, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\work", chunks: 26, lastIndexed: "2026-08-12" },
-  { id: 38, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\travel", chunks: 23, lastIndexed: "2026-08-09" },
-  // rss
-  { id: 41, collectionId: 4, sourceType: "rss", path: "C:\\Users\\you\\feeds\\systems.xml", chunks: 612, lastIndexed: "2025-10-11" },
-  { id: 42, collectionId: 4, sourceType: "rss", path: "C:\\Users\\you\\feeds\\golang.xml", chunks: 388, lastIndexed: "2025-10-11" },
-  { id: 43, collectionId: 4, sourceType: "rss", path: "C:\\Users\\you\\feeds\\photo.xml", chunks: 274, lastIndexed: "2025-10-11" },
-  { id: 44, collectionId: 4, sourceType: "rss", path: "C:\\Users\\you\\feeds\\news.xml", chunks: 519, lastIndexed: "2025-10-11" },
-  { id: 45, collectionId: 4, sourceType: "rss", path: "C:\\Users\\you\\feeds\\papers.xml", chunks: 703, lastIndexed: "2025-10-11" },
-  { id: 46, collectionId: 4, sourceType: "rss", path: "C:\\Users\\you\\feeds\\css.xml", chunks: 608, lastIndexed: "2025-10-11" },
+  // obsidian vault
+  { id: 21, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\zettelkasten", chunks: 412, lastIndexed: "2026-08-24" },
+  { id: 22, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\inbox", chunks: 57, lastIndexed: "2026-08-24" },
+  { id: 23, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\projects\\k8s-upgrade", chunks: 96, lastIndexed: "2026-08-22" },
+  { id: 24, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\camera", chunks: 88, lastIndexed: "2026-08-20" },
+  { id: 25, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\cooking", chunks: 71, lastIndexed: "2026-08-18" },
+  { id: 26, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\reading", chunks: 39, lastIndexed: "2026-08-15" },
+  { id: 27, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\work", chunks: 26, lastIndexed: "2026-08-12" },
+  { id: 28, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\travel", chunks: 23, lastIndexed: "2026-08-09" },
+  // field-notes (project folder)
+  { id: 31, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\deploy-runbook.md", chunks: 64, lastIndexed: "2026-08-24" },
+  { id: 32, collectionId: 3, sourceType: "plaintext", path: "C:\\Users\\you\\Documents\\field-notes\\backup-checklist.txt", chunks: 18, lastIndexed: "2026-08-24" },
+  { id: 33, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\retro-2026-06.md", chunks: 33, lastIndexed: "2026-08-24" },
+  { id: 34, collectionId: 3, sourceType: "pdf", path: "C:\\Users\\you\\Documents\\field-notes\\team-handbook.pdf", chunks: 141, lastIndexed: "2026-08-24" },
   // vectile (code)
-  { id: 51, collectionId: 5, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\search", chunks: 402, lastIndexed: "2026-08-24" },
-  { id: 52, collectionId: 5, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\indexer", chunks: 611, lastIndexed: "2026-08-24" },
-  { id: 53, collectionId: 5, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\chunker", chunks: 318, lastIndexed: "2026-08-24" },
-  { id: 54, collectionId: 5, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\frontend\\src", chunks: 502, lastIndexed: "2026-08-24" },
-  { id: 55, collectionId: 5, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\third_party\\llama-go", chunks: 204, lastIndexed: "2026-08-24" },
-  { id: 56, collectionId: 5, sourceType: "commit", path: "C:\\Users\\you\\code\\vectile\\.git", chunks: 2794, lastIndexed: "2026-08-24" },
+  { id: 41, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\search", chunks: 402, lastIndexed: "2026-08-24" },
+  { id: 42, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\indexer", chunks: 611, lastIndexed: "2026-08-24" },
+  { id: 43, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\chunker", chunks: 318, lastIndexed: "2026-08-24" },
+  { id: 44, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\frontend\\src", chunks: 502, lastIndexed: "2026-08-24" },
+  { id: 45, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\third_party\\llama-go", chunks: 204, lastIndexed: "2026-08-24" },
+  { id: 46, collectionId: 4, sourceType: "commit", path: "C:\\Users\\you\\code\\vectile\\.git", chunks: 2794, lastIndexed: "2026-08-24" },
 ];
 
 let documents = [
@@ -158,19 +150,18 @@ let documents = [
   // calibre — pdf
   { id: 1211, sourceId: 12, collectionId: 1, chunkIndex: 0, title: "Rolling updates and rollbacks", content: "A rolling update replaces the old ReplicaSet gradually. The Deployment controller keeps the service available the whole time, and you can pause, resume, or roll back from the rollout status.", metadata: { page: 214 } },
   { id: 1212, sourceId: 12, collectionId: 1, chunkIndex: 1, title: "Choosing a strategy", content: "Pick a strategy by blast radius, not by fashion. Rolling suits stateless services. Canary suits services with real traffic you can measure. Blue-green doubles your cost while the switch happens.", metadata: { page: 221 } },
-  // email
-  { id: 2101, sourceId: 21, collectionId: 2, chunkIndex: 0, title: "RE: Canary rollout tonight", content: "Sending the canary rollout tonight at 21:00 UTC. Dashboard shows healthy so far; if the error rate stays flat for 15 minutes we promote to 100%. Hold any deploys until then.", metadata: { sender: "sre@acme.dev" } },
-  { id: 2102, sourceId: 21, collectionId: 2, chunkIndex: 1, title: "Meeting notes — Jan 2026", content: "Decided: this quarter is about killing the toil. Three things on the table — the rollout script, the backup restore drill, and the dashboard that no one reads. The rollout script gets built first.", metadata: { sender: "you@acme.dev" } },
-  // notes — zettelkasten
-  { id: 3101, sourceId: 31, collectionId: 3, chunkIndex: 0, title: "The exposure triangle, revisited", content: "Shutter, aperture, ISO are a triangle only in the sense that moving one forces the others to move. The real question is always: what do you want frozen, blurred, or clean at this light level?", metadata: { tags: ["photography"] } },
-  { id: 3102, sourceId: 31, collectionId: 3, chunkIndex: 1, title: "Notes on quorum and Raft", content: "Raft needs a majority for both election and commit. That is the whole trick — you trade availability during partitions for a guarantee that two leaders never both think they own the term.", metadata: { tags: ["distributed-systems"] } },
-  // notes — k8s-upgrade
-  { id: 3301, sourceId: 33, collectionId: 3, chunkIndex: 0, title: "Rollout strategies — 2026-06-12", content: "Weighed rolling, blue-green, and canary for the k8s upgrade. Rolling wins on simplicity: one command, no extra infra, and rollout status gives a clean view of progress. Set maxUnavailable to 25% so we keep headroom during the drain.", metadata: { tags: ["kubernetes", "deploy"] } },
-  { id: 3302, sourceId: 33, collectionId: 3, chunkIndex: 1, title: "Rolling update checklist", content: "Before you roll: backups done, migration run, feature flag off by default, metrics page open. During the rollout: watch rollout status, error rate, and p99. After: leave the flag on and delete the old ReplicaSet.", metadata: { tags: ["kubernetes"] } },
-  { id: 3303, sourceId: 33, collectionId: 3, chunkIndex: 2, title: "Blue-green for the API", content: "If the API breaks again, use blue-green. Point traffic at green, run the old blue beside it, and keep the rollback one DNS flip away. Costs double while both stacks are up — fine for a weekend.", metadata: { tags: ["kubernetes"] } },
-  // rss
-  { id: 4101, sourceId: 41, collectionId: 4, chunkIndex: 0, title: "Choosing a Kubernetes rollout strategy", content: "Rolling, canary, blue-green — a short field guide. The short version: rolling for stateless, canary when you can measure, blue-green when you need a one-flip rollback.", metadata: { author: "Systems Weekly" } },
-  { id: 4102, sourceId: 41, collectionId: 4, chunkIndex: 1, title: "Why quorum matters in etcd", content: "etcd needs a quorum of peers to accept writes. Lose it and the cluster stops electing leaders. That is why the k8s control plane runs three or five members and why split brain is the failure you plan for first.", metadata: { author: "Systems Weekly" } },
+  // obsidian — zettelkasten
+  { id: 2101, sourceId: 21, collectionId: 2, chunkIndex: 0, title: "The exposure triangle, revisited", content: "Shutter, aperture, ISO are a triangle only in the sense that moving one forces the others to move. The real question is always: what do you want frozen, blurred, or clean at this light level?", metadata: { tags: ["photography"] } },
+  { id: 2102, sourceId: 21, collectionId: 2, chunkIndex: 1, title: "Notes on quorum and Raft", content: "Raft needs a majority for both election and commit. That is the whole trick — you trade availability during partitions for a guarantee that two leaders never both think they own the term.", metadata: { tags: ["distributed-systems"] } },
+  // obsidian — k8s-upgrade
+  { id: 2301, sourceId: 23, collectionId: 2, chunkIndex: 0, title: "Rollout strategies — 2026-06-12", content: "Weighed rolling, blue-green, and canary for the k8s upgrade. Rolling wins on simplicity: one command, no extra infra, and rollout status gives a clean view of progress. Set maxUnavailable to 25% so we keep headroom during the drain.", metadata: { tags: ["kubernetes", "deploy"] } },
+  { id: 2302, sourceId: 23, collectionId: 2, chunkIndex: 1, title: "Rolling update checklist", content: "Before you roll: backups done, migration run, feature flag off by default, metrics page open. During the rollout: watch rollout status, error rate, and p99. After: leave the flag on and delete the old ReplicaSet.", metadata: { tags: ["kubernetes"] } },
+  { id: 2303, sourceId: 23, collectionId: 2, chunkIndex: 2, title: "Blue-green for the API", content: "If the API breaks again, use blue-green. Point traffic at green, run the old blue beside it, and keep the rollback one DNS flip away. Costs double while both stacks are up — fine for a weekend.", metadata: { tags: ["kubernetes"] } },
+  // field-notes — deploy runbook
+  { id: 3101, sourceId: 31, collectionId: 3, chunkIndex: 0, title: "Deploy runbook — k8s control-plane upgrade", content: "Sequence for the upgrade window. Confirm the nightly backup finished, snapshot the AMI, then roll the control plane first. Workers follow in batches of three, waiting for a clean rollout status and a flat error rate between each batch.", metadata: { tags: ["kubernetes", "ops"] } },
+  { id: 3102, sourceId: 31, collectionId: 3, chunkIndex: 1, title: "Rollback rules", content: "If rollout status shows an unhealthy replica set, pause the rollout and look at the pod events before deciding. Roll back in the same order you rolled forward: last batch first, keep the old deployment intact until the incident is closed.", metadata: { tags: ["kubernetes"] } },
+  // vectile — git history
+  { id: 4601, sourceId: 46, collectionId: 4, chunkIndex: 0, title: "docs: rollout strategy notes", content: "Add notes weighing rolling, canary, and blue-green for the control-plane upgrade. Rolling chosen for the nodes, blue-green reserved for the API. No code changes in this commit.", metadata: { author: "Jesse" } },
 ];
 
 // ---------------------------------------------------------------------------
@@ -182,55 +173,55 @@ const searchResults = [
     title: "Rollout strategies for the k8s upgrade",
     content: "We weighed rolling, blue-green, and canary for the k8s upgrade. A rolling update won on simplicity: one command, no extra infra, and rollout status gives a clean way to watch progress. Set maxUnavailable to 25% and keep headroom during the node drain.",
     score: 0.92,
-    collection: "notes",
+    collection: "obsidian",
     sourceType: "markdown",
     sourcePath: "C:\\Users\\you\\Documents\\notes\\projects\\k8s-upgrade\\rollout-strategies.md",
     metadata: { tags: ["kubernetes", "deploy"] },
   },
   {
-    title: "RE: Canary rollout tonight",
-    content: "Sending the canary rollout tonight at 21:00 UTC. The Kubernetes dashboard looks healthy so far; if the error rate stays flat for 15 minutes we promote to 100%. Please hold any deploys until then.",
-    score: 0.81,
-    collection: "email",
-    sourceType: "email",
-    sourcePath: "C:\\Users\\you\\mail\\2026\\sre.mbox",
-    metadata: { sender: "sre@acme.dev" },
-  },
-  {
-    title: "Rolling, canary, blue-green: choosing a Kubernetes rollout strategy",
-    content: "A short field guide to Kubernetes rollout patterns: when rolling updates are fine, when you need a canary, and how blue-green changes your blast radius. The short version: measure, then trust the dashboard.",
-    score: 0.76,
-    collection: "rss",
-    sourceType: "rss",
-    sourcePath: "C:\\Users\\you\\feeds\\systems.xml",
-    metadata: { author: "Systems Weekly" },
+    title: "Rolling update checklist",
+    content: "Before you roll: backups done, migration run, feature flag off by default, metrics page open. During the rollout: watch rollout status, error rate, and p99. After: leave the flag on and delete the old ReplicaSet.",
+    score: 0.83,
+    collection: "obsidian",
+    sourceType: "markdown",
+    sourcePath: "C:\\Users\\you\\Documents\\notes\\projects\\k8s-upgrade\\checklist.md",
+    metadata: { tags: ["kubernetes"] },
   },
   {
     title: "Kubernetes in Action — Rolling updates and rollbacks",
     content: "Rolling updates replace pods gradually, keeping the service available while the new version rolls out. Kubernetes tracks the rollout status and exposes it so you can verify before moving on.",
-    score: 0.68,
+    score: 0.76,
     collection: "calibre",
     sourceType: "pdf",
     sourcePath: "C:\\Users\\you\\Calibre Library\\Luksa\\Kubernetes in Action\\Kubernetes in Action - Luksa.pdf",
     metadata: { page: 214, authors: ["Marko Lukša"] },
   },
   {
-    title: "Rolling update checklist",
-    content: "Before you roll: backups done, migration run, feature flag off by default, metrics page open. During the rollout: watch rollout status, error rate, and p99. After: leave the flag on and delete the old ReplicaSet.",
-    score: 0.63,
-    collection: "notes",
+    title: "Deploy runbook — k8s control-plane upgrade",
+    content: "Sequence for the upgrade window. Confirm the backup finished, snapshot the AMI, then roll the control plane first. Workers follow in batches of three, waiting for a clean rollout status and a flat error rate between each batch.",
+    score: 0.68,
+    collection: "field-notes",
     sourceType: "markdown",
-    sourcePath: "C:\\Users\\you\\Documents\\notes\\projects\\k8s-upgrade\\checklist.md",
+    sourcePath: "C:\\Users\\you\\Documents\\field-notes\\deploy-runbook.md",
+    metadata: { tags: ["kubernetes", "ops"] },
+  },
+  {
+    title: "Blue-green for the API",
+    content: "If the API breaks again, use blue-green. Point traffic at green, run the old blue beside it, and keep the rollback one DNS flip away. Costs double while both stacks are up, which is fine for a weekend.",
+    score: 0.61,
+    collection: "obsidian",
+    sourceType: "markdown",
+    sourcePath: "C:\\Users\\you\\Documents\\notes\\projects\\k8s-upgrade\\blue-green-api.md",
     metadata: { tags: ["kubernetes"] },
   },
   {
-    title: "Invoice 2026-06 — hosting and monitoring",
-    content: "Thanks for your business. This invoice covers June hosting and monitoring for the cluster, including the Kubernetes control-plane nodes and the canary environments. Payment is due in 14 days.",
-    score: 0.44,
-    collection: "email",
-    sourceType: "email",
-    sourcePath: "C:\\Users\\you\\mail\\2026\\orders.mbox",
-    metadata: { sender: "billing@hosting.example" },
+    title: "docs: rollout strategy notes",
+    content: "Notes weighing rolling, canary, and blue-green for the control-plane upgrade. Rolling chosen for the nodes, blue-green reserved for the API. No code changes in this commit.",
+    score: 0.52,
+    collection: "vectile",
+    sourceType: "commit",
+    sourcePath: "C:\\Users\\you\\code\\vectile",
+    metadata: { author: "Jesse" },
   },
 ];
 
@@ -268,8 +259,8 @@ export async function stub(request) {
       return { body: 8 };
     case M.GetVersion:
       // The dev-stub middleware sends string bodies raw, so JSON-encode the
-      // value — the runtime's res.json() needs `"v0.1.0"` (quoted).
-      return { body: JSON.stringify("v0.1.0") };
+      // value — the runtime's res.json() needs `"v0.3.0"` (quoted).
+      return { body: JSON.stringify("v0.3.0") };
     case M.ListCollections:
       return { body: collections };
     case M.ListSources: {

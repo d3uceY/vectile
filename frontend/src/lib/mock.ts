@@ -4,7 +4,7 @@ export const exampleQueries = [
   "kubernetes rollout",
   "exposure triangle",
   "quorum",
-  "invoice from supplier",
+  "how do we ship changes safely",
 ];
 
 /** Query terms, for snippet highlighting. */

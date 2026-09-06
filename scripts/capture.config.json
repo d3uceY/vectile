@@ -34,7 +34,7 @@
       "name": "settings-mascot",
       "out": "docs/screenshots/settings-mascot.png",
       "interactView": "settings",
-      "scrollTo": "h2:has-text('Vexter')"
+      "settingsSection": "vexter"
     }
   ]
 }

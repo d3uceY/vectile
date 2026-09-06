@@ -2,11 +2,22 @@
 
 A fully local, privacy-preserving RAG (Retrieval Augmented Generation) system for Windows, macOS, and Linux. It indexes personal knowledge from several sources into a single SQLite database with hybrid vector + full-text search, then lets you find things by meaning, not just by exact words, from a fast keyboard-first desktop app. Everything runs on your machine. No server, no cloud, no network calls.
 
-Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys, no model downloads. The embedding model is a `.gguf` file you import once; after that it runs in-process.
+Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embedding model runs in-process from a `.gguf` file: import one of your own, or download one from the built-in catalog. Either way, nothing leaves your machine.
 
 <p align="center">
   <img src="docs/vectile-banner.svg" alt="vectile: your private library" width="100%">
 </p>
+
+## Features
+
+- **Fully local and private.** Searches run on your machine against an in-process embedding model. No server, no cloud, no telemetry, no account.
+- **Hybrid search.** Vector and full-text results are fused with Reciprocal Rank Fusion, so a query can find a note that never uses your exact words.
+- **Index what you keep.** Obsidian vaults, project folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, EPUB), Calibre libraries, and code repositories including their commit history.
+- **Built-in model manager.** Import your own `.gguf`, pick the active model, or download one from the curated catalog in Settings with a live progress bar.
+- **Keyboard-first desktop UI.** Jump to search from anywhere with ⌘K / Ctrl K, and move between Search, Library, Browse, Index, and Settings from the sidebar.
+- **Manage your library.** Expand a collection to its files, drill into individual chunks, and delete stale sources, selected chunks, or a whole library in place.
+- **AI assistant access (MCP).** Serve search and collection tools to Claude Desktop or any MCP client over a local server, with index and prune tools available behind an Allow write tools toggle.
+- **A little company.** Vexter, the pixel dinosaur, pokes up in the sidebar while you search, index, or come up empty. Settings → Vexter controls each moment.
 
 ## Download
 

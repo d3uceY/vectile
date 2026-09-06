@@ -43,6 +43,13 @@ export async function interact(page, job) {
       setter.call(input, q);
       input.dispatchEvent(new Event("input", { bubbles: true }));
     }, query);
+
+    await page
+      .locator("main article")
+      .first()
+      .waitFor({ state: "visible", timeout: 8000 })
+      .catch(() => {});
+    await page.waitForTimeout(1700);
     return;
   }
 
@@ -71,6 +78,26 @@ export async function interact(page, job) {
       .first()
       .waitFor({ state: "visible", timeout: 8000 })
       .catch(() => {});
+    return;
+  }
+
+  // Settings is a rail of sections; only the active one renders. A job that
+  // wants a specific card (e.g. `settingsSection: "vexter"`) clicks its rail
+  // button. Scoped to the rail nav so hidden mobile chips are never matched.
+  if (view === "settings" && job.settingsSection) {
+    const btn = page.locator(
+      `nav[aria-label="Settings sections"] button:has-text("${job.settingsSection}")`,
+    );
+    await btn.first().waitFor({ state: "visible", timeout: 8000 }).catch(() => {});
+    if (await btn.count()) {
+      await btn.first().click();
+      await page
+        .locator("main h2")
+        .filter({ hasText: job.settingsSection })
+        .first()
+        .waitFor({ state: "visible", timeout: 8000 })
+        .catch(() => {});
+    }
     return;
   }
 }

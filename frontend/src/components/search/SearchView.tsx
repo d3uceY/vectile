@@ -10,12 +10,10 @@ import { ResultCard } from "./ResultCard";
 const typeOptions = [
   { value: "", label: "Any type" },
   { value: "markdown", label: "Markdown" },
-  { value: "email", label: "Email" },
   { value: "pdf", label: "PDF" },
   { value: "epub", label: "EPUB" },
   { value: "plaintext", label: "Plain text" }, // must match backend source_type
   { value: "code", label: "Code" },
-  { value: "rss", label: "RSS" },
 ];
 
 const SEARCH_DEBOUNCE_MS = 350;
@@ -111,7 +109,7 @@ export function SearchView() {
             id="search-input"
             ref={(el) => store.registerSearchInput(el)}
             class="h-13 w-full bg-transparent text-[15.5px] text-ink outline-none placeholder:text-faint"
-            placeholder="Search your notes, books, email, and code"
+            placeholder="Search your notes, books, and code"
             value={value()}
             onInput={(e) => onInput(e.currentTarget.value)}
             onKeyDown={(e) => {
