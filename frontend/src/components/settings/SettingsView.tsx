@@ -894,7 +894,7 @@ export function SettingsView() {
         <div class="scroll-quiet -mr-2 flex-1 overflow-y-auto pb-20 pr-2">
           <Section
             title="Model"
-            note="The embedding engine runs in-process. Drop a .gguf into the models folder, or import one below."
+            note="Drop a .gguf into the models folder, or import one below."
           >
             <div class="flex flex-wrap items-center gap-3">
               <StatusPill state={store.modelState()} name={store.modelName()} />
