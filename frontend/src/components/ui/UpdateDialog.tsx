@@ -22,8 +22,8 @@ export function UpdateDialog(props: {
         onClick={props.onDismiss}
       >
         <div class="sheet w-[23rem] p-6 shadow-pop" onClick={(e) => e.stopPropagation()}>
-          <p class="data flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-leaf">
-            <span class="h-1.5 w-1.5 rounded-full bg-leaf" aria-hidden="true" />
+          <p class="data flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-deep">
+            <span class="h-1.5 w-1.5 rounded-full bg-amber" aria-hidden="true" />
             update
           </p>
           <h3 class="title mt-2 text-[17px] tracking-[-0.01em] text-ink">A new version is here</h3>
@@ -37,9 +37,9 @@ export function UpdateDialog(props: {
               <p class="data text-[10.5px] uppercase tracking-[0.12em] text-muted">installed</p>
               <p class="data mt-1 text-[13px] text-muted">{props.current}</p>
             </div>
-            <div class="bg-mint px-3.5 py-2.5">
-              <p class="data text-[10.5px] uppercase tracking-[0.12em] text-leaf-deep">latest</p>
-              <p class="data mt-1 text-[13px] font-semibold text-leaf-deep">{props.latest}</p>
+            <div class="bg-indigo-soft px-3.5 py-2.5">
+              <p class="data text-[10.5px] uppercase tracking-[0.12em] text-indigo-deep">latest</p>
+              <p class="data mt-1 text-[13px] font-semibold text-indigo-deep">{props.latest}</p>
             </div>
           </div>
 

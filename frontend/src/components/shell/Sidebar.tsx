@@ -41,7 +41,7 @@ export function Sidebar() {
       {/* Title plate */}
       <div class="flex flex-col items-center gap-2.5 pb-4 pt-6 md:block md:px-5">
         <div class="flex items-center justify-center gap-3 md:justify-start">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-centershadow-[0_1px_1px_rgb(27_34_38/0.05)]">
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center">
             <img src="/vectile-logo.png" alt="vectile" class="h-10 w-10" />
           </span>
           <span class="hidden font-serif text-[25px] font-medium leading-none tracking-[-0.015em] text-ink md:inline">
@@ -63,15 +63,15 @@ export function Sidebar() {
                   <button
                     class={`group relative flex w-full items-center justify-center gap-3 rounded-l-[9px] py-2 text-[13.5px] font-medium transition-colors duration-150 ease-snappy md:justify-start md:px-3 ${
                       active()
-                        ? "-mr-4.25 bg-mint-strong text-leaf-deep"
-                        : "text-ink-soft hover:bg-mint-strong hover:text-ink"
+                        ? "-mr-4.25 bg-indigo text-white"
+                        : "text-ink-soft hover:bg-surface-2 hover:text-ink"
                     }`}
                     aria-current={active() ? "page" : undefined}
                     aria-label={item.label}
                     title={item.label}
                     onClick={() => store.setView(item.id)}
                   >
-                    <span class={active() ? "text-leaf" : "text-faint group-hover:text-ink-soft"}>
+                    <span class={active() ? "text-white" : "text-faint group-hover:text-ink-soft"}>
                       <Icon size={17} />
                     </span>
                     <span class="hidden md:inline">{item.label}</span>

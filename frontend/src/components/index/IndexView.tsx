@@ -87,7 +87,7 @@ export function IndexView() {
                         <span class="title truncate text-[15px] tracking-[-0.01em] text-ink">{item.name}</span>
                         <Chip tone={item.type === "code" ? "code" : "neutral"}>{item.type}</Chip>
                         {!item.enabled && <Chip>disabled</Chip>}
-                        {col()?.needsReindex && <Chip tone="mint">needs reindex</Chip>}
+                        {col()?.needsReindex && <Chip tone="amber">needs reindex</Chip>}
                       </div>
                       <p class="data mt-1 text-muted">
                         {col() ? `${col()!.sources} sources · ${col()!.chunks.toLocaleString()} chunks` : "not indexed yet"}

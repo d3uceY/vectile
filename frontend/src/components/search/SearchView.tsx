@@ -5,7 +5,6 @@ import type { SearchFilters } from "../../lib/types";
 import { exampleQueries, termsOf } from "../../lib/mock";
 import { SearchIcon, CloseIcon, BoltIcon } from "../ui/icons";
 import { EmptyState, Button, Kbd, Select, Skeleton } from "../ui/primitives";
-import { GridPattern } from "../ui/patterns";
 import { ResultCard } from "./ResultCard";
 
 const typeOptions = [
@@ -152,7 +151,7 @@ export function SearchView() {
           <button
             class={`inline-flex h-8 items-center gap-1.5 rounded-control border px-3 text-[13px] transition-colors ${
               showAdvanced()
-                ? "border-leaf/50 bg-mint-strong text-leaf-deep"
+                ? "border-indigo/40 bg-indigo-mist text-indigo-deep"
                 : "border-line bg-paper text-ink-soft hover:border-line-strong"
             }`}
             onClick={() => setShowAdvanced((v) => !v)}
@@ -160,7 +159,7 @@ export function SearchView() {
           >
             Filters
             <Show when={anyFilter()}>
-              <span class="h-1.5 w-1.5 rounded-full bg-leaf" />
+              <span class="h-1.5 w-1.5 rounded-full bg-indigo" />
             </Show>
           </button>
         </div>
@@ -240,11 +239,8 @@ function FilterField(props: { label: string; children: JSX.Element }) {
 function IdleState(props: { onPick: (q: string) => void }) {
   return (
     <div class="relative flex h-full flex-col items-center justify-center">
-      <div class="pointer-events-none absolute inset-0 text-leaf/[0.06]">
-        <GridPattern width={32} height={32} />
-      </div>
       <div class="relative flex flex-col items-center text-center">
-        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-card border border-line bg-surface text-leaf shadow-card">
+        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-card border border-line bg-surface text-indigo shadow-card">
           <BoltIcon size={20} />
         </div>
         <h2 class="title text-[22px] tracking-[-0.02em] text-ink">
@@ -257,7 +253,7 @@ function IdleState(props: { onPick: (q: string) => void }) {
           <For each={exampleQueries}>
             {(q) => (
               <button
-                class="rounded-full border border-line bg-paper px-3.5 py-1.5 text-[13px] text-ink-soft transition-all duration-150 ease-snappy hover:border-leaf/50 hover:text-leaf-deep active:scale-[0.98]"
+                class="rounded-full border border-line bg-paper px-3.5 py-1.5 text-[13px] text-ink-soft transition-all duration-150 ease-snappy hover:border-indigo/50 hover:text-indigo-deep active:scale-[0.98]"
                 onClick={() => props.onPick(q)}
               >
                 {q}
@@ -314,7 +310,7 @@ function ResultList() {
             <button
               type="button"
               class={`h-6 rounded-full px-2.5 text-[11.5px] font-medium transition-colors duration-150 ease-snappy ${
-                store.scoreDisplay() === "rank" ? "bg-mint-strong text-leaf-deep" : "text-muted hover:text-ink"
+                store.scoreDisplay() === "rank" ? "bg-indigo-mist text-indigo-deep" : "text-muted hover:text-ink"
               }`}
               onClick={() => store.setScoreDisplay("rank")}
               aria-pressed={store.scoreDisplay() === "rank"}
@@ -324,7 +320,7 @@ function ResultList() {
             <button
               type="button"
               class={`h-6 rounded-full px-2.5 text-[11.5px] font-medium transition-colors duration-150 ease-snappy ${
-                store.scoreDisplay() === "percent" ? "bg-mint-strong text-leaf-deep" : "text-muted hover:text-ink"
+                store.scoreDisplay() === "percent" ? "bg-indigo-mist text-indigo-deep" : "text-muted hover:text-ink"
               }`}
               onClick={() => store.setScoreDisplay("percent")}
               aria-pressed={store.scoreDisplay() === "percent"}

@@ -17,11 +17,11 @@ export function Button(props: ButtonProps) {
     size === "sm" ? "h-8 px-3 text-[13px]" : "h-9.5 px-4 text-sm"
   } ${
     variant === "primary"
-      ? "bg-leaf-deep text-white hover:bg-leaf shadow-[0_1px_2px_rgb(23_115_64/0.3)]"
+      ? "bg-leaf-deep text-white hover:bg-leaf shadow-[0_1px_2px_rgb(21_112_62/0.3)]"
       : variant === "outline"
-        ? "border border-line-strong bg-paper text-ink-soft hover:border-leaf/50 hover:text-ink"
+        ? "border border-line-strong bg-paper text-ink-soft hover:border-indigo/50 hover:text-indigo-deep"
         : variant === "ghost"
-          ? "text-ink-soft hover:bg-mint-strong hover:text-ink"
+          ? "text-ink-soft hover:bg-indigo-soft hover:text-indigo-deep"
           : variant === "danger"
             ? "border border-danger/40 bg-paper text-danger hover:border-danger hover:bg-danger-soft"
             : "text-faint hover:text-ink"
@@ -54,18 +54,22 @@ export function Kbd(props: { children: JSX.Element; class?: string }) {
 
 export function Chip(props: {
   children: JSX.Element;
-  tone?: "neutral" | "mint" | "leaf" | "code";
+  tone?: "neutral" | "mint" | "leaf" | "code" | "amber" | "indigo";
   class?: string;
 }) {
   const tone = props.tone ?? "neutral";
   const cls =
     tone === "mint"
-      ? "bg-mint text-leaf-deep"
+      ? "bg-surface-2 text-muted"
       : tone === "leaf"
         ? "bg-leaf text-white"
         : tone === "code"
           ? "bg-paper text-muted font-mono"
-          : "bg-paper text-muted";
+          : tone === "amber"
+            ? "bg-amber-soft text-amber-deep"
+            : tone === "indigo"
+              ? "bg-indigo-soft text-indigo-deep"
+              : "bg-paper text-muted";
   return (
     <span
       class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-medium leading-4 ${cls} ${props.class ?? ""}`}
@@ -179,7 +183,7 @@ export function Select(props: SelectProps) {
         <button
           ref={trigger}
           type="button"
-          class="inline-flex h-8 min-w-0 flex-1 items-center rounded-control border border-line bg-paper pl-3 pr-8 text-[13px] text-ink transition-colors hover:border-line-strong focus:border-leaf"
+          class="inline-flex h-8 min-w-0 flex-1 items-center rounded-control border border-line bg-paper pl-3 pr-8 text-[13px] text-ink transition-colors hover:border-line-strong focus:border-indigo"
           aria-label={props["aria-label"]}
           aria-haspopup="listbox"
           aria-expanded={open()}
@@ -213,7 +217,7 @@ export function Select(props: SelectProps) {
                   aria-selected={o.value === props.value}
                   class={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] ${
                     i() === activeIdx()
-                      ? "bg-mint-strong text-ink"
+                      ? "bg-indigo-mist text-ink"
                       : o.value === props.value
                         ? "text-ink"
                         : "text-ink-soft"
@@ -249,7 +253,7 @@ export function Switch(props: {
       aria-checked={props.checked}
       aria-label={props.label}
       onClick={() => props.onChange(!props.checked)}
-      class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-150 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
+      class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-150 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
         props.checked ? "border-leaf bg-leaf" : "border-line-strong bg-surface"
       }`}
     >
@@ -272,7 +276,7 @@ export function Toggle(props: {
   hint?: string;
 }) {
   return (
-    <div class="flex items-center justify-between gap-4 py-1">
+    <div class="flex items-center justify-between gap-4 py-2">
       <span>
         <span class="flex items-center gap-1.5">
           <span class="block text-sm text-ink">{props.label}</span>
@@ -322,7 +326,7 @@ export function InfoTip(props: { text: string; class?: string }) {
       <button
         ref={ref}
         type="button"
-        class={`inline-flex shrink-0 items-center justify-center rounded-full text-faint transition-colors hover:text-leaf focus-visible:text-leaf ${props.class ?? ""}`}
+        class={`inline-flex shrink-0 items-center justify-center rounded-full text-faint transition-colors hover:text-indigo focus-visible:text-indigo ${props.class ?? ""}`}
         aria-label="What this setting does"
         onMouseEnter={show}
         onMouseLeave={hide}
@@ -403,7 +407,7 @@ export function EmptyState(props: {
   return (
     <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
       {props.icon && (
-        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-card border border-line bg-surface text-leaf">
+          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-card border border-line bg-surface text-indigo">
           {props.icon}
         </div>
       )}

@@ -148,7 +148,7 @@ export function FileTree(props: {
     <div>
       <Show when={props.showExpandAll}>
         <button
-          class="mb-1 flex items-center gap-1.5 px-1 text-[12px] text-faint transition-colors hover:text-leaf"
+          class="mb-1 flex items-center gap-1.5 px-1 text-[12px] text-faint transition-colors hover:text-indigo"
           onClick={toggleAll}
         >
           <ChevronDown size={12} class={allExpanded() ? "rotate-180 transition-transform" : "transition-transform"} />
@@ -168,7 +168,7 @@ export function FileTree(props: {
               onKeyDown={(e) => onKeyDown(e, i())}
               class={`group relative flex w-full items-center gap-1.5 rounded-lg px-1.5 py-0.75 text-left text-[13px] transition-colors duration-100 ease-snappy ${
                 selectedId() === row.node.id
-                  ? "bg-mint-strong text-ink"
+                  ? "bg-indigo-mist text-ink"
                   : "text-ink-soft hover:bg-surface"
               } ${row.node.isSelectable === false ? "cursor-default" : "cursor-pointer"}`}
               style={{ "padding-inline-start": `${8 + row.depth * 16}px` }}
@@ -192,8 +192,8 @@ export function FileTree(props: {
                   }}
                   class={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors duration-100 ease-snappy ${
                     props.isChecked?.(row.node.id)
-                      ? "border-leaf bg-leaf text-white"
-                      : "border-line-strong bg-paper text-transparent hover:border-leaf/60"
+                      ? "border-indigo bg-indigo text-white"
+                      : "border-line-strong bg-paper text-transparent hover:border-indigo/60"
                   }`}
                 >
                   <CheckIcon size={11} strokeWidth={2.5} />
@@ -209,7 +209,7 @@ export function FileTree(props: {
               <span class="flex h-4 w-4 shrink-0 items-center justify-center">
                 {row.hasChildren
                   ? expanded().has(row.node.id)
-                    ? <FolderOpenIcon size={15} class="text-leaf" />
+                    ? <FolderOpenIcon size={15} class="text-indigo" />
                     : <FolderIcon size={15} class="text-faint" />
                   : <FileIcon size={14} class="text-faint" />}
               </span>

@@ -26,7 +26,7 @@ export function CatalogModelCard(props: {
           <p class="flex items-center gap-1.5 text-[13px] font-medium text-ink">
             {m().name}
             <Show when={m().recommended}>
-              <span class="rounded-control bg-mint px-1.5 py-0.5 text-[10.5px] font-medium text-leaf-deep">
+              <span class="rounded-control bg-amber-soft px-1.5 py-0.5 text-[10.5px] font-medium text-amber-deep">
                 recommended
               </span>
             </Show>
@@ -42,7 +42,7 @@ export function CatalogModelCard(props: {
             when={!installed()}
             fallback={
               <div class="flex items-center gap-2">
-                <span class="rounded-control bg-mint px-1.5 py-0.5 text-[10.5px] font-medium text-leaf-deep">
+                <span class="rounded-control bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium text-muted">
                   installed
                 </span>
                 <Button size="sm" variant="danger" onClick={() => props.onUninstall(m().file)}>

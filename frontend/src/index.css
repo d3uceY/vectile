@@ -7,8 +7,6 @@
    ============================================================ */
 
 /* Self-hosted type (a desktop app must never hit a CDN at runtime) */
-@import "@fontsource-variable/fraunces/opsz.css";
-@import "@fontsource-variable/fraunces/opsz-italic.css";
 @import "@fontsource-variable/plus-jakarta-sans";
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
@@ -17,33 +15,46 @@
 @import "driver.js/dist/driver.css";
 
 @theme {
-  /* Type voices: Fraunces (serif) carries titles + reading; Plus Jakarta
-     Sans runs the chrome; IBM Plex Mono handles data lines. */
+  /* Type: Plus Jakarta Sans carries all voices (chrome + display via weight);
+     IBM Plex Mono handles data lines only. */
   --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Fraunces Variable", "Fraunces", Georgia, "Times New Roman", serif;
+  --font-serif: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", Georgia, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Warm paper ground + a soft green ambient wash. Still light and airy, but
-     the ground is cream and green reads as a surface (sidebar, cards, chips). */
-  --color-paper: #fbf8f0;
-  --color-paper-warm: #f4efe1;
-  --color-surface: #e9f0e0;
-  --color-surface-2: #dcead0;
-  --color-sidebar: #edf2e3;
-  --color-ink: #1b2226;
-  --color-ink-soft: #39434b;
-  --color-muted: #4f5950; /* ≥4.5:1 on paper; micro-labels use muted */
-  --color-faint: #667068; /* data labels */
-  --color-line: #e4e7dc;
-  --color-line-strong: #d0d6c8;
+  /* Studio editorial: warm bone ground, white cards, warm-neutral hairlines.
+     Neutrals carry no green tint. */
+  --color-paper: #f6f4ef; /* app ground: warm bone */
+  --color-paper-warm: #f0ece3; /* cardstock plates */
+  --color-surface: #ffffff; /* white card / inset surface */
+  --color-surface-2: #f1efe9; /* hover + light fills */
+  --color-sidebar: #efede7; /* neutral column */
+  --color-ink: #24272c;
+  --color-ink-soft: #3f454d;
+  --color-muted: #5e656c; /* ≥4.5:1 on paper */
+  --color-faint: #767d85; /* data labels */
+  --color-line: #e6e2da;
+  --color-line-strong: #cfcac0;
 
-  /* The one accent: friendly leaf green */
-  --color-mint: #e3f3e7;
-  --color-mint-strong: #c7ead4;
-  --color-mint-deep: #a9e3c0;
-  --color-leaf: #1f8a50;
-  --color-leaf-deep: #177340;
-  --color-leaf-soft: #45a06b;
+  /* Brand + primary action + success: leaf green (single job) */
+  --color-mint: #e4f3e9;
+  --color-mint-strong: #c8ecd6;
+  --color-mint-deep: #a4dfbd;
+  --color-leaf: #1e8a4e;
+  --color-leaf-deep: #15703e;
+  --color-leaf-soft: #46a06c;
+
+  /* Attention / in-progress / unsaved / needs-reindex: warm amber */
+  --color-amber: #b45309;
+  --color-amber-deep: #92400e;
+  --color-amber-soft: #fbeeda;
+  --color-amber-warm: #f0d9ad;
+
+  /* Interaction green: active, selection, links, data. Aliased to the brand
+     green so "you are here" matches primary actions (user preference). */
+  --color-indigo: #15703e;
+  --color-indigo-deep: #15703e;
+  --color-indigo-soft: #e4f3e9;
+  --color-indigo-mist: #c8ecd6;
 
   /* Warm note for matched search terms */
   --color-highlighter: #fff1a8;
@@ -58,8 +69,8 @@
   --radius-control: 10px;
 
   /* Shadows: offset + blur only, no zero-offset halos */
-  --shadow-card: 0 1px 2px rgb(27 34 38 / 0.05), 0 14px 30px -18px rgb(27 34 38 / 0.16);
-  --shadow-pop: 0 2px 6px rgb(27 34 38 / 0.06), 0 22px 44px -22px rgb(27 34 38 / 0.22);
+  --shadow-card: 0 1px 2px rgb(36 39 44 / 0.05), 0 14px 30px -18px rgb(36 39 44 / 0.14);
+  --shadow-pop: 0 2px 6px rgb(36 39 44 / 0.06), 0 22px 44px -22px rgb(36 39 44 / 0.2);
 
   /* Motion */
   --ease-snappy: cubic-bezier(0.22, 0.8, 0.24, 1);
@@ -113,7 +124,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-leaf);
+    outline: 2px solid var(--color-leaf-deep);
     outline-offset: 2px;
   }
 
@@ -138,11 +149,12 @@
     letter-spacing: 0.005em;
   }
 
-  /* Display voice: serif for titles, the library index-card look. Pair with
-     a size/color class; this swaps the typeface and weight only. */
+  /* Display voice: the sans carries display weight; headings pair a size/
+     color class with this for tight, confident titles. */
   .title {
     font-family: var(--font-serif);
-    font-weight: 400;
+    font-weight: 600;
+    letter-spacing: -0.02em;
   }
 
   /* Reading voice: serif for passages, snippets, and document chunks: the
@@ -171,14 +183,6 @@
 
   /* Warm paper + green ambient wash: a soft green haze behind the hero/content.
      A radial gradient, never a box-shadow halo (depth stays in --shadow-card). */
-  .lamp-glow {
-    background: radial-gradient(
-      70% 62% at 50% 0%,
-      rgb(31 138 80 / 0.10) 0%,
-      rgb(31 138 80 / 0.03) 46%,
-      transparent 76%
-    );
-  }
 
   /* Draggable progress-bar slider for 0..1 blends (search weights). The track
      paints its filled portion from the --fill custom property (set inline by
@@ -190,7 +194,7 @@
     border-radius: 9999px;
     background: linear-gradient(
       to right,
-      var(--color-leaf) var(--fill, 0%),
+      var(--color-leaf-deep) var(--fill, 0%),
       var(--color-line) var(--fill, 0%)
     );
     outline-offset: 4px;
@@ -203,15 +207,15 @@
     height: 16px;
     border-radius: 9999px;
     background: #fff;
-    border: 1.5px solid var(--color-leaf);
-    box-shadow: 0 1px 3px rgb(27 34 38 / 0.25);
+    border: 1.5px solid var(--color-leaf-deep);
+    box-shadow: 0 1px 3px rgb(36 39 44 / 0.25);
     transition: transform 120ms var(--ease-snappy);
   }
   .slider::-webkit-slider-thumb:hover {
     transform: scale(1.12);
   }
   .slider:focus-visible {
-    outline: 2px solid var(--color-leaf);
+    outline: 2px solid var(--color-leaf-deep);
     outline-offset: 4px;
   }
 
@@ -451,4 +455,10 @@
 }
 .driver-popover .driver-popover-btn-disabled {
   opacity: 0.4;
+}
+
+/* Interactive focus accents follow the global active color (green), even
+   where an input's focus border was authored as leaf green. */
+.focus\:border-leaf:focus {
+  border-color: var(--color-leaf-deep);
 }

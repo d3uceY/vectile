@@ -44,7 +44,7 @@ export function StatusStrip(props: { version?: string }) {
         </button>
         {props.version && (
           <button
-            class="data hidden shrink-0 cursor-pointer text-muted transition-colors hover:text-leaf-deep md:inline"
+            class="data hidden shrink-0 cursor-pointer text-muted transition-colors hover:text-indigo-deep md:inline"
             title="vectile on GitHub"
             onClick={() => openExternal(HOME_URL)}
           >

@@ -2,7 +2,6 @@ import { createSignal, For, Show } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import { ChevronDown, LibraryIcon, TrashIcon } from "../ui/icons";
 import { Button, Chip, ConfirmDialog, EmptyState, ViewHeading } from "../ui/primitives";
-import { GridPattern } from "../ui/patterns";
 
 const typeLabel: Record<string, string> = {
   system: "system",
@@ -52,9 +51,6 @@ export function LibraryView() {
 
   return (
     <div class="relative flex h-full flex-col">
-      <div class="pointer-events-none absolute inset-0 text-leaf/[0.05]">
-        <GridPattern width={40} height={40} />
-      </div>
       <div class="relative">
         <ViewHeading
           title="Library"
@@ -99,7 +95,7 @@ export function LibraryView() {
                     <div class="flex items-stretch">
                       <button
                         class={`grid flex-1 grid-cols-12 items-center gap-2 px-5 py-3.5 text-left transition-colors duration-100 ease-snappy ${
-                          isOpen() ? "bg-mint-strong/50" : "hover:bg-surface"
+                          isOpen() ? "bg-indigo-mist/40" : "hover:bg-surface-2"
                         }`}
                         onClick={() => toggle(c.id)}
                         aria-expanded={isOpen()}

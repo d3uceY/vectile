@@ -2,7 +2,6 @@ import { createSignal, onCleanup, onMount, Show } from "solid-js";
 import * as api from "../../lib/api";
 import { useAppStore } from "../../lib/store";
 import { fetchLatestRelease, isDesktop, isNewer } from "../../lib/update";
-import { NoiseTexture } from "../ui/noise-texture";
 import { ToastStack } from "../ui/primitives";
 import { UpdateDialog } from "../ui/UpdateDialog";
 import { ModelDownloadDialog } from "../ui/ModelDownloadDialog";
@@ -44,12 +43,6 @@ export function AppShell() {
 
   return (
     <div class="relative flex h-full overflow-hidden bg-paper text-ink">
-      <div class="pointer-events-none absolute inset-0 text-ink/10">
-        <NoiseTexture />
-      </div>
-      {/* Soft green ambient wash: the warm atmosphere behind every view */}
-      <div class="lamp-glow pointer-events-none absolute inset-0" aria-hidden="true" />
-
       <Sidebar />
 
       <div class="relative flex min-w-0 flex-1 flex-col">

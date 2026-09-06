@@ -11,7 +11,6 @@ import {
   Skeleton,
 } from "../ui/primitives";
 import { BrowseIcon, TrashIcon } from "../ui/icons";
-import { GridPattern } from "../ui/patterns";
 
 const cid = (n: number) => `c-${n}`; // collection folder
 const sid = (n: number) => `s-${n}`; // source folder
@@ -192,11 +191,6 @@ export function BrowseView() {
 
   return (
     <div class="relative flex h-full flex-col">
-      {/* The graph-paper moment for browsing the stack */}
-      <div class="pointer-events-none absolute inset-0 text-leaf/[0.07]">
-        <GridPattern width={34} height={34} />
-      </div>
-
       <div class="relative">
         <ViewHeading title="Browse" note="Read the chunks inside your files." />
       </div>
@@ -262,13 +256,13 @@ export function BrowseView() {
         <div class="flex h-full min-h-0 flex-col gap-4 @lg:grid @lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
           <div class="flex min-h-0 flex-1 flex-col gap-2">
             <Show when={libraryDocs().length > 0}>
-              <div class="flex items-center gap-2 rounded-lg bg-mint/60 px-2.5 py-1.5">
+              <div class="flex items-center gap-2 rounded-lg bg-indigo-soft/70 px-2.5 py-1.5">
                 <span class="data text-[12px] font-medium text-ink">
-                  {nChecked() > 0 ? `${nChecked()} selected` : "Select chunks to delete them"}
+                  {nChecked() > 0 ? `${nChecked()} selected` : "Select chunks to delete"}
                 </span>
                 <button
                   type="button"
-                  class="data text-[12px] text-leaf hover:underline"
+                  class="data text-[12px] text-indigo hover:underline"
                   onClick={selectAll}
                 >
                   Select all
@@ -276,7 +270,7 @@ export function BrowseView() {
                 <Show when={nChecked() > 0}>
                   <button
                     type="button"
-                    class="data text-[12px] text-leaf hover:underline"
+                    class="data text-[12px] text-indigo hover:underline"
                     onClick={clearChecked}
                   >
                     Clear

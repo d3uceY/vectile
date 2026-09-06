@@ -69,8 +69,8 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
 
   return (
     <article
-      class={`sheet px-5 py-4 transition-all duration-150 ease-snappy hover:border-leaf/40 hover:shadow-card ${
-        open() ? "border-leaf/40 shadow-card" : ""
+      class={`sheet px-5 py-4 transition-all duration-150 ease-snappy hover:border-indigo/40 hover:shadow-card ${
+        open() ? "border-indigo/40 shadow-card" : ""
       }`}
     >
       {/* Title row is the expand toggle; open/reveal live in the expanded panel
@@ -85,7 +85,7 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
         <h3 class="title min-w-0 flex-1 text-[15px] leading-6 tracking-[-0.005em] text-ink">
           <Highlighted text={r().title} terms={props.terms} />
         </h3>
-        <span class="data mt-1 shrink-0 text-leaf">{score()}</span>
+        <span class="data mt-1 shrink-0 text-indigo">{score()}</span>
       </button>
 
       <p class="read mt-1.5 line-clamp-3 text-[14.5px] leading-[1.6] text-muted">
@@ -104,15 +104,15 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
             <span class="ml-auto flex items-center gap-1.5">
               <button
                 type="button"
-                class="inline-flex h-8 items-center gap-1.5 rounded-control border border-line-strong bg-paper px-2.5 text-[12.5px] font-medium text-ink-soft transition-colors duration-150 ease-snappy hover:border-leaf/50 hover:text-ink"
+                class="inline-flex h-8 items-center gap-1.5 rounded-control border border-line-strong bg-paper px-2.5 text-[12.5px] font-medium text-ink-soft transition-colors duration-150 ease-snappy hover:border-indigo/50 hover:text-ink"
                 onClick={() => void onOpen()}
               >
-                <FolderOpenIcon size={14} class="text-leaf" />
+                <FolderOpenIcon size={14} class="text-indigo" />
                 Open file
               </button>
               <button
                 type="button"
-                class="flex h-8 w-8 items-center justify-center rounded-control border border-line-strong bg-paper text-muted transition-colors duration-150 ease-snappy hover:border-leaf/50 hover:text-ink"
+                class="flex h-8 w-8 items-center justify-center rounded-control border border-line-strong bg-paper text-muted transition-colors duration-150 ease-snappy hover:border-indigo/50 hover:text-ink"
                 onClick={() => void onReveal()}
                 aria-label="Reveal in folder"
                 title="Reveal in folder"
