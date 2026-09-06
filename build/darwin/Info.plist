@@ -10,11 +10,11 @@
         <key>CFBundleIdentifier</key>
             <string>com.d3ucey.vectile</string>
         <key>CFBundleVersion</key>
-            <string>0.2.1</string>
+            <string>0.3.0</string>
         <key>CFBundleGetInfoString</key>
             <string>Built using Wails (https://wails.io)</string>
         <key>CFBundleShortVersionString</key>
-            <string>0.2.1</string>
+            <string>0.3.0</string>
         <key>CFBundleIconFile</key>
             <string>iconfile</string>
         <key>CFBundleIconName</key>
