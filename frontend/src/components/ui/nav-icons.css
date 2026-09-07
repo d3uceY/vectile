@@ -1,0 +1,156 @@
+/* ============================================================
+   Morphing nav icons
+   Rest/open glyph pairs for the primary sidebar and the settings
+   rail. One class toggle (.navico--open) drives every state; the
+   active tab's icon transforms into an "open" glyph and holds it,
+   releasing back to rest when the tab/section is left.
+
+   Parts are tagged by what they do when the icon opens:
+     .mo   - open-only strokes: drawn in (dash), staggered via --d
+     .mof  - open-only filled shapes: scale + fade in
+     .mv   - rest-only: fades/sinks out to hand over to the open glyph
+     .ms   - persistent parts that SLIDE to a new position
+
+   Motion uses only transform / opacity / stroke-dashoffset so it stays
+   on the compositor. End states are class-driven, so nothing depends on
+   an animation finishing: reduced motion still shows the open glyph,
+   just without the travel. Opening is choreographed (staggered draw),
+   closing is a fast uniform handoff so the UI never lingers.
+   ============================================================ */
+
+.navico {
+  display: block;
+}
+
+/* --- open-only strokes ------------------------------------ */
+.navico .mo,
+.navico .mof {
+  --d: 0ms;
+}
+.navico .mo-2,
+.navico .mof-2 {
+  --d: 60ms;
+}
+.navico .mo-3,
+.navico .mof-3 {
+  --d: 110ms;
+}
+.navico .mo-4,
+.navico .mof-4 {
+  --d: 155ms;
+}
+.navico .mo-5,
+.navico .mof-5 {
+  --d: 200ms;
+}
+.navico .mo-6,
+.navico .mof-6 {
+  --d: 245ms;
+}
+
+.navico .mo {
+  opacity: 0;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform: translateY(2px) scale(0.94);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    stroke-dashoffset 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--d, 0ms);
+}
+.navico--open .mo {
+  opacity: 1;
+  stroke-dashoffset: 0;
+  transform: none;
+}
+
+/* --- open-only filled shapes (dots, solid slices) --------- */
+.navico .mof {
+  opacity: 0;
+  fill: currentColor;
+  stroke: none;
+  transform: scale(0.2);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--d, 0ms);
+}
+.navico--open .mof {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* --- rest-only parts (hand off to the open glyph) --------- */
+.navico .mv {
+  transition:
+    opacity 110ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.navico--open .mv {
+  opacity: 0;
+  transform: translateY(-1.5px);
+}
+
+/* --- persistent parts that slide (settings knobs) --------- */
+.navico .ms {
+  transform-box: fill-box;
+  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--d, 0ms);
+}
+.navico--open .ms {
+  transform: translate(var(--tx, 0px), var(--ty, 0px));
+}
+
+/* --- closing: fast, uniform, no stagger ------------------- */
+.navico:not(.navico--open) .mo,
+.navico:not(.navico--open) .mof {
+  transition-delay: 0ms;
+  transition-duration: 90ms, 120ms, 150ms;
+}
+.navico:not(.navico--open) .ms {
+  transition-delay: 0ms;
+  transition-duration: 150ms;
+}
+
+/* --- one-shot echo, replayed on each activation -----------
+   Mounted with a class per real activation, plays once, unmounts
+   when the tab is released. */
+.navico .morph-echo {
+  display: contents;
+}
+.navico .morph-echo > * {
+  opacity: 0;
+  stroke-dasharray: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: navico-echo 660ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes navico-echo {
+  0% {
+    opacity: 0.75;
+    transform: scale(0.3);
+  }
+  70% {
+    opacity: 0.18;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navico .mo,
+  .navico .mof,
+  .navico .ms {
+    transition-delay: 0ms !important;
+  }
+  .navico .morph-echo > * {
+    animation: none;
+  }
+}

@@ -3,20 +3,24 @@ import { useAppStore } from "../../lib/store";
 import type { ModelState, ViewId } from "../../lib/types";
 import { modelStateMeta } from "../ui/primitives";
 import {
-  BrowseIcon,
-  IndexIcon,
-  LibraryIcon,
-  SearchIcon,
-  SettingsIcon,
-} from "../ui/icons";
+  BrowseNavIcon,
+  IndexNavIcon,
+  LibraryNavIcon,
+  SearchNavIcon,
+  SettingsNavIcon,
+} from "../ui/nav-icons";
 import { Mascot } from "./mascot";
 
-const NAV: { id: ViewId; label: string; icon: (p: { size?: number }) => JSX.Element }[] = [
-  { id: "search", label: "Search", icon: SearchIcon },
-  { id: "library", label: "Library", icon: LibraryIcon },
-  { id: "browse", label: "Browse", icon: BrowseIcon },
-  { id: "index", label: "Index", icon: IndexIcon },
-  { id: "settings", label: "Settings", icon: SettingsIcon },
+const NAV: {
+  id: ViewId;
+  label: string;
+  icon: (p: { size?: number; active?: boolean }) => JSX.Element;
+}[] = [
+  { id: "search", label: "Search", icon: SearchNavIcon },
+  { id: "library", label: "Library", icon: LibraryNavIcon },
+  { id: "browse", label: "Browse", icon: BrowseNavIcon },
+  { id: "index", label: "Index", icon: IndexNavIcon },
+  { id: "settings", label: "Settings", icon: SettingsNavIcon },
 ];
 
 function ModelPlate(props: { state: ModelState; name?: string }) {
@@ -57,7 +61,6 @@ export function Sidebar() {
           <For each={NAV}>
             {(item) => {
               const active = () => store.view() === item.id;
-              const Icon = item.icon;
               return (
                 <li>
                   <button
@@ -71,8 +74,14 @@ export function Sidebar() {
                     title={item.label}
                     onClick={() => store.setView(item.id)}
                   >
-                    <span class={active() ? "text-white" : "text-faint group-hover:text-ink-soft"}>
-                      <Icon size={17} />
+                    <span
+                      class={`flex shrink-0 items-center justify-center transition-transform duration-200 ease-snappy ${
+                        active()
+                          ? "text-white"
+                          : "text-faint group-focus-visible:scale-110 group-hover:scale-110 group-hover:text-ink-soft"
+                      }`}
+                    >
+                      <item.icon size={17} active={active()} />
                     </span>
                     <span class="hidden md:inline">{item.label}</span>
                   </button>

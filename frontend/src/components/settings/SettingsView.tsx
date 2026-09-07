@@ -3,6 +3,7 @@ import { useAppStore } from "../../lib/store";
 import { importModel, pickFolder, pickModelFile } from "../../lib/api";
 import type { AppConfig, GUIConfig, MascotConfig, MCPConfig, ModelInfo, SearchDefaults } from "../../lib/types";
 import { Button, ConfirmDialog, InfoTip, Select, StatusPill, Switch, Toggle, ViewHeading } from "../ui/primitives";
+import { ChunkNavIcon, ConnectNavIcon, IndexNavIcon, ModelNavIcon, SearchNavIcon, SourcesNavIcon } from "../ui/nav-icons";
 import {
   BoltIcon,
   CheckIcon,
@@ -21,25 +22,7 @@ import { CatalogModelCard } from "../ui/CatalogModelCard";
 import { MASCOT_ASSETS, MASCOT_STATIC } from "../shell/mascot/assets";
 import { openExternal } from "../../lib/update";
 
-/* ---- hard bounds for numeric settings ----
-   Every numeric field is clamped to these ranges on load and on change, and
-   the <input>s carry min/max/step so spinners and native validation agree.
-   The bounds reflect what the backend can actually use:
 
-   - embedding_batch_size  : <1 would mean "no batching"; the indexer treats
-     anything below 1 as 1 anyway.
-   - chunk_size_tokens     : must be >= 1 or the window splitter never
-     advances (infinite loop); above ~1500 words a chunk overflows the
-     model's 2048-token context (backend/embeddings) and gets truncated.
-   - chunk_overlap_tokens  : must stay strictly below chunk_size or the window
-     splitter walks backwards into a negative slice bound (panic). 0 = none.
-   - git_history_in_months : whole months; <1 runs `git log --since=0 months
-     ago`, which is meaningless.
-   - top_k / rrf_k         : RRF's denominator is (k + rank + 1) so it must
-     stay positive; the vector candidate pool saturates around 200.
-   - vector/fts weight     : blend weights live in [0, 1].
-   - auto_reindex_interval : the backend clamps <1min to 1min already; 0
-     would mean "re-index every tick". */
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max);
 
 type NumBounds = { min: number; max: number; step: number };
@@ -77,15 +60,6 @@ function boundsFor(key: keyof typeof STATIC_BOUNDS, chunkSize: number): NumBound
     : b;
 }
 
-/* ---- small building blocks ----
-   The settings page is a two-pane workspace: a grouped nav on the left lists
-   every section, and the content pane shows one section at a time as an index
-   card on a soft green desk. The nav borrows the reference's pattern — grouped
-   categories, an active item on a mint pill — but stays in the field-notebook
-   world: warm paper, hairline rules, mono labels, leaf-green accents. */
-
-/* A card with a header band. Keeps the section header clearly separated from
-   the content below it, and gives each group a distinct identity. */
 function Section(props: { icon: JSX.Element; title: string; note?: string; children: JSX.Element }) {
   return (
     <section class="rounded-card border border-line-strong bg-paper shadow-card">
@@ -103,8 +77,6 @@ function Section(props: { icon: JSX.Element; title: string; note?: string; child
   );
 }
 
-/* A labelled sub-heading that groups content inside a section without drawing
-   another box around it. Sentence case, small and quiet — not a kicker. */
 function SubHeading(props: { children: JSX.Element; action?: JSX.Element }) {
   return (
     <div class="mb-3 flex items-center justify-between gap-3">
@@ -114,8 +86,6 @@ function SubHeading(props: { children: JSX.Element; action?: JSX.Element }) {
   );
 }
 
-/* Hairline-divided list for a run of setting rows. Keeps scanability without a
-   wall of boxes. */
 function FieldList(props: { children: JSX.Element }) {
   return <div class="space-y-0 divide-y divide-line/70">{props.children}</div>;
 }
@@ -152,10 +122,6 @@ function NumField(props: {
   );
 }
 
-/* Decimal blend controls (e.g. the search weights) are a draggable progress
-   bar from 0 to 1 instead of a number box. The .slider class paints the
-   filled portion from the --fill custom property, and the tiny readout keeps
-   the exact value visible since a 0.05 step is hard to eyeball. */
 function RangeField(props: {
   label: string;
   value: number;
@@ -204,9 +170,6 @@ function RangeField(props: {
   );
 }
 
-/* A single path list rendered as a notebook ledger: one hairline-bordered box,
-   flat rows divided by rules, and an add row beneath. Empty lists show honest
-   guidance instead of a blank box. */
 function PathList(props: {
   values: string[];
   onAdd: (v: string) => void;
@@ -278,9 +241,6 @@ function PathList(props: {
   );
 }
 
-/* Compact tag list for the "excluded folders" sub-setting. Paths render as
-   removable chips rather than a full ledger, so it reads as a lighter sub-list
-   nested under Obsidian vaults instead of a second list box. */
 function ChipList(props: {
   values: string[];
   onAdd: (v: string) => void;
@@ -347,9 +307,6 @@ function ChipList(props: {
   );
 }
 
-/* One group inside a GroupList ledger: a name header (with path count and a
-   remove button) and its own list of paths plus a compact add row. Rendered as
-   its own component so each group's add-input keeps its own state. */
 function GroupItem(props: {
   name: string;
   paths: string[];
@@ -491,9 +448,6 @@ function GroupList(props: {
   );
 }
 
-/* Header row for one source kind inside the Sources section: an icon plate, the
-   name, an explanation tip, and a mono count. It sits above the ledger so each
-   source reads as an entry in the settings notebook rather than a separate card. */
 function SourceHeading(props: {
   icon: JSX.Element;
   title: string;
@@ -515,8 +469,6 @@ function SourceHeading(props: {
   );
 }
 
-/* A sub-group of the Sources section (Documents / Code): a small heading on a
-   hairline rule, with a note underneath. */
 function SourceGroup(props: { title: string; note: string; children: JSX.Element }) {
   return (
     <div>
@@ -530,8 +482,6 @@ function SourceGroup(props: { title: string; note: string; children: JSX.Element
   );
 }
 
-/* Copy to the clipboard, with a legacy textarea fallback for webviews where
-   the async Clipboard API is unavailable or blocked. */
 const copyText = async (text: string): Promise<boolean> => {
   try {
     if (navigator.clipboard && window.isSecureContext) {
@@ -555,11 +505,6 @@ const copyText = async (text: string): Promise<boolean> => {
     return false;
   }
 };
-
-/* A mono command or config snippet with a copy button that flips to a check
-   for a beat after copying. Used by the Connect section's setup directions.
-   multiline keeps the line breaks in the copied text visible (for a JSON
-   block); single-line snippets truncate with ellipsis instead. */
 function Snippet(props: { label: string; code: string; multiline?: boolean }) {
   const [copied, setCopied] = createSignal(false);
   const copy = async () => {
@@ -593,8 +538,6 @@ function Snippet(props: { label: string; code: string; multiline?: boolean }) {
   );
 }
 
-/* The MCP tools vectile serves, shown in the Connect section. The write tools
-   index or prune the library and only run when allow-write is on. */
 const MCP_TOOLS: { name: string; desc: string; kind: "read" | "write" }[] = [
   {
     name: "vectile_search",
@@ -623,9 +566,6 @@ const MCP_TOOLS: { name: string; desc: string; kind: "read" | "write" }[] = [
   },
 ];
 
-/* The three moments the sidebar mascot (Vexter) can appear for. The config key
-   is the per-state show/suppress flag; the preview shows the exact animated
-   webp the sidebar uses, with the shared static PNG under reduced motion. */
 const DEFAULT_MASCOT: MascotConfig = {
   show_searching: true,
   show_indexing: true,
@@ -666,35 +606,42 @@ const MASCOT_STATES: {
 
 type SectionKey = "model" | "chunking" | "search" | "sources" | "indexing" | "vexter" | "connect";
 
-const NAV_GROUPS: { label: string; items: { key: SectionKey; label: string; icon: JSX.Element }[] }[] = [
+type NavIconSlot = { size?: number; active?: boolean };
+
+/* The Vexter row keeps its living pixel sprite; every other rail icon is a
+   morphing nav icon (nav-icons.tsx) that opens while its section is active. */
+function VexterNavIcon(_p: NavIconSlot) {
+  return (
+    <span class="flex h-4 w-4 items-center justify-center overflow-hidden">
+      <img src={MASCOT_STATIC} alt="" class="h-full w-full object-contain" style="image-rendering: pixelated" />
+    </span>
+  );
+}
+
+const NAV_GROUPS: {
+  label: string;
+  items: { key: SectionKey; label: string; icon: (p: NavIconSlot) => JSX.Element }[];
+}[] = [
   {
     label: "Engine",
     items: [
-      { key: "model", label: "Model", icon: <BoltIcon size={15} /> },
-      { key: "chunking", label: "Chunking", icon: <FileIcon size={15} /> },
-      { key: "search", label: "Search", icon: <SearchIcon size={15} /> },
+      { key: "model", label: "Model", icon: ModelNavIcon },
+      { key: "chunking", label: "Chunking", icon: ChunkNavIcon },
+      { key: "search", label: "Search", icon: SearchNavIcon },
     ],
   },
   {
     label: "Library",
     items: [
-      { key: "sources", label: "Sources", icon: <FolderOpenIcon size={15} /> },
-      { key: "indexing", label: "Indexing", icon: <IndexIcon size={15} /> },
+      { key: "sources", label: "Sources", icon: SourcesNavIcon },
+      { key: "indexing", label: "Indexing", icon: IndexNavIcon },
     ],
   },
   {
     label: "Companions",
     items: [
-      {
-        key: "vexter",
-        label: "Vexter",
-        icon: (
-          <span class="flex h-4 w-4 items-center justify-center overflow-hidden">
-            <img src={MASCOT_STATIC} alt="" class="h-full w-full object-contain" style="image-rendering: pixelated" />
-          </span>
-        ),
-      },
-      { key: "connect", label: "Connect", icon: <PlugIcon size={15} /> },
+      { key: "vexter", label: "Vexter", icon: VexterNavIcon },
+      { key: "connect", label: "Connect", icon: ConnectNavIcon },
     ],
   },
 ];
@@ -986,11 +933,19 @@ export function SettingsView() {
                     type="button"
                     onClick={() => setSection(it.key)}
                     aria-current={active() ? "page" : undefined}
-                    class={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12.5px] font-medium transition-colors ${
+                    class={`group flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12.5px] font-medium transition-colors ${
                       active() ? "border-indigo bg-indigo text-white" : "border-line-strong bg-paper text-ink-soft"
                     }`}
                   >
-                    {it.icon}
+                    <span
+                      class={`flex shrink-0 items-center justify-center ${
+                        active()
+                          ? ""
+                          : "transition-transform duration-200 ease-snappy group-focus-visible:scale-110 group-hover:scale-110"
+                      }`}
+                    >
+                      <it.icon size={15} active={active()} />
+                    </span>
                     {it.label}
                   </button>
                 );
@@ -1023,11 +978,13 @@ export function SettingsView() {
                           }`}
                         >
                           <span
-                            class={`flex h-6 w-6 shrink-0 items-center justify-center rounded-control ${
-                              active() ? "text-white" : "text-muted"
+                            class={`flex h-6 w-6 shrink-0 items-center justify-center rounded-control transition-transform duration-200 ease-snappy ${
+                              active()
+                                ? "text-white"
+                                : "text-muted group-focus-visible:scale-110 group-hover:scale-110"
                             }`}
                           >
-                            {it.icon}
+                            <it.icon size={15} active={active()} />
                           </span>
                           <span class="min-w-0 truncate text-left">{it.label}</span>
                         </button>
