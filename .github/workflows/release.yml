@@ -355,6 +355,12 @@ jobs:
       - name: Create universal binary
         run: |
           lipo -create -output build/bin/vectile build/bin/vectile-arm64 build/bin/vectile-amd64
+          # The per-arch slices and the llama-go static archives are only needed
+          # to produce the universal binary. Delete them now so the .app / .dmg
+          # steps keep as much of the macOS runner's limited free disk as
+          # possible (hdiutil stages a temp image ~= the .app size).
+          rm -f build/bin/vectile-arm64 build/bin/vectile-amd64
+          rm -rf third_party/llama-go/darwin
 
       - name: Assemble .app bundle
         run: |
@@ -364,14 +370,22 @@ jobs:
           cp build/bin/vectile       "$APP/MacOS/vectile"
           cp build/darwin/Info.plist "$APP/Info.plist"
 
+      - name: Check disk usage before packaging
+        run: |
+          df -h /
+          du -sh build/bin third_party/llama-go dist 2>/dev/null || true
+
+      # The DMG needs the most free disk (hdiutil temp image ~= .app size, then
+      # the compressed .dmg), so build it BEFORE the .zip adds another copy of
+      # the .app to the disk.
+      - name: Create DMG
+        run: |
+          hdiutil create -volname "vectile" -srcfolder build/bin/vectile.app -ov -format UDZO dist/vectile-macos-universal.dmg
+
       - name: Create .app zip
         run: |
           mkdir -p dist
           (cd build/bin && zip -9 -r ../../dist/vectile-macos-universal.zip vectile.app)
-
-      - name: Create DMG
-        run: |
-          hdiutil create -volname "vectile" -srcfolder build/bin/vectile.app -ov -format UDZO dist/vectile-macos-universal.dmg
 
       - uses: actions/upload-artifact@v4
         with:
