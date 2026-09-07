@@ -6,7 +6,7 @@
 name: "vectile"
 arch: ${GOARCH}
 platform: "linux"
-version: "0.3.1"
+version: "0.4.0"
 section: "default"
 priority: "extra"
 maintainer: "d3uceY <d3uceY@users.noreply.github.com>"
