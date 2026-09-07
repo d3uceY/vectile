@@ -24,7 +24,7 @@ var assets embed.FS
 
 // Version is stamped at release time via `-ldflags "-X main.Version=vX.Y.Z"`.
 // Keep it a var (not a const) so the linker can override it.
-var Version = "v0.3.0"
+var Version = "v0.3.1"
 
 func main() {
 	// Expose the build-time version to the frontend (AppService.GetVersion).

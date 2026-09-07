@@ -259,8 +259,8 @@ export async function stub(request) {
       return { body: 8 };
     case M.GetVersion:
       // The dev-stub middleware sends string bodies raw, so JSON-encode the
-      // value — the runtime's res.json() needs `"v0.3.0"` (quoted).
-      return { body: JSON.stringify("v0.3.0") };
+      // value — the runtime's res.json() needs `"v0.3.1"` (quoted).
+      return { body: JSON.stringify("v0.3.1") };
     case M.ListCollections:
       return { body: collections };
     case M.ListSources: {
