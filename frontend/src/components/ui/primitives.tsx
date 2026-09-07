@@ -258,8 +258,8 @@ export function Switch(props: {
       }`}
     >
       <span
-        class={`absolute left-0.5 top-0.5 h-4.5 w-4.5 rounded-full bg-white transition-transform duration-150 ease-snappy ${
-          props.checked ? "translate-x-4" : ""
+        class={`absolute left-0.5 top-0.5 h-4.5 w-4.5 rounded-full transition-transform duration-150 ease-snappy ${
+          props.checked ? "translate-x-4 bg-white" : "bg-leaf"
         }`}
       />
     </button>
