@@ -5,6 +5,7 @@ package chunker
 import (
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -63,25 +64,114 @@ func SplitIntoWindows(text string, chunkSize, overlap int) []string {
 
 var headingPattern = regexp.MustCompile(`(?m)^(#{1,6})\s+(.+)$`)
 
+func codePlaceholder(i int) string {
+	return "<<VECTILE_CODE_" + strconv.Itoa(i) + ">>"
+}
+
+// codeFenceStart reports whether a line opens a fenced code block (``` or ~~~).
+func codeFenceStart(line string) bool {
+	if len(line) < 3 {
+		return false
+	}
+	c := line[0]
+	if c != '`' && c != '~' {
+		return false
+	}
+	n := 0
+	for n < len(line) && line[n] == c {
+		n++
+	}
+	return n >= 3
+}
+
+// codeFenceClose reports whether a line closes a fence opened with char c.
+func codeFenceClose(line string, c byte) bool {
+	n := 0
+	for n < len(line) && line[n] == c {
+		n++
+	}
+	return n >= 3
+}
+
+// maskFencedBlocks replaces fenced code blocks with placeholder tokens so
+// heading detection never fires on '#' lines inside code. The blocks are
+// returned in order for restoration. An unterminated fence runs to the end
+// of the text.
+func maskFencedBlocks(text string) (masked string, blocks []string) {
+	var out strings.Builder
+	var fence strings.Builder
+	open := byte(0)
+	for _, line := range strings.Split(text, "\n") {
+		trimmed := strings.TrimLeft(line, " \t")
+		if open == 0 {
+			if codeFenceStart(trimmed) {
+				open = trimmed[0]
+				fence.WriteString(line)
+				fence.WriteByte('\n')
+				continue
+			}
+			out.WriteString(line)
+			out.WriteByte('\n')
+			continue
+		}
+		fence.WriteString(line)
+		fence.WriteByte('\n')
+		if codeFenceClose(trimmed, open) {
+			flushCodeFence(&out, &fence, &blocks)
+			open = 0
+		}
+	}
+	if open != 0 {
+		flushCodeFence(&out, &fence, &blocks)
+	}
+	return out.String(), blocks
+}
+
+func flushCodeFence(out *strings.Builder, fence *strings.Builder, blocks *[]string) {
+	if fence.Len() == 0 {
+		return
+	}
+	idx := len(*blocks)
+	*blocks = append(*blocks, fence.String())
+	out.WriteString(codePlaceholder(idx))
+	out.WriteByte('\n')
+	fence.Reset()
+}
+
+// restoreCodeFences swaps placeholder tokens back for their original blocks.
+func restoreCodeFences(masked string, blocks []string) string {
+	for i, b := range blocks {
+		masked = strings.ReplaceAll(masked, codePlaceholder(i), b)
+	}
+	return masked
+}
+
 // ChunkMarkdown splits markdown text on headings, preserving the heading path
 // as a context prefix. Sections are chunked word-wise if they exceed the size.
+//
+// Fenced code blocks (``` / ~~~) are masked before the heading scan so '#'
+// lines inside code never split sections, then restored into each section
+// before word-counting so chunk sizes reflect the real content.
 func ChunkMarkdown(text, title string, chunkSize, overlap int) []Chunk {
 	if strings.TrimSpace(text) == "" {
 		return []Chunk{{Text: "", Title: title, Metadata: map[string]any{}, ChunkIndex: 0}}
 	}
+
+	masked, codeBlocks := maskFencedBlocks(text)
 
 	type section struct {
 		headingPath string
 		content     string
 	}
 
-	matches := headingPattern.FindAllStringSubmatchIndex(text, -1)
+	matches := headingPattern.FindAllStringSubmatchIndex(masked, -1)
 
 	var sections []section
 	if len(matches) == 0 {
-		sections = append(sections, section{headingPath: "", content: strings.TrimSpace(text)})
+		content := restoreCodeFences(strings.TrimSpace(masked), codeBlocks)
+		sections = append(sections, section{headingPath: "", content: content})
 	} else {
-		preamble := strings.TrimSpace(text[:matches[0][0]])
+		preamble := restoreCodeFences(strings.TrimSpace(masked[:matches[0][0]]), codeBlocks)
 		if preamble != "" {
 			sections = append(sections, section{headingPath: "", content: preamble})
 		}
@@ -89,14 +179,14 @@ func ChunkMarkdown(text, title string, chunkSize, overlap int) []Chunk {
 		currentHeadings := make(map[int]string)
 		for i, match := range matches {
 			level := match[3] - match[2]
-			headingText := strings.TrimSpace(text[match[4]:match[5]])
+			headingText := strings.TrimSpace(masked[match[4]:match[5]])
 
 			contentStart := match[1]
-			contentEnd := len(text)
+			contentEnd := len(masked)
 			if i+1 < len(matches) {
 				contentEnd = matches[i+1][0]
 			}
-			content := strings.TrimSpace(text[contentStart:contentEnd])
+			content := restoreCodeFences(strings.TrimSpace(masked[contentStart:contentEnd]), codeBlocks)
 
 			currentHeadings[level] = headingText
 			for k := range currentHeadings {

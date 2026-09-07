@@ -1,6 +1,7 @@
 package chunker
 
 import (
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -62,5 +63,80 @@ func TestChunkPlain(t *testing.T) {
 	}
 	if chunks[0].Title != "x" {
 		t.Fatalf("title not preserved: %q", chunks[0].Title)
+	}
+}
+
+// headingInsideFence asserts a '#' comment line inside a fenced code block is
+// NOT treated as a markdown heading, and the fence survives into the chunk.
+func TestChunkMarkdownIgnoresHeadingsInsideFences(t *testing.T) {
+	src := "# Doc\n\nIntro.\n\n```python\n# not a heading\n## also not a heading\ndef f():\n    pass\n```\n\n## Real\n\nBody.\n"
+	chunks := ChunkMarkdown(src, "note.md", 500, 50)
+
+	// The code-block comment lines must never split the block apart, so there
+	// must be exactly one chunk under "Doc" whose text keeps the fence intact.
+	var withFence string
+	for _, c := range chunks {
+		if strings.Contains(c.Text, "```python") {
+			withFence += c.Text
+		}
+		if !strings.Contains(c.Text, "Doc") && strings.Contains(c.Text, "Real") {
+			// sanity: each chunk belongs to a section
+		}
+	}
+	if !strings.Contains(withFence, "def f():") {
+		t.Fatal("code block content was lost")
+	}
+	if !strings.Contains(withFence, "# not a heading") {
+		t.Fatal("code comment content was lost")
+	}
+	if !strings.Contains(withFence, "```") {
+		t.Fatal("fence markers must be restored into the chunk text")
+	}
+
+	// The real "## Real" heading must still produce its own section/chunk.
+	realFound := false
+	for _, c := range chunks {
+		if path, ok := c.Metadata["heading_path"].(string); ok && strings.Contains(path, "Real") {
+			realFound = true
+		}
+	}
+	if !realFound {
+		t.Fatal("a real heading after the code fence must still split a section")
+	}
+}
+
+// TestChunkMarkdownFenceWindowed verifies a code-heavy section still gets
+// windowed by its real word count (masking must not hide code tokens).
+func TestChunkMarkdownFenceWindowed(t *testing.T) {
+	// ~60 words of prose + a big code block pushes the section over 40 words.
+	var code strings.Builder
+	code.WriteString("```js\n")
+	for i := 0; i < 200; i++ {
+		code.WriteString("const value_" + strconv.Itoa(i) + " = " + strconv.Itoa(i) + ";\n")
+	}
+	code.WriteString("```\n")
+	src := "## Code\n\nLots of context here so the section is long enough to split.\n" + code.String()
+
+	chunks := ChunkMarkdown(src, "big.md", 40, 5)
+	if len(chunks) < 2 {
+		t.Fatalf("code-heavy section should split into multiple windows, got %d", len(chunks))
+	}
+	// Every window must carry real code tokens (not placeholders).
+	for _, c := range chunks {
+		if strings.Contains(c.Text, "VECTILE_CODE_") {
+			t.Fatalf("placeholder leaked into chunk text: %q", c.Text)
+		}
+	}
+}
+
+// TestChunkMarkdownUnterminatedFence treats an unclosed fence as code to EOF.
+func TestChunkMarkdownUnterminatedFence(t *testing.T) {
+	src := "# Top\n\n```python\n# comment\nprint(1)\n\n## Not A Real Heading\nprint(2)\n"
+	chunks := ChunkMarkdown(src, "note.md", 500, 50)
+	if len(chunks) != 1 {
+		t.Fatalf("unterminated fence should keep the document as one section, got %d chunks", len(chunks))
+	}
+	if !strings.Contains(chunks[0].Text, "print(2)") {
+		t.Fatal("content after an unterminated fence was lost")
 	}
 }

@@ -233,8 +233,62 @@ func parseAndChunk(path, sourceType string, cfg *config.Config) []chunker.Chunk 
 		}
 		return chunker.ChunkPlain(text, title, chunkSize, overlap)
 
+	case "xlsx":
+		doc := parser.ParseXLSX(path)
+		if strings.TrimSpace(doc.Text) == "" {
+			return nil
+		}
+		// Each sheet is a "## Sheet: <name>" section, so ChunkMarkdown splits
+		// the workbook sheet by sheet and labels chunks with the sheet name.
+		return chunker.ChunkMarkdown(doc.Text, title, chunkSize, overlap)
+
+	case "pptx":
+		doc := parser.ParsePPTX(path)
+		if strings.TrimSpace(doc.Text) == "" {
+			return nil
+		}
+		return chunker.ChunkMarkdown(doc.Text, title, chunkSize, overlap)
+
+	case "ipynb":
+		doc := parser.ParseNotebook(path)
+		if strings.TrimSpace(doc.Text) == "" {
+			return nil
+		}
+		return chunker.ChunkMarkdown(doc.Text, title, chunkSize, overlap)
+
+	case "xml":
+		doc := parser.ParseXMLFile(path)
+		if doc.Text == "" {
+			return nil
+		}
+		return chunker.ChunkPlain(doc.Text, title, chunkSize, overlap)
+
+	case "sql":
+		doc := parser.ParseSQLFile(path)
+		if doc.Text == "" {
+			return nil
+		}
+		return chunker.ChunkPlain(doc.Text, title, chunkSize, overlap)
+
+	case "shell":
+		doc := parser.ParseShellFile(path)
+		if doc.Text == "" {
+			return nil
+		}
+		return chunker.ChunkPlain(doc.Text, title, chunkSize, overlap)
+
 	case "plaintext":
-		text := parser.ParsePlaintext(path)
+		// CSV and JSON get structured normalization (still stored as
+		// plaintext); every other text file is indexed raw.
+		var text string
+		switch strings.ToLower(filepath.Ext(path)) {
+		case ".csv":
+			text = parser.ParseCSVText(path)
+		case ".json":
+			text = parser.ParseJSONText(path)
+		default:
+			text = parser.ParsePlaintext(path)
+		}
 		if strings.TrimSpace(text) == "" {
 			return nil
 		}

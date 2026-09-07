@@ -25,7 +25,7 @@ backend/config              config.json load, save, defaults
 backend/embeddings          the llama.go embedder (bge-m3)
 backend/db                  SQLite schema and helpers (modernc + vec0 + FTS5)
 backend/chunker             word-window and markdown chunking
-backend/parser              file parsers: md, docx, html, epub, pdf, calibre, code
+backend/parser              file parsers: md, docx, html, epub, pdf, xlsx, pptx, ipynb, xml, sql, shell, csv/json, calibre, code
 backend/search              hybrid search: vector + FTS + RRF
 backend/indexer             obsidian, project, git, calibre indexers; prune
 backend/services            Wails services the UI calls

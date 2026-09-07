@@ -12,7 +12,13 @@ const typeOptions = [
   { value: "markdown", label: "Markdown" },
   { value: "pdf", label: "PDF" },
   { value: "epub", label: "EPUB" },
-  { value: "plaintext", label: "Plain text" }, // must match backend source_type
+  { value: "plaintext", label: "Plain text" }, 
+  { value: "xlsx", label: "Excel" },
+  { value: "pptx", label: "PowerPoint" },
+  { value: "ipynb", label: "Notebook" },
+  { value: "xml", label: "XML" },
+  { value: "sql", label: "SQL" },
+  { value: "shell", label: "Shell" },
   { value: "code", label: "Code" },
 ];
 

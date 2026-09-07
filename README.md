@@ -12,7 +12,7 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 
 - **Fully local and private.** Searches run on your machine against an in-process embedding model. No server, no cloud, no telemetry, no account.
 - **Hybrid search.** Vector and full-text results are fused with Reciprocal Rank Fusion, so a query can find a note that never uses your exact words.
-- **Index what you keep.** Obsidian vaults, project folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, EPUB), Calibre libraries, and code repositories including their commit history.
+- **Index what you keep.** Obsidian vaults, project folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, XML, SQL, shell, XLSX, PPTX, Jupyter notebooks, EPUB), Calibre libraries, and code repositories including their commit history.
 - **Built-in model manager.** Import your own `.gguf`, pick the active model, or download one from the curated catalog in Settings with a live progress bar.
 - **Keyboard-first desktop UI.** Jump to search from anywhere with ⌘K / Ctrl K, and move between Search, Library, Browse, Index, and Settings from the sidebar.
 - **Manage your library.** Expand a collection to its files, drill into individual chunks, and delete stale sources, selected chunks, or a whole library in place.
@@ -78,7 +78,7 @@ Screenshots show sample data.
 | Source | Collection Type | What Gets Indexed |
 |---|---|---|
 | Obsidian | system | Vault files: `.md` notes with frontmatter, tags, and wikilinks |
-| Project folders | project | Any folder of documents, each file parsed by its extension (`.md`, `.pdf`, `.docx`, `.html`, `.txt`, `.csv`, `.json`, `.yaml`, `.epub`) |
+| Project folders | project | Any folder of documents, each file parsed by its extension (`.md`, `.pdf`, `.docx`, `.html`, `.txt`, `.csv`, `.json`, `.yaml`, `.xml`, `.sql`, `.sh`, `.xlsx`, `.pptx`, `.ipynb`, `.epub`) |
 | Code repositories | code | Git repos: tree-sitter splits each function and class into its own chunk (cAST split-then-merge); commit history is indexed as its own source |
 | Calibre | system | Ebook metadata + content: title, author, tags, series, publisher, description, and EPUB/PDF text |
 
@@ -193,6 +193,8 @@ Config file: `<os.UserConfigDir()>/vectile/config.json`
 | Code parsing | go-tree-sitter | Structural splitting (functions, classes, methods) with the cAST split-then-merge strategy |
 | PDF | go-pdfium (WASM/Wazero) | No cgo needed |
 | DOCX | archive/zip + encoding/xml | Word document extraction (.docx, .dotx) |
+| XLSX | excelize | Spreadsheets, one `## Sheet` section per worksheet |
+| PPTX | archive/zip + encoding/xml | Slides, one `## Slide` section per slide |
 
 ## Building and developing
 
@@ -230,7 +232,7 @@ backend/config              config.json load, save, defaults
 backend/db                  SQLite schema and helpers (modernc + vec0 + FTS5)
 backend/embeddings          the llama.go embedder (bge-m3)
 backend/chunker             word-window and markdown chunking
-backend/parser              file parsers: md, docx, html, epub, pdf, calibre, code
+backend/parser              file parsers: md, docx, html, epub, pdf, xlsx, pptx, ipynb, xml, sql, shell, csv/json, calibre, code
 backend/search              hybrid search: vector + FTS + RRF
 backend/indexer             obsidian, project, git, calibre indexers; prune
 backend/services            Wails services the UI calls
