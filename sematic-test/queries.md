@@ -59,33 +59,38 @@ The query shares almost nothing lexically; the embedding has to infer the *topic
 
 ---
 
-## ⚫️ Black — one keyword doesn't exist anywhere (regex-verifiable)
+## ⚫️ Black — no word of the query exists in the target (regex-verifiable)
 
-Same idea as Medium but *impossible to fake with a keyword*. Each query carries one salient term — the word you'd naturally search for — that a word-boundary regex confirms appears **nowhere in the corpus** (checked against all 17 files: 0 hits). A plain FTS query for that word returns nothing, so only the embedding can route to the right document.
+Same idea as Medium but *impossible to fake with a keyword*. These rows are stricter than the old "one keyword is missing" design: **none of the query's words appear in the target file**. A word-boundary check covers every word of the query, so a plain FTS query cannot rank the target at all — if the target surfaces, only the embedding can be doing the work.
 
-The **Missing keyword** column is the word to verify. Run the regex in **Verify** against the target file (VS Code Find → regex, or PowerShell `Select-String -Path '<file>' -Pattern '<regex>'`) — it must match nothing. A ready-to-run check that tests all 17 at once lives in [`verify-missing-keywords.ps1`](./verify-missing-keywords.ps1).
+Two caveats shaped the rows:
+
+- vectile's FTS5 table indexes the document **title** as well as the body, and for these `.txt` files the title is the *filename*. A query word is only safe if it is absent from the file body **and** from its filename — so topic words that live only in the filename (e.g. `italian`, `banana`, `movie`) are avoided too.
+- Each row keeps a **Missing keyword** — the salient word a keyword searcher would naturally reach for — which is additionally absent from the *entire* corpus (all 17 files: 0 hits). The **Verify** regex spot-checks that one word against the file body; it must match nothing.
+
+The **Verify** regex is the quick per-file spot-check. A ready-to-run check that tests *every* query word against both the body and the filename title for all 17 at once lives in [`verify-black-queries.ps1`](./verify-black-queries.ps1).
 
 | # | Query | Target | Missing keyword | Verify (against target file) |
 |---|-------|--------|-----------------|------------------------------|
-| B1 | `homemade spaghetti sauce from ripe tomatoes` | 01 | `spaghetti` | `(?i)\bspaghetti\b` |
-| B2 | `turning ripe bananas into muffins` | 02 | `muffin` | `(?i)\bmuffin\b` |
-| B3 | `natural yeast that makes bread tangy` | 03 | `yeast` | `(?i)\byeast\b` |
-| B4 | `cozy autumn chowder with beans` | 04 | `chowder` | `(?i)\bchowder\b` |
+| B1 | `homemade marinara from ripe garden fruit` | 01 | `marinara` | `(?i)\bmarinara\b` |
+| B2 | `ripe yellow fruit quick breakfast cake` | 02 | `cake` | `(?i)\bcake\b` |
+| B3 | `natural yeast raised from fermented grain culture` | 03 | `yeast` | `(?i)\byeast\b` |
+| B4 | `cozy autumn chowder with root vegetables` | 04 | `chowder` | `(?i)\bchowder\b` |
 | B5 | `HIIT sessions to raise your stamina` | 05 | `HIIT` | `(?i)\bhiit\b` |
-| B6 | `marathon fuel and hydration plan` | 06 | `marathon` | `(?i)\bmarathon\b` |
-| B7 | `mountain trail with sweeping views` | 07 | `mountain` | `(?i)\bmountain\b` |
-| B8 | `airport carry-on essentials checklist` | 08 | `airport` | `(?i)\bairport\b` |
+| B6 | `marathon fuel hydration plan` | 06 | `marathon` | `(?i)\bmarathon\b` |
+| B7 | `mountain trail with sweeping scenery` | 07 | `mountain` | `(?i)\bmountain\b` |
+| B8 | `airport hand luggage essentials` | 08 | `airport` | `(?i)\bairport\b` |
 | B9 | `overnight camping kit that stays light` | 09 | `camping` | `(?i)\bcamping\b` |
-| B10 | `fresh salsa straight from the pots` | 10 | `salsa` | `(?i)\bsalsa\b` |
-| B11 | `vegan protein sources for athletes` | 11 | `vegan` | `(?i)\bvegan\b` |
+| B10 | `homegrown salsa from tiny patio planters` | 10 | `salsa` | `(?i)\bsalsa\b` |
+| B11 | `vegan athletes diet strength building` | 11 | `vegan` | `(?i)\bvegan\b` |
 | B12 | `evening wind-down ritual for deep rest` | 12 | `ritual` | `(?i)\britual\b` |
-| B13 | `office posture tips for long days at a screen` | 13 | `posture` | `(?i)\bposture\b` |
-| B14 | `version control for a one-person project` | 14 | `version` | `(?i)\bversion\b` |
-| B15 | `systems language for terminal tools` | 15 | `terminal` | `(?i)\bterminal\b` |
-| B16 | `dystopian novels about what comes next` | 16 | `dystopian` | `(?i)\bdystopian\b` |
-| B17 | `cartoon marathon for family night` | 17 | `cartoon` | `(?i)\bcartoon\b` |
+| B13 | `office posture tips for long days on screen` | 13 | `posture` | `(?i)\bposture\b` |
+| B14 | `version control for personal projects` | 14 | `version` | `(?i)\bversion\b` |
+| B15 | `systems programming for terminal utilities` | 15 | `terminal` | `(?i)\bterminal\b` |
+| B16 | `dystopian novels envisioning future society` | 16 | `dystopian` | `(?i)\bdystopian\b` |
+| B17 | `cartoon marathon with family` | 17 | `cartoon` | `(?i)\bcartoon\b` |
 
-**Reading the results:** if the target surfaces in the top few despite its keyword being absent, the embedding genuinely inferred the topic — the strongest proof the vector side works. A wrong doc (e.g. B6 landing on 05) means the model is drifting on topic.
+**Reading the results:** if the target surfaces in the top few despite *no* query word existing anywhere in it (body or filename title), the embedding genuinely inferred the topic — the strongest proof the vector side works. A wrong doc (e.g. B6 landing on 05) means the model is drifting on topic.
 
 ---
 
@@ -94,7 +99,7 @@ The **Missing keyword** column is the word to verify. Run the regex in **Verify*
 - **Easy** should be near-perfect. If these miss, the index itself is broken, not the embeddings.
 - **Medium** is the real semantic test. Check that the target doc lands in the **top 3**. If it only shows up in Easy queries, the vector side isn't pulling its weight.
 - **Hard** is about *relative* relevance: even a "wrong" doc is informative. E.g. for `turning a small balcony into a pantry`, a hit on 10 is ideal; a hit on 04 (soup/vegetables) is defensible; a hit on 15 (Rust) means the embedding is failing you.
-- **Black** is the anti-keyword trap: the missing keyword must return 0 regex hits, and the target should still surface near the top — it's the cleanest signal that the vector side (not FTS) is doing the work.
+- **Black** is the anti-keyword trap: *every* word of the query returns 0 hits in the target (body + filename title), so if the target still surfaces near the top, the vector side — not FTS — did the work.
 
 ## Two tips for isolating the vector side
 
