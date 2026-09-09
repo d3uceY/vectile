@@ -1265,6 +1265,50 @@ export function SettingsView() {
                 >
                   <div class="space-y-8">
                     <SourceGroup
+                      title="Code"
+                      note="Folders you work in, grouped into searchable collections."
+                    >
+                      <div class="grid items-start gap-x-8 gap-y-7 md:grid-cols-2">
+                        <div class="space-y-3">
+                          <SourceHeading
+                            icon={<FolderOpenIcon size={15} />}
+                            title="Project folders"
+                            hint="A group of folders indexed together as one collection. Each group becomes its own searchable set, so you can keep client work separate from personal files."
+                            count={Object.keys(draft()!.projects).length}
+                            unit="group"
+                          />
+                          <GroupList
+                            groups={draft()!.projects}
+                            onAddPath={(n, v) => addGroupPath("projects", n, v)}
+                            onRemovePath={(n, v) => removeGroupPath("projects", n, v)}
+                            onAddGroup={(n) => addGroup("projects", n)}
+                            onRemoveGroup={(n) => removeGroup("projects", n)}
+                            title="Choose a project folder"
+                            empty="No project groups yet. Create one, then add its folders."
+                          />
+                        </div>
+                        <div class="space-y-3">
+                          <SourceHeading
+                            icon={<CodeIcon size={15} />}
+                            title="Code repositories"
+                            hint="Git repositories to index as code. Indexes the current file tree and the commit history (how far back is set below), nested repos included."
+                            count={Object.keys(draft()!.repositories).length}
+                            unit="group"
+                          />
+                          <GroupList
+                            groups={draft()!.repositories}
+                            onAddPath={(n, v) => addGroupPath("repositories", n, v)}
+                            onRemovePath={(n, v) => removeGroupPath("repositories", n, v)}
+                            onAddGroup={(n) => addGroup("repositories", n)}
+                            onRemoveGroup={(n) => removeGroup("repositories", n)}
+                            title="Choose a code repository"
+                            empty="No repository groups yet. Create one, then add its repos."
+                          />
+                        </div>
+                      </div>
+                    </SourceGroup>
+                    
+                    <SourceGroup
                       title="Documents"
                       note="Notes and books you read, searchable by meaning and keyword."
                     >
@@ -1321,49 +1365,6 @@ export function SettingsView() {
                       </div>
                     </SourceGroup>
 
-                    <SourceGroup
-                      title="Code"
-                      note="Folders you work in, grouped into searchable collections."
-                    >
-                      <div class="grid items-start gap-x-8 gap-y-7 md:grid-cols-2">
-                        <div class="space-y-3">
-                          <SourceHeading
-                            icon={<FolderOpenIcon size={15} />}
-                            title="Project folders"
-                            hint="A group of folders indexed together as one collection. Each group becomes its own searchable set, so you can keep client work separate from personal files."
-                            count={Object.keys(draft()!.projects).length}
-                            unit="group"
-                          />
-                          <GroupList
-                            groups={draft()!.projects}
-                            onAddPath={(n, v) => addGroupPath("projects", n, v)}
-                            onRemovePath={(n, v) => removeGroupPath("projects", n, v)}
-                            onAddGroup={(n) => addGroup("projects", n)}
-                            onRemoveGroup={(n) => removeGroup("projects", n)}
-                            title="Choose a project folder"
-                            empty="No project groups yet. Create one, then add its folders."
-                          />
-                        </div>
-                        <div class="space-y-3">
-                          <SourceHeading
-                            icon={<CodeIcon size={15} />}
-                            title="Code repositories"
-                            hint="Git repositories to index as code. Indexes the current file tree and the commit history (how far back is set below), nested repos included."
-                            count={Object.keys(draft()!.repositories).length}
-                            unit="group"
-                          />
-                          <GroupList
-                            groups={draft()!.repositories}
-                            onAddPath={(n, v) => addGroupPath("repositories", n, v)}
-                            onRemovePath={(n, v) => removeGroupPath("repositories", n, v)}
-                            onAddGroup={(n) => addGroup("repositories", n)}
-                            onRemoveGroup={(n) => removeGroup("repositories", n)}
-                            title="Choose a code repository"
-                            empty="No repository groups yet. Create one, then add its repos."
-                          />
-                        </div>
-                      </div>
-                    </SourceGroup>
                   </div>
                 </Section>
               </Show>
