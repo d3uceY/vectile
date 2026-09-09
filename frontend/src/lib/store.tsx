@@ -9,6 +9,7 @@ import type {
   Document,
   IndexCancelled,
   IndexComplete,
+  IndexFailed,
   IndexFileProgress,
   IndexProgress,
   IndexState,
@@ -568,6 +569,20 @@ export function createAppStore() {
     void refresh();
     pushToast(`Indexing ${e.collection} cancelled · ${e.indexed} indexed`, "neutral");
   });
+  const offFailed = Events.On("indexing:failed", (ev) => {
+    const e = ev.data as IndexFailed;
+    setIndexByCollection((m) => {
+      const n = { ...m };
+      if (e.collection) delete n[e.collection];
+      return n;
+    });
+    setIndexProgress(null);
+    setIndexing(false);
+    setIndexAllActive(false);
+    void refresh();
+    const label = e.collection ? `${e.collection} indexing failed` : "Indexing failed";
+    pushToast(`${label}: ${e.message}`, "danger");
+  });
   const offPruned = Events.On("indexing:pruned", (ev) => {
     const n = ev.data as number;
     if (n > 0) pushToast(`Pruned ${n} stale sources`, "neutral");
@@ -640,6 +655,7 @@ export function createAppStore() {
     offFile();
     offComplete();
     offCancelled();
+    offFailed();
     offAllDone();
     offPruned();
     offModelChanged();

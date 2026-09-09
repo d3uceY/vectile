@@ -83,7 +83,7 @@ func (e *Embedder) SetModel(path string, ctxSize, threads int) error {
 	defer e.inferMu.Unlock()
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if e.ctx != nil { 
+	if e.ctx != nil {
 		_ = e.ctx.Close()
 		e.ctx = nil
 	}

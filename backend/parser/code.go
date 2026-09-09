@@ -198,6 +198,10 @@ func ParseCodeFile(filePath, language, relativePath string, maxWords, overlap in
 		slog.Error("failed to parse", "path", filePath, "err", err)
 		return nil
 	}
+	if tree == nil {
+		slog.Error("failed to parse: nil tree", "path", filePath)
+		return nil
+	}
 
 	root := tree.RootNode()
 	splits := splitNodeTypes[language]

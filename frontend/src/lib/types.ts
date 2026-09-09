@@ -182,6 +182,12 @@ export interface IndexCancelled {
   errors: number;
 }
 
+/** Mirrors services.IndexFailed; emitted when an index run panics (caught). */
+export interface IndexFailed {
+  collection: string;
+  message: string;
+}
+
 /** Mirrors services.IndexState: snapshot of the active run, returned by
     getIndexingState() so a freshly-loaded frontend can rebuild the indexing
     UI. Live updates still arrive as events; this only seeds the initial state. */

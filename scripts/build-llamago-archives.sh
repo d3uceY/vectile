@@ -153,7 +153,9 @@ elif [ "$OS" = "darwin" ]; then
 fi
 
 "$CMAKE" -S "$TMP/llama-go/llama.cpp" -B "$BUILD" \
-  -DBUILD_SHARED_LIBS=OFF -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release "${EXTRA[@]}"
+  -DBUILD_SHARED_LIBS=OFF -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_NATIVE=OFF -DGGML_AVX512=OFF -DGGML_AVX512_VBMI=OFF -DGGML_AVX512_VNNI=OFF \
+  "${EXTRA[@]}"
 
 echo "==> Building ggml llama llama-common (a few minutes)"
 "$CMAKE" --build "$BUILD" --target ggml llama llama-common --config Release -j "$JOBS"

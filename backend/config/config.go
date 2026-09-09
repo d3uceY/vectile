@@ -66,25 +66,21 @@ type Config struct {
 	SearchDefaults            SearchDefaults      `json:"search_defaults"`
 	GUI                       GUIConfig           `json:"gui"`
 	MCP                       MCPConfig           `json:"mcp"`
-
-	disabledSet map[string]struct{}
 }
 
 // IsCollectionEnabled reports whether the named collection is not disabled.
+// It scans DisabledCollections directly (the list is tiny) so it never holds
+// mutable shared state: the old lazy-built cache was written and read
+// concurrently by the index goroutine and frontend handlers, which could
+// trigger a fatal "concurrent map read and map write" and crash the app.
 func (c *Config) IsCollectionEnabled(name string) bool {
-	if c.disabledSet == nil {
-		c.disabledSet = make(map[string]struct{}, len(c.DisabledCollections))
-		for _, n := range c.DisabledCollections {
-			c.disabledSet[n] = struct{}{}
+	for _, n := range c.DisabledCollections {
+		if n == name {
+			return false
 		}
 	}
-	_, disabled := c.disabledSet[name]
-	return !disabled
+	return true
 }
-
-// ResetDisabledCache drops the cached disabled-set so IsCollectionEnabled
-// reflects the current DisabledCollections.
-func (c *Config) ResetDisabledCache() { c.disabledSet = nil }
 
 // systemCollections are the reserved names owned by the built-in indexers.
 var systemCollections = []string{"obsidian", "calibre"}

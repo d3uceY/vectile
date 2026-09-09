@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
+	"runtime/debug"
 	"sort"
 
 	"vectile/backend/config"
@@ -49,9 +51,11 @@ func (s *IndexService) AddSourcePath(kind, name, path string) error {
 	case "calibre":
 		cfg.CalibreLibraries = appendUnique(cfg.CalibreLibraries, path)
 	case "project":
-		cfg.Projects[name] = appendUnique(cfg.Projects[name], path)
+		cfg.Projects = setMapSlice(cfg.Projects, name,
+			appendUnique(append([]string(nil), cfg.Projects[name]...), path))
 	case "repo":
-		cfg.Repositories[name] = appendUnique(cfg.Repositories[name], path)
+		cfg.Repositories = setMapSlice(cfg.Repositories, name,
+			appendUnique(append([]string(nil), cfg.Repositories[name]...), path))
 	default:
 		return fmt.Errorf("unknown source kind %q", kind)
 	}
@@ -67,9 +71,11 @@ func (s *IndexService) RemoveSourcePath(kind, name, path string) error {
 	case "calibre":
 		cfg.CalibreLibraries = removeStr(cfg.CalibreLibraries, path)
 	case "project":
-		cfg.Projects[name] = removeStr(cfg.Projects[name], path)
+		cfg.Projects = setMapSlice(cfg.Projects, name,
+			removeStr(append([]string(nil), cfg.Projects[name]...), path))
 	case "repo":
-		cfg.Repositories[name] = removeStr(cfg.Repositories[name], path)
+		cfg.Repositories = setMapSlice(cfg.Repositories, name,
+			removeStr(append([]string(nil), cfg.Repositories[name]...), path))
 	default:
 		return fmt.Errorf("unknown source kind %q", kind)
 	}
@@ -96,12 +102,11 @@ func (s *IndexService) IndexCollection(name string, force bool) (bool, error) {
 		return false, nil
 	}
 	go func() {
-		defer s.unlockIndex()
+		defer s.finishIndexRun(name)
 		s.core.resetIndexRun(false)
 		ctx := s.core.newIndexContext()
 		defer s.core.clearIndexContext()
 		s.runIndex(ctx, name, force)
-		s.core.clearIndexRun()
 	}()
 	return true, nil
 }
@@ -112,7 +117,7 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 		return false, nil
 	}
 	go func() {
-		defer s.unlockIndex()
+		defer s.finishIndexRun("")
 		s.core.resetIndexRun(true)
 		ctx := s.core.newIndexContext()
 		defer s.core.clearIndexContext()
@@ -133,7 +138,6 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 			s.core.App.Event.Emit("indexing:all-done", nil)
 			s.core.sendNotification("index-all", "Indexing finished", "All collections indexed")
 		}
-		s.core.clearIndexRun()
 	}()
 	return true, nil
 }
@@ -143,16 +147,22 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 // the client gets the result directly. It still emits the indexing events, so
 // an open frontend Index view stays in sync. Errors when another index run is
 // already in progress.
-func (s *IndexService) IndexSynchronous(name string, force bool) (*indexer.IndexResult, error) {
+func (s *IndexService) IndexSynchronous(name string, force bool) (result *indexer.IndexResult, err error) {
 	if !s.lockIndex() {
 		return nil, fmt.Errorf("an index run is already in progress")
 	}
-	defer s.unlockIndex()
+	defer func() {
+		if r := recover(); r != nil {
+			s.reportIndexPanic(name, r)
+			result = &indexer.IndexResult{Errors: 1, ErrorMessages: []string{fmt.Sprintf("indexing crashed: %v", r)}}
+		}
+		s.core.clearIndexRun()
+		s.unlockIndex()
+	}()
 	s.core.resetIndexRun(false)
 	ctx := s.core.newIndexContext()
 	defer s.core.clearIndexContext()
-	result := s.runIndex(ctx, name, force)
-	s.core.clearIndexRun()
+	result = s.runIndex(ctx, name, force)
 	return result, nil
 }
 
@@ -242,8 +252,8 @@ func (s *IndexService) DeleteCollection(name string) (int64, error) {
 	case "calibre":
 		cfg.CalibreLibraries = nil
 	default:
-		delete(cfg.Projects, name)
-		delete(cfg.Repositories, name)
+		cfg.Projects = withoutMapKey(cfg.Projects, name)
+		cfg.Repositories = withoutMapKey(cfg.Repositories, name)
 	}
 	cfg.DisabledCollections = removeStr(cfg.DisabledCollections, name)
 	if err := s.persistConfig(); err != nil {
@@ -330,6 +340,30 @@ func (s *IndexService) unlockIndex() {
 	s.core.indexMu.Lock()
 	s.core.indexing = false
 	s.core.indexMu.Unlock()
+}
+
+// finishIndexRun is deferred by the background index goroutines so a panic in
+// the indexing pipeline is caught and reported instead of crashing the app
+// (an unrecovered panic in a goroutine terminates the whole process). It then
+// clears the run state and releases the index lock.
+func (s *IndexService) finishIndexRun(name string) {
+	if r := recover(); r != nil {
+		s.reportIndexPanic(name, r)
+	}
+	s.core.clearIndexRun()
+	s.unlockIndex()
+}
+
+// reportIndexPanic logs a caught index panic (with its stack) and tells the
+// frontend, so the Index view does not sit stuck on "indexing".
+func (s *IndexService) reportIndexPanic(name string, r any) {
+	slog.Error("index run panicked", "collection", name, "panic", r, "stack", string(debug.Stack()))
+	if s.core.App != nil {
+		s.core.App.Event.Emit("indexing:failed", IndexFailed{
+			Collection: name,
+			Message:    fmt.Sprintf("indexing crashed: %v", r),
+		})
+	}
 }
 
 // runIndex dispatches one collection to its indexer and emits progress events.
@@ -424,11 +458,7 @@ func (s *IndexService) configuredCollections() []string {
 }
 
 func (s *IndexService) persistConfig() error {
-	if err := config.Save(s.core.Cfg, s.core.CfgPath); err != nil {
-		return err
-	}
-	s.core.Cfg.ResetDisabledCache()
-	return nil
+	return config.Save(s.core.Cfg, s.core.CfgPath)
 }
 
 func (s *IndexService) applyStartup(enabled bool) {
@@ -467,6 +497,36 @@ func removeStr(list []string, v string) []string {
 	for _, x := range list {
 		if x != v {
 			out = append(out, x)
+		}
+	}
+	return out
+}
+
+// setMapSlice returns a shallow copy of m with key set to val. The Projects /
+// Repositories maps are shared between the index goroutine and frontend request
+// handlers, so they must never be mutated in place: writing to a map while
+// another goroutine reads or iterates it is a fatal "concurrent map read and
+// map write" that crashes the whole process.
+func setMapSlice(m map[string][]string, key string, val []string) map[string][]string {
+	out := make(map[string][]string, len(m)+1)
+	for k, v := range m {
+		out[k] = v
+	}
+	out[key] = val
+	return out
+}
+
+// withoutMapKey returns a shallow copy of m with key removed (or m itself when
+// the key is absent), again so a config map is never mutated while the index
+// goroutine may be reading it.
+func withoutMapKey(m map[string][]string, key string) map[string][]string {
+	if _, ok := m[key]; !ok {
+		return m
+	}
+	out := make(map[string][]string, len(m))
+	for k, v := range m {
+		if k != key {
+			out[k] = v
 		}
 	}
 	return out

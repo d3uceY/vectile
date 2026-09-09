@@ -101,7 +101,7 @@ func IndexGitRepo(ctx context.Context, conn *sql.DB, cfg *config.Config, repoPat
 	var filesToIndex, filesToDelete []string
 	if !force && oldSHA != "" {
 		if oldSHA == headSHA {
-			slog.Info("no new commits since last index", "sha", headSHA[:12])
+			slog.Info("no new commits since last index", "sha", truncateSHA(headSHA))
 			if indexHistory {
 				return indexGitHistory(ctx, conn, cfg, repoPath, collectionID, force, cfg.GitHistoryInMonths, false, embedder)
 			}
@@ -121,7 +121,7 @@ func IndexGitRepo(ctx context.Context, conn *sql.DB, cfg *config.Config, repoPat
 				}
 			}
 		} else {
-			slog.Warn("previous watermark commit not found, doing full index", "sha", oldSHA[:12])
+			slog.Warn("previous watermark commit not found, doing full index", "sha", truncateSHA(oldSHA))
 			filesToIndex = gitLsFiles(repoPath)
 		}
 	} else {
@@ -337,8 +337,14 @@ func commitToChunks(commit CommitInfo, fileChanges []FileChange, repoPath string
 	var chunks []chunker.Chunk
 	chunkIdx := 0
 	repoName := filepath.Base(repoPath)
-	shortSHA := commit.SHA[:7]
-	dateStr := commit.AuthorDate[:10]
+	shortSHA := commit.SHA
+	if len(shortSHA) > 7 {
+		shortSHA = shortSHA[:7]
+	}
+	dateStr := commit.AuthorDate
+	if len(dateStr) > 10 {
+		dateStr = dateStr[:10]
+	}
 
 	for _, fc := range fileChanges {
 		if fc.IsBinary {
@@ -396,6 +402,16 @@ func commitToChunks(commit CommitInfo, fileChanges []FileChange, repoPath string
 }
 
 // ---- git subprocess helpers ----
+
+// truncateSHA shortens a git SHA for log lines, safely for any input length
+// (a persisted watermark is user-visible JSON and may not be a full 40-char
+// SHA, so slicing it unconditionally could panic).
+func truncateSHA(s string) string {
+	if len(s) > 12 {
+		return s[:12]
+	}
+	return s
+}
 
 func runGit(repoPath string, args ...string) (string, error) {
 	cmd := exec.Command("git", append([]string{"-C", repoPath}, args...)...)

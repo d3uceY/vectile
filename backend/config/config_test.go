@@ -68,11 +68,10 @@ func TestIsCollectionEnabled(t *testing.T) {
 	if !cfg.IsCollectionEnabled("calibre") {
 		t.Fatal("calibre should be enabled")
 	}
-	// Cache reset must reflect new values.
+	// Re-reading after a change must reflect the new value.
 	cfg.DisabledCollections = append(cfg.DisabledCollections, "calibre")
-	cfg.ResetDisabledCache()
 	if cfg.IsCollectionEnabled("calibre") {
-		t.Fatal("calibre should be disabled after cache reset")
+		t.Fatal("calibre should be disabled after update")
 	}
 }
 

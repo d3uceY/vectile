@@ -177,6 +177,14 @@ type IndexCancelled struct {
 	Errors     int    `json:"errors"`
 }
 
+// IndexFailed is emitted when an index run panics. The panic is caught so the
+// app does not crash; this tells the frontend to clear the run state and show
+// the error instead of sitting on "indexing" forever.
+type IndexFailed struct {
+	Collection string `json:"collection"`
+	Message    string `json:"message"`
+}
+
 // IndexState is a snapshot of the active index run, returned by
 // GetIndexingState so a frontend that reloads or reconnects mid-run can
 // rebuild its indexing UI instead of showing nothing. Live updates still
