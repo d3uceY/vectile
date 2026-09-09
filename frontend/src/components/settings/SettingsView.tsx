@@ -449,6 +449,7 @@ function GroupList(props: {
 }
 
 function SourceHeading(props: {
+  id?: string;
   icon: JSX.Element;
   title: string;
   hint: string;
@@ -456,7 +457,7 @@ function SourceHeading(props: {
   unit: string;
 }) {
   return (
-    <div class="flex items-center gap-2.5">
+    <div id={props.id} class="flex items-center gap-2.5">
       <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-surface-2 text-indigo">
         {props.icon}
       </span>
@@ -712,7 +713,13 @@ export function SettingsView() {
   const store = useAppStore();
 
   const draft = (): AppConfig | null => store.settingsDraft();
-  const [section, setSection] = createSignal<SectionKey>("model");
+  const [section, setSection] = createSignal<SectionKey>(
+    (store.takePendingSettingsSection() as SectionKey) ?? "model",
+  );
+  createEffect(() => {
+    const pending = store.takePendingSettingsSection();
+    if (pending) setSection(pending as SectionKey);
+  });
 
   createEffect(() => {
     const c = store.config();
@@ -1271,6 +1278,7 @@ export function SettingsView() {
                       <div class="grid items-start gap-x-8 gap-y-7 md:grid-cols-2">
                         <div class="space-y-3">
                           <SourceHeading
+                            id="setup-add-folder"
                             icon={<FolderOpenIcon size={15} />}
                             title="Project folders"
                             hint="A group of folders indexed together as one collection. Each group becomes its own searchable set, so you can keep client work separate from personal files."
@@ -1307,7 +1315,7 @@ export function SettingsView() {
                         </div>
                       </div>
                     </SourceGroup>
-                    
+
                     <SourceGroup
                       title="Documents"
                       note="Notes and books you read, searchable by meaning and keyword."

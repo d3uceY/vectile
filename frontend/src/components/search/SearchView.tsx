@@ -208,7 +208,11 @@ export function SearchView() {
         </Show>
 
         <Show when={showFreshness()}>
-          <FreshnessBar days={freshnessDays()!} onReindex={() => void store.startIndexAll()} />
+          <FreshnessBar
+            days={freshnessDays()!}
+            disabled={!store.canIndex()}
+            onReindex={() => void store.startIndexAll()}
+          />
         </Show>
       </div>
 
@@ -341,13 +345,19 @@ function ResultList() {
   );
 }
 
-function FreshnessBar(props: { days: number; onReindex: () => void }) {
+function FreshnessBar(props: { days: number; disabled?: boolean; onReindex: () => void }) {
   return (
     <div class="mt-3 flex items-center gap-3 rounded-control border border-line bg-surface/40 py-2 pl-3 pr-2">
       <span class="note text-[13px] leading-5 text-muted">
         Last indexed {props.days} day{props.days === 1 ? "" : "s"} ago
       </span>
-      <Button size="sm" variant="outline" class="ml-auto" onClick={props.onReindex}>
+      <Button
+        size="sm"
+        variant="outline"
+        class="ml-auto"
+        disabled={props.disabled}
+        onClick={props.onReindex}
+      >
         Re-index
       </Button>
     </div>

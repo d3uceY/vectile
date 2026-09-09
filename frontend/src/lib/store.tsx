@@ -61,8 +61,23 @@ export function createAppStore() {
     setSettingsDirty(true);
   };
   const replaceSettingsDraft = (v: AppConfig | null) => setSettingsDraftRaw(v);
+  const discardSettingsDraft = () => {
+    setSettingsDraftRaw(null);
+    setSettingsDirty(false);
+  };
 
   const [cpuCount, setCpuCount] = createSignal(0);
+
+  const [pendingSection, setPendingSection] = createSignal<string | null>(null);
+  const openSettings = (section: string) => {
+    setPendingSection(section);
+    setViewRaw("settings");
+  };
+  const takePendingSettingsSection = (): string | null => {
+    const s = pendingSection();
+    setPendingSection(null);
+    return s;
+  };
 
   const setView = (next: ViewId) => {
     if (next === view()) return;
@@ -285,6 +300,11 @@ export function createAppStore() {
     }
   };
 
+
+  const canIndex = () =>
+    (models().some((m) => m.isActive) || modelState() === "loaded") &&
+    modelState() !== "failed";
+
   const setActiveModel = async (path: string, force = false) => {
     const res = await api.setActiveModel(path, force);
     if (!res.needsRebuild) {
@@ -458,6 +478,7 @@ export function createAppStore() {
     try {
       await api.addSourcePath(kind, name, path);
       await loadConfig();
+      discardSettingsDraft();
       return true;
     } catch (err) {
       pushToast(`Could not add ${name}: ${err}`, "danger");
@@ -470,6 +491,7 @@ export function createAppStore() {
       await api.toggleCollectionEnabled(name, enabled);
       setCollections((cs) => cs.map((c) => (c.name === name ? { ...c, enabled } : c)));
       await loadConfig();
+      discardSettingsDraft();
     } catch (err) {
       pushToast(`Toggle failed: ${err}`, "danger");
     }
@@ -518,6 +540,7 @@ export function createAppStore() {
       setExpandedCollection(null);
       setSelectedDoc(null);
       await loadConfig();
+      discardSettingsDraft();
       void refresh();
       void loadLibrary();
       return true;
@@ -669,6 +692,9 @@ export function createAppStore() {
   return {
     view,
     setView,
+    openSettings,
+    takePendingSettingsSection,
+    canIndex,
     modelState,
     modelName,
     status,

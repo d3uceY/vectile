@@ -35,13 +35,32 @@ export function IndexView() {
         title="Index"
         note="Add sources in Settings, then index them here. Deleted files are pruned automatically. Index new adds only changed files; Re-index all re-embeds everything."
       >
-        <Button id="setup-index-all" onClick={() => store.startIndexAll(false)} disabled={store.indexing()}>
+        <Button
+          id="setup-index-all"
+          onClick={() => store.startIndexAll(false)}
+          disabled={store.indexing() || !store.canIndex()}
+        >
           Index all
         </Button>
-        <Button variant="outline" onClick={() => store.startIndexAll(true)} disabled={store.indexing()}>
+        <Button
+          variant="outline"
+          onClick={() => store.startIndexAll(true)}
+          disabled={store.indexing() || !store.canIndex()}
+        >
           Re-index all
         </Button>
       </ViewHeading>
+
+      <Show when={configured().length > 0 && !store.canIndex()}>
+        <div class="mb-5 flex items-center gap-3 rounded-card border border-amber/30 bg-amber-soft/40 px-4 py-2.5">
+          <span class="note flex-1 text-[13px] leading-5 text-ink-soft">
+            Indexing needs an active model.
+          </span>
+          <Button size="sm" variant="outline" onClick={() => store.openSettings("model")}>
+            Choose a model
+          </Button>
+        </div>
+      </Show>
 
       {/* Last run summary */}
       <Show when={!store.indexing() && store.indexLast()}>
@@ -97,7 +116,7 @@ export function IndexView() {
                       <Button
                         size="sm"
                         variant="primary"
-                        disabled={store.indexing() || !item.enabled}
+                        disabled={store.indexing() || !item.enabled || !store.canIndex()}
                         onClick={() => store.startIndex(item.name, false)}
                       >
                         Index new
@@ -106,7 +125,7 @@ export function IndexView() {
                         <Button
                           size="sm"
                           variant="outline"
-                          disabled={store.indexing() || !item.enabled}
+                          disabled={store.indexing() || !item.enabled || !store.canIndex()}
                           onClick={() => store.startIndex(item.name, true)}
                         >
                           Re-index all

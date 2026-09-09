@@ -444,13 +444,13 @@ func (s *IndexService) configuredCollections() []string {
 	}
 	repos := sortedKeys(cfg.Repositories)
 	for _, n := range repos {
-		if cfg.IsCollectionEnabled(n) {
+		if len(cfg.Repositories[n]) > 0 && cfg.IsCollectionEnabled(n) {
 			names = append(names, n)
 		}
 	}
 	projects := sortedKeys(cfg.Projects)
 	for _, n := range projects {
-		if cfg.IsCollectionEnabled(n) {
+		if len(cfg.Projects[n]) > 0 && cfg.IsCollectionEnabled(n) {
 			names = append(names, n)
 		}
 	}

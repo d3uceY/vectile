@@ -82,8 +82,15 @@ func (c *Config) IsCollectionEnabled(name string) bool {
 	return true
 }
 
+func (c *Config) IsEmpty() bool {
+	return len(c.ObsidianVaults) == 0 && len(c.CalibreLibraries) == 0 &&
+		len(c.Repositories) == 0 && len(c.Projects) == 0
+}
+
 // systemCollections are the reserved names owned by the built-in indexers.
 var systemCollections = []string{"obsidian", "calibre"}
+
+const DefaultProjectCollection = "My Library"
 
 // NameConflict is a collection name claimed by more than one source.
 type NameConflict struct {
@@ -159,6 +166,13 @@ func Load(path string) (*Config, error) {
 	}
 	expandConfigPaths(cfg)
 
+	// First-run shape: an empty library (existing file included) gets one
+	// default project group so the setup tour has a stable "My Library"
+	// collection to add folders into.
+	if cfg.IsEmpty() {
+		cfg.Projects[DefaultProjectCollection] = []string{}
+	}
+
 	for _, conflict := range cfg.CollectionNameConflicts() {
 		slog.Warn("collection name conflict: indexing will merge two corpora until renamed",
 			"conflict", conflict.String())
@@ -222,7 +236,7 @@ func defaults() *Config {
 		ObsidianExcludeFolders:    []string{},
 		CalibreLibraries:          []string{},
 		Repositories:              map[string][]string{},
-		Projects:                  map[string][]string{},
+		Projects:                  map[string][]string{DefaultProjectCollection: {}},
 		DisabledCollections:       []string{},
 		SkipCloudPlaceholders:     true,
 		GitHistoryInMonths:        6,
