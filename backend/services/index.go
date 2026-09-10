@@ -410,7 +410,7 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *i
 		s.core.recordIndexProgress(p)
 		s.core.App.Event.Emit("indexing:file", p)
 		// Throttled aggregate progress (the old shape), kept for summaries.
-		if current == total || current%25 == 0 {
+		if current == total || current%5 == 0 {
 			s.core.App.Event.Emit("indexing:progress", IndexProgress{
 				Collection: name, Current: current, Total: total, Item: item,
 			})
