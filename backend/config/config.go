@@ -56,6 +56,7 @@ type Config struct {
 	ChunkOverlapTokens        int                 `json:"chunk_overlap_tokens"`
 	ObsidianVaults            []string            `json:"obsidian_vaults"`
 	ObsidianExcludeFolders    []string            `json:"obsidian_exclude_folders"`
+	ProjectExcludeFolders     []string            `json:"project_exclude_folders"`
 	CalibreLibraries          []string            `json:"calibre_libraries"`
 	Repositories              map[string][]string `json:"repositories"`
 	Projects                  map[string][]string `json:"projects"`
@@ -198,6 +199,7 @@ func Save(cfg *Config, path string) error {
 	existing["chunk_overlap_tokens"] = cfg.ChunkOverlapTokens
 	existing["obsidian_vaults"] = cfg.ObsidianVaults
 	existing["obsidian_exclude_folders"] = cfg.ObsidianExcludeFolders
+	existing["project_exclude_folders"] = cfg.ProjectExcludeFolders
 	existing["calibre_libraries"] = cfg.CalibreLibraries
 	existing["repositories"] = cfg.Repositories
 	existing["projects"] = cfg.Projects
@@ -234,6 +236,7 @@ func defaults() *Config {
 		ChunkOverlapTokens:        50,
 		ObsidianVaults:            []string{},
 		ObsidianExcludeFolders:    []string{},
+		ProjectExcludeFolders:     []string{"node_modules"},
 		CalibreLibraries:          []string{},
 		Repositories:              map[string][]string{},
 		Projects:                  map[string][]string{DefaultProjectCollection: {}},

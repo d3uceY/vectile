@@ -178,6 +178,7 @@ export interface AppConfig {
   chunk_overlap_tokens: number;
   obsidian_vaults: string[];
   obsidian_exclude_folders: string[];
+  project_exclude_folders: string[];
   calibre_libraries: string[];
   repositories: Record<string, string[]>;
   projects: Record<string, string[]>;

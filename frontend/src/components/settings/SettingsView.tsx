@@ -655,6 +655,7 @@ const cloneCfg = (c: AppConfig): AppConfig => ({
   ...c,
   obsidian_vaults: [...c.obsidian_vaults],
   obsidian_exclude_folders: [...c.obsidian_exclude_folders],
+  project_exclude_folders: [...c.project_exclude_folders],
   calibre_libraries: [...c.calibre_libraries],
   repositories: Object.fromEntries(Object.entries(c.repositories).map(([k, v]) => [k, [...v]])),
   projects: Object.fromEntries(Object.entries(c.projects).map(([k, v]) => [k, [...v]])),
@@ -747,10 +748,14 @@ export function SettingsView() {
       return { ...d, [k]: clamp(n, b.min, b.max) };
     });
 
-  const addPath = (k: "obsidian_vaults" | "obsidian_exclude_folders" | "calibre_libraries", v: string) =>
-    store.setSettingsDraft((d) => (d ? { ...d, [k]: [...d[k], v] } : d));
-  const removePath = (k: "obsidian_vaults" | "obsidian_exclude_folders" | "calibre_libraries", v: string) =>
-    store.setSettingsDraft((d) => (d ? { ...d, [k]: d[k].filter((x) => x !== v) } : d));
+  const addPath = (
+    k: "obsidian_vaults" | "obsidian_exclude_folders" | "project_exclude_folders" | "calibre_libraries",
+    v: string,
+  ) => store.setSettingsDraft((d) => (d ? { ...d, [k]: [...d[k], v] } : d));
+  const removePath = (
+    k: "obsidian_vaults" | "obsidian_exclude_folders" | "project_exclude_folders" | "calibre_libraries",
+    v: string,
+  ) => store.setSettingsDraft((d) => (d ? { ...d, [k]: d[k].filter((x) => x !== v) } : d));
 
   const addGroupPath = (mapKey: "projects" | "repositories", name: string, v: string) =>
     store.setSettingsDraft((d) =>
@@ -1383,6 +1388,21 @@ export function SettingsView() {
                             title="Choose a project folder"
                             empty="No project groups yet. Create one, then add its folders."
                           />
+                          <div class="space-y-2.5">
+                            <SourceHeading
+                              icon={<SlashIcon size={14} />}
+                              title="Excluded folders"
+                              hint="Folder names skipped anywhere inside a project folder, at any depth. node_modules is skipped by default; add any other folder you never want in search results."
+                              count={draft()!.project_exclude_folders.length}
+                              unit="folder"
+                            />
+                            <ChipList
+                              values={draft()!.project_exclude_folders}
+                              onAdd={(v) => addPath("project_exclude_folders", v)}
+                              onRemove={(v) => removePath("project_exclude_folders", v)}
+                              title="Name a folder to exclude"
+                            />
+                          </div>
                         </div>
                         <div class="space-y-3">
                           <SourceHeading

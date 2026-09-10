@@ -25,6 +25,9 @@ func TestDefaults(t *testing.T) {
 	if cfg.MCP.Port != 31123 {
 		t.Fatalf("default MCP port = %d, want 31123", cfg.MCP.Port)
 	}
+	if len(cfg.ProjectExcludeFolders) != 1 || cfg.ProjectExcludeFolders[0] != "node_modules" {
+		t.Fatalf("project folders should skip node_modules by default, got %v", cfg.ProjectExcludeFolders)
+	}
 }
 
 func TestSaveLoadRoundtrip(t *testing.T) {
@@ -36,6 +39,7 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	cfg.GUI.AutoReindexIntervalMinutes = 45
 	cfg.MCP.Enabled = true
 	cfg.MCP.Port = 40404
+	cfg.ProjectExcludeFolders = []string{"node_modules", "references"}
 
 	if err := Save(cfg, path); err != nil {
 		t.Fatal(err)
@@ -56,6 +60,9 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	}
 	if !got.MCP.Enabled || got.MCP.Port != 40404 {
 		t.Fatalf("mcp config not round-tripped: %+v", got.MCP)
+	}
+	if len(got.ProjectExcludeFolders) != 2 || got.ProjectExcludeFolders[1] != "references" {
+		t.Fatalf("project exclude folders not round-tripped: %v", got.ProjectExcludeFolders)
 	}
 }
 

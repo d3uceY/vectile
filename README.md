@@ -163,6 +163,7 @@ Config file: `<os.UserConfigDir()>/vectile/config.json`
 | chunk_overlap_tokens | 50 | Overlap between chunks |
 | obsidian_vaults | [] | Paths to Obsidian vaults |
 | obsidian_exclude_folders | [] | Folders to skip in vaults |
+| project_exclude_folders | [node_modules] | Folder names to skip anywhere inside project folders |
 | calibre_libraries | [] | Paths to Calibre libraries |
 | repositories | {} | Map of collection name to repo or directory paths; directories are scanned recursively for git repos |
 | projects | {} | Map of collection name to document paths |

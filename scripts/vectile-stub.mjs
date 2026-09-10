@@ -69,6 +69,7 @@ const config = {
   chunk_overlap_tokens: 30,
   obsidian_vaults: ["C:\\Users\\you\\Documents\\notes"],
   obsidian_exclude_folders: [".obsidian", ".trash"],
+  project_exclude_folders: ["node_modules", "references"],
   calibre_libraries: ["C:\\Users\\you\\Calibre Library"],
   repositories: { vectile: ["C:\\Users\\you\\code\\vectile"] },
   projects: { "field-notes": ["C:\\Users\\you\\Documents\\field-notes"] },
