@@ -143,7 +143,7 @@ export class Collection {
 }
 
 /**
- * Document is one chunked document (a browse leaf).
+ * Document is one chunked document (a browse reading pane), with its full text.
  */
 export class Document {
     "id": number;
@@ -187,6 +187,94 @@ export class Document {
     static createFrom($$source: any = {}): Document {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new Document($$parsedSource as Partial<Document>);
+    }
+}
+
+/**
+ * DocumentPage is one keyset page of a collection's chunk stream, in stream
+ * order. Before and After are opaque cursors for the neighbouring pages; ""
+ * means that side ends there.
+ */
+export class DocumentPage {
+    "documents": DocumentSummary[];
+    "before": string;
+    "after": string;
+
+    /** Creates a new DocumentPage instance. */
+    constructor($$source: Partial<DocumentPage> = {}) {
+        if (!("documents" in $$source)) {
+            this["documents"] = [];
+        }
+        if (!("before" in $$source)) {
+            this["before"] = "";
+        }
+        if (!("after" in $$source)) {
+            this["after"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DocumentPage instance from a string or object.
+     */
+    static createFrom($$source: any = {}): DocumentPage {
+        const $$createField0_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("documents" in $$parsedSource) {
+            $$parsedSource["documents"] = $$createField0_0($$parsedSource["documents"]);
+        }
+        return new DocumentPage($$parsedSource as Partial<DocumentPage>);
+    }
+}
+
+/**
+ * DocumentSummary is one row in the paged Browse chunk stream: the fields the
+ * list needs, without the text. The stream is paged indefinitely, so Content and
+ * Metadata come from GetDocument for the selected chunk only.
+ */
+export class DocumentSummary {
+    "id": number;
+    "sourceId": number;
+    "collectionId": number;
+    "chunkIndex": number;
+    "title": string;
+    "sourcePath": string;
+    "sourceType": string;
+
+    /** Creates a new DocumentSummary instance. */
+    constructor($$source: Partial<DocumentSummary> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = 0;
+        }
+        if (!("sourceId" in $$source)) {
+            this["sourceId"] = 0;
+        }
+        if (!("collectionId" in $$source)) {
+            this["collectionId"] = 0;
+        }
+        if (!("chunkIndex" in $$source)) {
+            this["chunkIndex"] = 0;
+        }
+        if (!("title" in $$source)) {
+            this["title"] = "";
+        }
+        if (!("sourcePath" in $$source)) {
+            this["sourcePath"] = "";
+        }
+        if (!("sourceType" in $$source)) {
+            this["sourceType"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DocumentSummary instance from a string or object.
+     */
+    static createFrom($$source: any = {}): DocumentSummary {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DocumentSummary($$parsedSource as Partial<DocumentSummary>);
     }
 }
 
@@ -258,7 +346,7 @@ export class IndexState {
      * Creates a new IndexState instance from a string or object.
      */
     static createFrom($$source: any = {}): IndexState {
-        const $$createField2_0 = $$createType1;
+        const $$createField2_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("collections" in $$parsedSource) {
             $$parsedSource["collections"] = $$createField2_0($$parsedSource["collections"]);
@@ -345,7 +433,7 @@ export class SetActiveResult {
      * Creates a new SetActiveResult instance from a string or object.
      */
     static createFrom($$source: any = {}): SetActiveResult {
-        const $$createField1_0 = $$createType2;
+        const $$createField1_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("model" in $$parsedSource) {
             $$parsedSource["model"] = $$createField1_0($$parsedSource["model"]);
@@ -395,6 +483,43 @@ export class Source {
     static createFrom($$source: any = {}): Source {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new Source($$parsedSource as Partial<Source>);
+    }
+}
+
+/**
+ * SourcePage is one keyset page of a collection's sources. Before and After are
+ * opaque cursors for the neighbouring pages; "" means that side ends there.
+ */
+export class SourcePage {
+    "sources": Source[];
+    "before": string;
+    "after": string;
+
+    /** Creates a new SourcePage instance. */
+    constructor($$source: Partial<SourcePage> = {}) {
+        if (!("sources" in $$source)) {
+            this["sources"] = [];
+        }
+        if (!("before" in $$source)) {
+            this["before"] = "";
+        }
+        if (!("after" in $$source)) {
+            this["after"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SourcePage instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SourcePage {
+        const $$createField0_0 = $$createType6;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("sources" in $$parsedSource) {
+            $$parsedSource["sources"] = $$createField0_0($$parsedSource["sources"]);
+        }
+        return new SourcePage($$parsedSource as Partial<SourcePage>);
     }
 }
 
@@ -455,6 +580,10 @@ export class Status {
 }
 
 // Private type creation functions
-const $$createType0 = IndexFileProgress.createFrom;
-const $$createType1 = $Create.Map($Create.Any, $$createType0);
-const $$createType2 = db$0.Model.createFrom;
+const $$createType0 = DocumentSummary.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = IndexFileProgress.createFrom;
+const $$createType3 = $Create.Map($Create.Any, $$createType2);
+const $$createType4 = db$0.Model.createFrom;
+const $$createType5 = Source.createFrom;
+const $$createType6 = $Create.Array($$createType5);

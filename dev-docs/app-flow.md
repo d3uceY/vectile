@@ -81,7 +81,7 @@ Filters narrow the search: collection, file type, path substring, sender or auth
 
 ## Browsing and the library
 
-Library lists every collection with its source and chunk counts. Expanding one lists its files. Browse builds a file tree of collections, files, and the chunks inside them, with a preview pane. Both read the same database the search uses, so nothing is out of sync.
+Library lists every collection with its source and chunk counts. Expanding one lists its files, a page at a time. Browse shows the chunks of one library grouped under their file, with a preview pane, and pages them in as you scroll: the chunk list carries no text, each page is a hundred rows, and only six pages are held at once, so the selected chunk's text is fetched on its own. Both read the same database the search uses, so nothing is out of sync.
 
 ## Background jobs
 

@@ -24,6 +24,16 @@ export function GetCPUCount(): $CancellablePromise<number> {
 }
 
 /**
+ * GetDocument returns one chunk with its full text and metadata, for the
+ * reading pane.
+ */
+export function GetDocument(id: number): $CancellablePromise<$models.Document> {
+    return $Call.ByID(4208047110, id).then(($result: any) => {
+        return $$createType0($result);
+    });
+}
+
+/**
  * GetModelError returns the embedder's load error (for the status pill).
  */
 export function GetModelError(): $CancellablePromise<string> {
@@ -42,7 +52,7 @@ export function GetPlatform(): $CancellablePromise<string> {
  */
 export function GetStatus(): $CancellablePromise<$models.Status> {
     return $Call.ByID(1831479589).then(($result: any) => {
-        return $$createType0($result);
+        return $$createType1($result);
     });
 }
 
@@ -58,25 +68,29 @@ export function GetVersion(): $CancellablePromise<string> {
  */
 export function ListCollections(): $CancellablePromise<$models.Collection[]> {
     return $Call.ByID(1339457758).then(($result: any) => {
-        return $$createType2($result);
+        return $$createType3($result);
     });
 }
 
 /**
- * ListDocuments returns the documents of a collection (optionally one source).
+ * ListDocumentsPage returns one page of a collection's chunk stream, ordered by
+ * source then chunk. The rows deliberately carry no content: the stream is
+ * paged indefinitely and the selected chunk's text comes from GetDocument.
  */
-export function ListDocuments(collectionID: number, sourceID: number): $CancellablePromise<$models.Document[]> {
-    return $Call.ByID(1318390221, collectionID, sourceID).then(($result: any) => {
+export function ListDocumentsPage(collectionID: number, cursor: string, backward: boolean): $CancellablePromise<$models.DocumentPage> {
+    return $Call.ByID(1199931038, collectionID, cursor, backward).then(($result: any) => {
         return $$createType4($result);
     });
 }
 
 /**
- * ListSources returns the sources of a collection, ordered by path.
+ * ListSourcesPage returns one page of a collection's sources ordered by path.
+ * backward=true pages towards the start of the list; cursor is opaque and comes
+ * from a previous page ("" for the first page).
  */
-export function ListSources(collectionID: number): $CancellablePromise<$models.Source[]> {
-    return $Call.ByID(553118937, collectionID).then(($result: any) => {
-        return $$createType6($result);
+export function ListSourcesPage(collectionID: number, cursor: string, backward: boolean): $CancellablePromise<$models.SourcePage> {
+    return $Call.ByID(757967130, collectionID, cursor, backward).then(($result: any) => {
+        return $$createType5($result);
     });
 }
 
@@ -96,10 +110,9 @@ export function RevealInFolder(path: string): $CancellablePromise<void> {
 }
 
 // Private type creation functions
-const $$createType0 = $models.Status.createFrom;
-const $$createType1 = $models.Collection.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = $models.Document.createFrom;
-const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = $models.Source.createFrom;
-const $$createType6 = $Create.Array($$createType5);
+const $$createType0 = $models.Document.createFrom;
+const $$createType1 = $models.Status.createFrom;
+const $$createType2 = $models.Collection.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = $models.DocumentPage.createFrom;
+const $$createType5 = $models.SourcePage.createFrom;

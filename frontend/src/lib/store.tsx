@@ -1,4 +1,4 @@
-import { createContext, createSignal, onCleanup, onMount, useContext, type JSX } from "solid-js";
+import { batch, createContext, createSignal, onCleanup, onMount, useContext, type JSX } from "solid-js";
 import { Events } from "@wailsio/runtime";
 import * as api from "./api";
 import { baseName } from "./format";
@@ -7,7 +7,6 @@ import type {
   CacheStats,
   CatalogModel,
   Collection,
-  Document,
   IndexCancelled,
   IndexComplete,
   IndexFailed,
@@ -22,7 +21,6 @@ import type {
   ModelState,
   SearchFilters,
   SearchResult,
-  Source,
   Status,
   ViewId,
 } from "./types";
@@ -142,8 +140,11 @@ export function createAppStore() {
     await loadCacheStats();
   };
 
-  const [sources, setSources] = createSignal<Source[]>([]);
-  const [documents, setDocuments] = createSignal<Document[]>([]);
+  // Bumped whenever indexed data changes (an index run, a delete). Views that
+  // hold a paged window watch this and drop their pages, so they stay in sync
+  // without any of them loading the whole library into memory.
+  const [libraryEpoch, setLibraryEpoch] = createSignal(0);
+  const bumpLibraryEpoch = () => setLibraryEpoch((n) => n + 1);
 
   const [query, setQuery] = createSignal("");
   const [filters, setFilters] = createSignal<SearchFilters>(defaultFilters());
@@ -160,7 +161,6 @@ export function createAppStore() {
   };
 
   const [expandedCollection, setExpandedCollection] = createSignal<string | null>(null);
-  const [selectedDoc, setSelectedDoc] = createSignal<Document | null>(null);
 
   const [indexing, setIndexing] = createSignal(false);
   const [indexProgress, setIndexProgress] = createSignal<IndexProgress | null>(null);
@@ -226,11 +226,17 @@ export function createAppStore() {
 
   const refresh = async () => {
     try {
-      const st = await api.getStatus();
-      setStatus(st);
-      setModelState(st.modelState);
-      setModelName(st.modelName);
-      setCollections(await api.listCollections());
+      // Fetch both, then publish both in one batch. Outside a batch Solid runs
+      // effects after each write, so setting status first briefly left a
+      // non-null status with an empty library, which is exactly the condition
+      // the setup tour waits for: it opened over a populated library.
+      const [st, cols] = await Promise.all([api.getStatus(), api.listCollections()]);
+      batch(() => {
+        setStatus(st);
+        setModelState(st.modelState);
+        setModelName(st.modelName);
+        setCollections(cols);
+      });
     } catch {
       /* backend not ready yet */
     }
@@ -243,41 +249,6 @@ export function createAppStore() {
       setFilters((f) =>
         f.topK === DEFAULT_TOP_K ? { ...f, topK: c.search_defaults.top_k } : f,
       );
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const loadSources = async (collectionId: number) => {
-    try {
-      const list = await api.listSources(collectionId);
-      setSources((prev) => [
-        ...prev.filter((s) => s.collectionId !== collectionId),
-        ...list,
-      ]);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const loadLibrary = async () => {
-    try {
-      const cols = await api.listCollections();
-      const srcs: Source[] = [];
-      const docs: Document[] = [];
-      for (const c of cols) {
-        const cs = await api.listSources(c.id);
-        srcs.push(...cs);
-        for (const s of cs) {
-          try {
-            docs.push(...(await api.listDocuments(s.collectionId, s.id)));
-          } catch {
-            /* ignore */
-          }
-        }
-      }
-      setSources(srcs);
-      setDocuments(docs);
     } catch {
       /* ignore */
     }
@@ -532,7 +503,7 @@ export function createAppStore() {
         "success",
       );
       void refresh();
-      void loadLibrary();
+      bumpLibraryEpoch();
       return true;
     } catch (err) {
       pushToast(`Delete failed: ${err}`, "danger");
@@ -547,9 +518,8 @@ export function createAppStore() {
         `Removed ${label} · ${removed} chunk${removed === 1 ? "" : "s"} deleted`,
         "success",
       );
-      setSelectedDoc(null);
       void refresh();
-      void loadLibrary();
+      bumpLibraryEpoch();
       return true;
     } catch (err) {
       pushToast(`Delete failed: ${err}`, "danger");
@@ -565,11 +535,10 @@ export function createAppStore() {
         "success",
       );
       setExpandedCollection(null);
-      setSelectedDoc(null);
       await loadConfig();
       discardSettingsDraft();
       void refresh();
-      void loadLibrary();
+      bumpLibraryEpoch();
       return true;
     } catch (err) {
       pushToast(`Delete failed: ${err}`, "danger");
@@ -595,7 +564,7 @@ export function createAppStore() {
     setIndexLast(e);
     if (!indexAllActive()) {
       setIndexing(false);
-      void loadLibrary();
+      bumpLibraryEpoch();
     }
     void refresh();
     void loadCacheStats();
@@ -605,7 +574,7 @@ export function createAppStore() {
   const offAllDone = Events.On("indexing:all-done", () => {
     setIndexAllActive(false);
     setIndexing(false);
-    void loadLibrary(); 
+    bumpLibraryEpoch();
     void loadCacheStats();
   });
   const offCancelled = Events.On("indexing:cancelled", (ev) => {
@@ -759,10 +728,8 @@ export function createAppStore() {
     confirmLeave,
     cpuCount,
     loadConfig,
-    sources,
-    documents,
-    loadSources,
-    loadLibrary,
+    libraryEpoch,
+    bumpLibraryEpoch,
     query,
     setQuery,
     filters,
@@ -778,8 +745,6 @@ export function createAppStore() {
     focusSearch,
     expandedCollection,
     setExpandedCollection,
-    selectedDoc,
-    setSelectedDoc,
     indexing,
     indexProgress,
     indexByCollection,

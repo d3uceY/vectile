@@ -55,6 +55,33 @@ export interface Document {
   metadata: Record<string, unknown> | null;
 }
 
+/** Mirrors services.DocumentSummary: one chunk row in the paged Browse stream.
+    It carries no text; that comes from getDocument for the selected row. */
+export interface DocumentSummary {
+  id: number;
+  sourceId: number;
+  collectionId: number;
+  chunkIndex: number;
+  title: string;
+  sourcePath: string;
+  sourceType: string;
+}
+
+/** Mirrors services.DocumentPage. before/after are opaque cursors for the
+    neighbouring pages; "" means the stream ends on that side. */
+export interface DocumentPage {
+  documents: DocumentSummary[];
+  before: string;
+  after: string;
+}
+
+/** Mirrors services.SourcePage. */
+export interface SourcePage {
+  sources: Source[];
+  before: string;
+  after: string;
+}
+
 /** Mirrors search.SearchResult. */
 export interface SearchResult {
   content: string;

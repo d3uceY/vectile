@@ -110,68 +110,78 @@ func (s *AppService) ListCollections() ([]Collection, error) {
 	return out, rows.Err()
 }
 
-// ListSources returns the sources of a collection, ordered by path.
-func (s *AppService) ListSources(collectionID int64) ([]Source, error) {
-	rows, err := db.DB.Query(`
-		SELECT s.id, s.collection_id, s.source_type, s.source_path,
-			(SELECT COUNT(*) FROM documents d WHERE d.source_id = s.id),
-			s.last_indexed_at
-		FROM sources s
-		WHERE s.collection_id = ?
-		ORDER BY s.source_path`, collectionID)
+// ListSourcesPage returns one page of a collection's sources ordered by path.
+// backward=true pages towards the start of the list; cursor is opaque and comes
+// from a previous page ("" for the first page).
+func (s *AppService) ListSourcesPage(collectionID int64, cursor string, backward bool) (SourcePage, error) {
+	page, err := db.ListSourcesPage(db.DB, collectionID, cursor, 0, backward)
 	if err != nil {
-		return nil, err
+		return SourcePage{}, err
 	}
-	defer rows.Close()
-
-	var out []Source
-	for rows.Next() {
-		var src Source
-		var last sql.NullString
-		if err := rows.Scan(&src.ID, &src.CollectionID, &src.SourceType, &src.Path, &src.Chunks, &last); err != nil {
-			return nil, err
-		}
-		if last.Valid {
-			src.LastIndexed = last.String
-		}
-		out = append(out, src)
+	out := SourcePage{
+		Sources: make([]Source, 0, len(page.Rows)),
+		Before:  page.Before,
+		After:   page.After,
 	}
-	return out, rows.Err()
+	for _, r := range page.Rows {
+		out.Sources = append(out.Sources, Source{
+			ID:           r.ID,
+			CollectionID: r.CollectionID,
+			SourceType:   r.SourceType,
+			Path:         r.Path,
+			Chunks:       r.Chunks,
+			LastIndexed:  r.LastIndexed,
+		})
+	}
+	return out, nil
 }
 
-// ListDocuments returns the documents of a collection (optionally one source).
-func (s *AppService) ListDocuments(collectionID, sourceID int64) ([]Document, error) {
-	query := `SELECT id, source_id, collection_id, chunk_index, title, content, metadata
-		FROM documents WHERE collection_id = ?`
-	args := []any{collectionID}
-	if sourceID > 0 {
-		query += ` AND source_id = ?`
-		args = append(args, sourceID)
-	}
-	query += ` ORDER BY source_id, chunk_index`
-
-	rows, err := db.DB.Query(query, args...)
+// ListDocumentsPage returns one page of a collection's chunk stream, ordered by
+// source then chunk. The rows deliberately carry no content: the stream is
+// paged indefinitely and the selected chunk's text comes from GetDocument.
+func (s *AppService) ListDocumentsPage(collectionID int64, cursor string, backward bool) (DocumentPage, error) {
+	page, err := db.ListDocumentsPage(db.DB, collectionID, cursor, 0, backward)
 	if err != nil {
-		return nil, err
+		return DocumentPage{}, err
 	}
-	defer rows.Close()
+	out := DocumentPage{
+		Documents: make([]DocumentSummary, 0, len(page.Rows)),
+		Before:    page.Before,
+		After:     page.After,
+	}
+	for _, r := range page.Rows {
+		out.Documents = append(out.Documents, DocumentSummary{
+			ID:           r.ID,
+			SourceID:     r.SourceID,
+			CollectionID: r.CollectionID,
+			ChunkIndex:   r.ChunkIndex,
+			Title:        r.Title,
+			SourcePath:   r.SourcePath,
+			SourceType:   r.SourceType,
+		})
+	}
+	return out, nil
+}
 
-	var out []Document
-	for rows.Next() {
-		var d Document
-		var title, meta sql.NullString
-		var content string
-		if err := rows.Scan(&d.ID, &d.SourceID, &d.CollectionID, &d.ChunkIndex, &title, &content, &meta); err != nil {
-			return nil, err
-		}
-		if title.Valid {
-			d.Title = title.String
-		}
-		d.Content = content
-		d.Metadata = parseMeta(meta)
-		out = append(out, d)
+// GetDocument returns one chunk with its full text and metadata, for the
+// reading pane.
+func (s *AppService) GetDocument(id int64) (Document, error) {
+	d, ok, err := db.GetDocument(db.DB, id)
+	if err != nil {
+		return Document{}, err
 	}
-	return out, rows.Err()
+	if !ok {
+		return Document{}, fmt.Errorf("chunk %d no longer exists", id)
+	}
+	return Document{
+		ID:           d.ID,
+		SourceID:     d.SourceID,
+		CollectionID: d.CollectionID,
+		ChunkIndex:   d.ChunkIndex,
+		Title:        d.Title,
+		Content:      d.Content,
+		Metadata:     parseMetaString(d.Metadata),
+	}, nil
 }
 
 // GetModelError returns the embedder's load error (for the status pill).
@@ -210,12 +220,21 @@ func ensurePathExists(path string) error {
 
 // parseMeta decodes a JSON metadata column into a value the frontend can use.
 func parseMeta(ns sql.NullString) any {
-	if !ns.Valid || ns.String == "" {
+	if !ns.Valid {
+		return nil
+	}
+	return parseMetaString(ns.String)
+}
+
+// parseMetaString does the decoding; an empty or unparsable value falls back to
+// nil / the raw string so one bad row can't blank the reading pane.
+func parseMetaString(raw string) any {
+	if raw == "" {
 		return nil
 	}
 	var m map[string]any
-	if err := json.Unmarshal([]byte(ns.String), &m); err != nil {
-		return ns.String
+	if err := json.Unmarshal([]byte(raw), &m); err != nil {
+		return raw
 	}
 	return m
 }

@@ -131,7 +131,15 @@ type Source struct {
 	LastIndexed  string `json:"lastIndexed"`
 }
 
-// Document is one chunked document (a browse leaf).
+// SourcePage is one keyset page of a collection's sources. Before and After are
+// opaque cursors for the neighbouring pages; "" means that side ends there.
+type SourcePage struct {
+	Sources []Source `json:"sources"`
+	Before  string   `json:"before"`
+	After   string   `json:"after"`
+}
+
+// Document is one chunked document (a browse reading pane), with its full text.
 type Document struct {
 	ID           int64  `json:"id"`
 	SourceID     int64  `json:"sourceId"`
@@ -140,6 +148,28 @@ type Document struct {
 	Title        string `json:"title"`
 	Content      string `json:"content"`
 	Metadata     any    `json:"metadata"`
+}
+
+// DocumentSummary is one row in the paged Browse chunk stream: the fields the
+// list needs, without the text. The stream is paged indefinitely, so Content and
+// Metadata come from GetDocument for the selected chunk only.
+type DocumentSummary struct {
+	ID           int64  `json:"id"`
+	SourceID     int64  `json:"sourceId"`
+	CollectionID int64  `json:"collectionId"`
+	ChunkIndex   int    `json:"chunkIndex"`
+	Title        string `json:"title"`
+	SourcePath   string `json:"sourcePath"`
+	SourceType   string `json:"sourceType"`
+}
+
+// DocumentPage is one keyset page of a collection's chunk stream, in stream
+// order. Before and After are opaque cursors for the neighbouring pages; ""
+// means that side ends there.
+type DocumentPage struct {
+	Documents []DocumentSummary `json:"documents"`
+	Before    string            `json:"before"`
+	After     string            `json:"after"`
 }
 
 // IndexProgress is emitted during an index run.

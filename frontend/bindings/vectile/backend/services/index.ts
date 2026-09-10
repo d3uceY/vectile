@@ -16,10 +16,13 @@ export {
     CatalogModel,
     Collection,
     Document,
+    DocumentPage,
+    DocumentSummary,
     IndexFileProgress,
     IndexState,
     ModelDownloadState,
     SetActiveResult,
     Source,
+    SourcePage,
     Status
 } from "./models.js";

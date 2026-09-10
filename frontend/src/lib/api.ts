@@ -14,6 +14,7 @@ import type {
   CatalogModel,
   Collection,
   Document,
+  DocumentPage,
   IndexState,
   MCPStatus,
   ModelDownloadState,
@@ -21,7 +22,7 @@ import type {
   SearchFilters,
   SearchResponse,
   SetActiveResult,
-  Source,
+  SourcePage,
   Status,
 } from "./types";
 
@@ -67,12 +68,31 @@ export async function listCollections(): Promise<Collection[]> {
   return AppService.ListCollections() as unknown as Collection[];
 }
 
-export async function listSources(collectionId: number): Promise<Source[]> {
-  return AppService.ListSources(collectionId) as unknown as Source[];
+export async function listSourcesPage(
+  collectionId: number,
+  cursor: string,
+  backward: boolean,
+): Promise<SourcePage> {
+  return AppService.ListSourcesPage(collectionId, cursor, backward) as unknown as SourcePage;
 }
 
-export async function listDocuments(collectionId: number, sourceId = 0): Promise<Document[]> {
-  return AppService.ListDocuments(collectionId, sourceId) as unknown as Document[];
+/**
+ * One page of a collection's chunk stream, ordered by source then chunk. Rows
+ * carry no text; getDocument fetches the selected chunk's content. Pass the
+ * previous page's before/after as the cursor, and backward=true to walk towards
+ * the start of the stream.
+ */
+export async function listDocumentsPage(
+  collectionId: number,
+  cursor: string,
+  backward: boolean,
+): Promise<DocumentPage> {
+  return AppService.ListDocumentsPage(collectionId, cursor, backward) as unknown as DocumentPage;
+}
+
+/** One chunk with its full text and metadata, for the reading pane. */
+export async function getDocument(id: number): Promise<Document> {
+  return AppService.GetDocument(id) as unknown as Document;
 }
 
 export async function search(query: string, filters: SearchFilters): Promise<SearchResponse> {

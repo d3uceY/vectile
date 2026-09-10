@@ -71,10 +71,15 @@ export async function interact(page, job) {
   }
 
   if (view === "browse") {
-    // The tree + preview load via loadLibrary(); the default expands the first
-    // collection and its first source, which is what the screenshot shows.
+    // Browse is a paged chunk stream now: wait for the first page's rows, then
+    // for the reading pane, which fetches the selected chunk's text separately.
     await page
-      .locator('[role="tree"] [role="treeitem"]')
+      .locator("[data-row-id]")
+      .first()
+      .waitFor({ state: "visible", timeout: 8000 })
+      .catch(() => {});
+    await page
+      .locator("main .read")
       .first()
       .waitFor({ state: "visible", timeout: 8000 })
       .catch(() => {});

@@ -10,7 +10,7 @@ import (
 )
 
 // SchemaVersion is the current schema version, tracked in the meta table.
-const SchemaVersion = 3
+const SchemaVersion = 4
 
 // InitSchema creates all tables, virtual tables, and triggers if they don't
 // exist. Safe to call on every startup.
@@ -107,6 +107,12 @@ func InitSchema(db *sql.DB, embeddingDim int) error {
 		);
 
 		CREATE INDEX IF NOT EXISTS idx_documents_collection_id ON documents(collection_id);
+
+		-- Covers the Browse chunk stream: ordered by (source_id, chunk_index),
+		-- filtered by collection. Without it SQLite sorts the whole collection
+		-- on every page fetch instead of stopping at LIMIT.
+		CREATE INDEX IF NOT EXISTS idx_documents_collection_source_chunk
+			ON documents(collection_id, source_id, chunk_index);
 	`, vecTablesDDL(embeddingDim))
 
 	if _, err := db.Exec(schema); err != nil {

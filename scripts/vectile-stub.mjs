@@ -14,8 +14,9 @@ const M = {
   GetCPUCount: 899550166,
   GetVersion: 712846061,
   ListCollections: 1339457758,
-  ListSources: 553118937,
-  ListDocuments: 1318390221,
+  ListSourcesPage: 757967130,
+  ListDocumentsPage: 1199931038,
+  GetDocument: 4208047110,
   Search: 2587852292,
   GetConfig: 2113296768,
   DeleteSource: 2650919656,
@@ -149,7 +150,7 @@ let sources = [
   { id: 46, collectionId: 4, sourceType: "commit", path: "C:\\Users\\you\\code\\vectile\\.git", chunks: 2794, lastIndexed: "2026-08-24" },
 ];
 
-let documents = [
+const SAMPLE_DOCS = [
   // calibre — epub
   { id: 1111, sourceId: 11, collectionId: 1, chunkIndex: 0, title: "Prologue — the late shift", content: "The late shift in the Valley started quietly: a handful of engineers in a rented office, shipping while the rest of the industry slept. Nobody set out to make a culture of it. It just turned out that the work got done at night, and the morning was for arguing about what had been built.", metadata: { page: 3 } },
   { id: 1112, sourceId: 11, collectionId: 1, chunkIndex: 1, title: "Chapter 1 — two founders", content: "Both founders came from support desks. That was the whole trick, they said: they knew what the users typed when they were stuck. So the product was built from search logs, not from a vision deck.", metadata: { page: 17 } },
@@ -170,6 +171,125 @@ let documents = [
   // vectile — git history
   { id: 4601, sourceId: 46, collectionId: 4, chunkIndex: 0, title: "docs: rollout strategy notes", content: "Add notes weighing rolling, canary, and blue-green for the control-plane upgrade. Rolling chosen for the nodes, blue-green reserved for the API. No code changes in this commit.", metadata: { author: "Jesse" } },
 ];
+
+// The hand-written chunks above carry the demo's reading-pane copy. Every other
+// chunk is generated, so a collection really holds the number of chunks its row
+// claims, which is what makes paging (and the window cap) real in the browser.
+const FILLER_BY_TYPE = {
+  epub: [
+    "The chapter widens into a detour: how the team measured what they built, and what the numbers refused to say.",
+    "A short aside on the people who wrote the tooling, and the meetings that decided it.",
+  ],
+  pdf: [
+    "The section works through the configuration, then hands the reader a checklist and a caution.",
+    "A worked example follows, with the caveats that usually get skipped in the summary.",
+  ],
+  markdown: [
+    "Notes from the session: what we tried, what broke, and the one thing worth keeping.",
+    "A working note, kept short on purpose so it stays true next month.",
+  ],
+  code: [
+    "The block below is the shortest version of the same logic, with the guards the longer one hid.",
+    "Edge cases first, then the happy path the tests cover.",
+  ],
+  plaintext: [
+    "A line from the checklist, kept because it has been useful twice.",
+    "Plain text on purpose: no structure to maintain, nothing to reformat.",
+  ],
+  commit: [
+    "Commit message and a summary of the change, with the issue it closes.",
+    "Part of a series: the mechanical half of the change, no behaviour yet.",
+  ],
+};
+
+let nextDocId = 100000;
+
+function generatedDoc(s, i) {
+  const lines = FILLER_BY_TYPE[s.sourceType] ?? FILLER_BY_TYPE.plaintext;
+  const name = s.path.split(/[\\/]/).pop() || s.path;
+  return {
+    id: nextDocId++,
+    sourceId: s.id,
+    collectionId: s.collectionId,
+    chunkIndex: i,
+    title: `${name} — ${i + 1}`,
+    content: `Chunk ${i + 1} of ${s.chunks} from ${name}. ${lines[i % lines.length]}`,
+    metadata: {},
+  };
+}
+
+// Ordered by (sourceId, chunkIndex): the stream order the backend pages in.
+let documents = [];
+for (const s of sources) {
+  const samples = new Map(
+    SAMPLE_DOCS.filter((d) => d.sourceId === s.id).map((d) => [d.chunkIndex, d]),
+  );
+  for (let i = 0; i < s.chunks; i++) documents.push(samples.get(i) ?? generatedDoc(s, i));
+}
+
+// ---------------------------------------------------------------------------
+// Keyset paging, mirroring backend/db/documents.go
+// ---------------------------------------------------------------------------
+
+const PAGE_SIZE = 100;
+
+const cmpDocCursor = (a, b) => {
+  const [as, ac] = String(a).split(":").map(Number);
+  const [bs, bc] = String(b).split(":").map(Number);
+  return as - bs || ac - bc;
+};
+
+const cmpPath = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+/** One keyset page of an ascending list: the limit+1 probe, the cursors for the
+    neighbouring pages, and "" on a side that has ended. */
+function keysetPage(all, cursor, backward, cmp, keyOf, extract) {
+  if (backward && cursor === "") return { items: [], before: "", after: "" };
+  let rows = all;
+  if (cursor !== "") {
+    rows = all.filter((x) =>
+      backward ? cmp(keyOf(x), cursor) < 0 : cmp(keyOf(x), cursor) > 0,
+    );
+  }
+  const more = rows.length > PAGE_SIZE;
+  const page = more ? (backward ? rows.slice(rows.length - PAGE_SIZE) : rows.slice(0, PAGE_SIZE)) : rows;
+  const moreBefore = backward ? more : cursor !== "";
+  const moreAfter = backward ? cursor !== "" : more;
+  return {
+    items: page.map(extract),
+    before: moreBefore && page.length ? keyOf(page[0]) : "",
+    after: moreAfter && page.length ? keyOf(page[page.length - 1]) : "",
+  };
+}
+
+const docCursor = (d) => `${d.sourceId}:${d.chunkIndex}`;
+
+function pageDocuments(collectionId, cursor, backward) {
+  const all = documents
+    .filter((d) => d.collectionId === collectionId)
+    .sort((a, b) => a.sourceId - b.sourceId || a.chunkIndex - b.chunkIndex);
+  const page = keysetPage(all, cursor, backward, cmpDocCursor, docCursor, (d) => {
+    const s = sources.find((x) => x.id === d.sourceId);
+    return {
+      id: d.id,
+      sourceId: d.sourceId,
+      collectionId: d.collectionId,
+      chunkIndex: d.chunkIndex,
+      title: d.title,
+      sourcePath: s?.path ?? "",
+      sourceType: s?.sourceType ?? "",
+    };
+  });
+  return { documents: page.items, before: page.before, after: page.after };
+}
+
+function pageSources(collectionId, cursor, backward) {
+  const all = sources
+    .filter((s) => s.collectionId === collectionId)
+    .sort((a, b) => cmpPath(a.path, b.path));
+  const page = keysetPage(all, cursor, backward, cmpPath, (s) => s.path, (s) => s);
+  return { sources: page.items, before: page.before, after: page.after };
+}
 
 // ---------------------------------------------------------------------------
 // Search results for the demo query ("kubernetes rollout")
@@ -270,17 +390,17 @@ export async function stub(request) {
       return { body: JSON.stringify("v0.3.1") };
     case M.ListCollections:
       return { body: collections };
-    case M.ListSources: {
-      const colId = post.args?.args?.[0];
-      return { body: sources.filter((s) => s.collectionId === colId) };
+    case M.ListSourcesPage: {
+      const [colId, cursor, backward] = post.args?.args ?? [];
+      return { body: pageSources(colId, cursor, backward) };
     }
-    case M.ListDocuments: {
-      const [colId, srcId] = post.args?.args ?? [];
-      return {
-        body: documents.filter(
-          (d) => (srcId ? d.sourceId === srcId : d.collectionId === colId),
-        ),
-      };
+    case M.ListDocumentsPage: {
+      const [colId, cursor, backward] = post.args?.args ?? [];
+      return { body: pageDocuments(colId, cursor, backward) };
+    }
+    case M.GetDocument: {
+      const id = post.args?.args?.[0];
+      return { body: documents.find((d) => d.id === id) ?? null };
     }
     case M.Search: {
       // Small artificial latency so the skeleton state is exercised, like the

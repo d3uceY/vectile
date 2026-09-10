@@ -15,7 +15,7 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 - **Index what you keep.** Obsidian vaults, project folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, XML, SQL, shell, XLSX, PPTX, Jupyter notebooks, EPUB), Calibre libraries, and code repositories including their commit history.
 - **Built-in model manager.** Import your own `.gguf`, pick the active model, or download one from the curated catalog in Settings with a live progress bar.
 - **Keyboard-first desktop UI.** Jump to search from anywhere with ⌘K / Ctrl K, and move between Search, Library, Browse, Index, and Settings from the sidebar.
-- **Manage your library.** Expand a collection to its files, drill into individual chunks, and delete stale sources, selected chunks, or a whole library in place.
+- **Manage your library.** Expand a collection to its files, page through individual chunks, and delete stale sources, selected chunks, or a whole library in place.
 - **AI assistant access (MCP).** Serve search and collection tools to Claude Desktop or any MCP client over a local server, with index and prune tools available behind an Allow write tools toggle.
 - **A little company.** Vexter, the pixel dinosaur, pokes up in the sidebar while you search, index, or come up empty. Settings → Vexter controls each moment.
 
@@ -64,7 +64,7 @@ Screenshots show sample data.
 <table>
   <tr>
     <td><img src="docs/screenshots/library.png" alt="Library view: collections with sources and chunk counts" width="100%"></td>
-    <td><img src="docs/screenshots/browse.png" alt="Browse view: a file tree of collections, files, and chunks with a preview pane" width="100%"></td>
+    <td><img src="docs/screenshots/browse.png" alt="Browse view: a paged chunk stream grouped by file, with a preview pane" width="100%"></td>
     <td><img src="docs/screenshots/settings.png" alt="Settings view: download an embedding model, chunking, and search options" width="100%"></td>
   </tr>
 </table>
@@ -121,7 +121,7 @@ Five views, keyboard-first:
 
 - **Search** (home): a large search bar, a filter row, and results as cards with title, snippet, rank, collection, and source path. Expand a card to read the whole passage, open the file, or reveal it in the file manager. A small toggle switches each result between its rank (#1) and the blended score (%). Jump in from anywhere with ⌘K / Ctrl K.
 - **Library**: every collection with its file and chunk counts and the last time it was indexed; expand one to list its files, and remove a source or its documents in place.
-- **Browse**: a file tree of collections, files, and chunks, with a preview pane. Select chunks to delete them, or remove a whole library.
+- **Browse**: the chunks of one library, paged in as you scroll and grouped under their file. Select chunks to delete them, or remove a whole library. Old pages drop out of memory and come back if you scroll up again.
 - **Index**: run "Index new" (only changed files) or "Re-index all" (re-embed everything) per collection, or index all collections at once, with live progress.
 - **Settings**: sources, model (download an embedding model from the curated catalog, or import your own), chunking, search defaults, auto-reindex, start-on-login, Vexter (the sidebar mascot), and a Connect section that runs a local MCP server for AI assistants.
 
