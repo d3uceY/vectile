@@ -172,6 +172,10 @@ func RebuildVectorTables(conn *sql.DB, dim int) error {
 	if _, err := tx.Exec(`DELETE FROM meta WHERE key = ?`, binaryBackfillDoneKey); err != nil {
 		return fmt.Errorf("reset backfill flag: %w", err)
 	}
+	// Cached query vectors were built for the old dimension.
+	if _, err := tx.Exec(`DELETE FROM query_cache`); err != nil {
+		return fmt.Errorf("clear query cache: %w", err)
+	}
 	if _, err := tx.Exec(`INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)`,
 		vectorDimKey, strconv.Itoa(dim)); err != nil {
 		return fmt.Errorf("record vector dim: %w", err)

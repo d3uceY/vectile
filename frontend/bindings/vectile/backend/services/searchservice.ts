@@ -12,17 +12,37 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as db$0 from "../db/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as search$0 from "../search/models.js";
+
+/**
+ * ClearCache drops every cached query vector and returns how many were
+ * removed. Searches simply re-embed from here; nothing in the library changes.
+ */
+export function ClearCache(): $CancellablePromise<number> {
+    return $Call.ByID(1916537253);
+}
+
+/**
+ * GetCacheStats reports what the cached query vectors currently hold.
+ */
+export function GetCacheStats(): $CancellablePromise<db$0.QueryCacheStats> {
+    return $Call.ByID(84102949).then(($result: any) => {
+        return $$createType0($result);
+    });
+}
 
 /**
  * Search runs hybrid vector + FTS search with the given filters.
  */
-export function Search(query: string, filters: search$0.Filters): $CancellablePromise<search$0.SearchResult[]> {
+export function Search(query: string, filters: search$0.Filters): $CancellablePromise<search$0.SearchResponse> {
     return $Call.ByID(2587852292, query, filters).then(($result: any) => {
         return $$createType1($result);
     });
 }
 
 // Private type creation functions
-const $$createType0 = search$0.SearchResult.createFrom;
-const $$createType1 = $Create.Array($$createType0);
+const $$createType0 = db$0.QueryCacheStats.createFrom;
+const $$createType1 = search$0.SearchResponse.createFrom;

@@ -66,6 +66,40 @@ export class Filters {
 }
 
 /**
+ * SearchResponse is one search, mirrored to the frontend. Cached reports that
+ * the query embedding was reused from the cache instead of recomputed; the
+ * results themselves are always ranked fresh against the index.
+ */
+export class SearchResponse {
+    "results": SearchResult[];
+    "cached": boolean;
+
+    /** Creates a new SearchResponse instance. */
+    constructor($$source: Partial<SearchResponse> = {}) {
+        if (!("results" in $$source)) {
+            this["results"] = [];
+        }
+        if (!("cached" in $$source)) {
+            this["cached"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SearchResponse instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SearchResponse {
+        const $$createField0_0 = $$createType2;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("results" in $$parsedSource) {
+            $$parsedSource["results"] = $$createField0_0($$parsedSource["results"]);
+        }
+        return new SearchResponse($$parsedSource as Partial<SearchResponse>);
+    }
+}
+
+/**
  * SearchResult is a single search result, mirrored to the frontend.
  */
 export class SearchResult {
@@ -108,7 +142,7 @@ export class SearchResult {
      * Creates a new SearchResult instance from a string or object.
      */
     static createFrom($$source: any = {}): SearchResult {
-        const $$createField2_0 = $$createType1;
+        const $$createField2_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("metadata" in $$parsedSource) {
             $$parsedSource["metadata"] = $$createField2_0($$parsedSource["metadata"]);
@@ -119,4 +153,6 @@ export class SearchResult {
 
 // Private type creation functions
 const $$createType0 = $Create.Map($Create.Any, $Create.Any);
-const $$createType1 = $Create.Map($Create.Any, $Create.Any);
+const $$createType1 = SearchResult.createFrom;
+const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = $Create.Map($Create.Any, $Create.Any);

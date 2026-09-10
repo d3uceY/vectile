@@ -4,6 +4,7 @@ import * as api from "./api";
 import { baseName } from "./format";
 import type {
   AppConfig,
+  CacheStats,
   CatalogModel,
   Collection,
   Document,
@@ -116,8 +117,29 @@ export function createAppStore() {
     try {
       setMCPStatus(await api.getMCPStatus());
     } catch {
-      /* backend not ready yet */
+
     }
+  };
+
+  const [cacheStats, setCacheStats] = createSignal<CacheStats | null>(null);
+  const loadCacheStats = async () => {
+    try {
+      setCacheStats(await api.getCacheStats());
+    } catch {
+   
+    }
+  };
+  const clearCache = async () => {
+    try {
+      const removed = await api.clearCache();
+      pushToast(
+        removed === 1 ? "Cleared 1 cached query" : `Cleared ${removed} cached queries`,
+        "success",
+      );
+    } catch (err) {
+      pushToast(`Couldn't clear the cache: ${err}`, "danger");
+    }
+    await loadCacheStats();
   };
 
   const [sources, setSources] = createSignal<Source[]>([]);
@@ -127,6 +149,7 @@ export function createAppStore() {
   const [filters, setFilters] = createSignal<SearchFilters>(defaultFilters());
   const [results, setResults] = createSignal<SearchResult[]>([]);
   const [searchState, setSearchState] = createSignal<"idle" | "searching" | "done">("idle");
+  const [searchCached, setSearchCached] = createSignal(false);
 
   const [scoreDisplay, setScoreDisplayRaw] = createSignal<"rank" | "percent">(
     localStorage.getItem("vectile.score-display") === "percent" ? "percent" : "rank",
@@ -161,6 +184,7 @@ export function createAppStore() {
     const seq = ++searchSeq;
     setQuery(q);
     setFilters(f);
+    setSearchCached(false);
     if (!q.trim()) {
       setResults([]);
       setSearchState("idle");
@@ -170,10 +194,12 @@ export function createAppStore() {
     try {
       const res = await api.search(q, f);
       if (seq !== searchSeq) return; 
-      setResults(res);
+      setResults(res.results);
+      setSearchCached(res.cached);
     } catch (err) {
       if (seq !== searchSeq) return;
       setResults([]);
+      setSearchCached(false);
       pushToast(`Search failed: ${err}`, "danger");
     } finally {
       if (seq === searchSeq) setSearchState("done");
@@ -185,6 +211,7 @@ export function createAppStore() {
     setQuery("");
     setFilters(defaultFilters(config()?.search_defaults.top_k));
     setResults([]);
+    setSearchCached(false);
     setSearchState("idle");
   };
 
@@ -571,6 +598,7 @@ export function createAppStore() {
       void loadLibrary();
     }
     void refresh();
+    void loadCacheStats();
     if (e.errors > 0) pushToast(`${e.collection}: ${e.errors} error(s)`, "danger");
     else pushToast(`Indexed ${e.collection} · ${e.indexed} new`, "success");
   });
@@ -578,6 +606,7 @@ export function createAppStore() {
     setIndexAllActive(false);
     setIndexing(false);
     void loadLibrary(); 
+    void loadCacheStats();
   });
   const offCancelled = Events.On("indexing:cancelled", (ev) => {
     const e = ev.data as IndexCancelled;
@@ -613,6 +642,7 @@ export function createAppStore() {
   const offModelChanged = Events.On("model:changed", () => {
     void refresh();
     void loadModels();
+    void loadCacheStats();
   });
   const offMCP = Events.On("mcp:status", (ev) => {
     setMCPStatus(ev.data as MCPStatus);
@@ -668,6 +698,7 @@ export function createAppStore() {
     void hydrateDownload();
     void loadCPUCount();
     void refreshMCP();
+    void loadCacheStats();
     void (async () => {
       await loadModels();
       if (models().length === 0 && !modelDialogDismissed()) setModelDialogOpen(true);
@@ -711,6 +742,9 @@ export function createAppStore() {
     uninstallCatalogFile,
     mcpStatus,
     refreshMCP,
+    cacheStats,
+    loadCacheStats,
+    clearCache,
     loadModels,
     setActiveModel,
     deleteModel,
@@ -737,6 +771,7 @@ export function createAppStore() {
     scoreDisplay,
     setScoreDisplay,
     searchState,
+    searchCached,
     runSearch,
     clearSearch,
     registerSearchInput,

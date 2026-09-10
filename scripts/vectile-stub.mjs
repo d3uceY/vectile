@@ -37,6 +37,8 @@ const M = {
   GetMCPStatus: 2163182986,
   StartServer: 4062741143,
   StopServer: 2204354075,
+  GetCacheStats: 84102949,
+  ClearCache: 1916537253,
 };
 
 const MODEL_NAME = "bge-m3";
@@ -86,6 +88,11 @@ const config = {
 // Live MCP server state returned by GetMCPStatus; StartServer/StopServer
 // mutate it so the Settings status plate reacts in the browser.
 let mcp = { running: true, port: 31123, url: "http://127.0.0.1:31123/sse" };
+
+// Query-vector cache state for the Settings Cache panel. ClearCache zeroes it,
+// and repeating a search flips the "cached" chip on the results header.
+let cacheStats = { entries: 128, bytes: 524288 };
+let lastQuery = "";
 
 // ---------------------------------------------------------------------------
 // Models (installed embedding models)
@@ -275,13 +282,25 @@ export async function stub(request) {
         ),
       };
     }
-    case M.Search:
+    case M.Search: {
       // Small artificial latency so the skeleton state is exercised, like the
-      // real embedder + RRF pipeline.
+      // real embedder + RRF pipeline. A repeated query reports a cache hit so
+      // the results header's "cached" chip is reachable in the browser.
+      const query = post.args?.args?.[0] ?? "";
       await new Promise((r) => setTimeout(r, 120));
-      return { body: searchResults };
+      const cached = query !== "" && query === lastQuery;
+      lastQuery = query;
+      return { body: { results: searchResults, cached } };
+    }
     case M.GetConfig:
       return { body: config };
+    case M.GetCacheStats:
+      return { body: cacheStats };
+    case M.ClearCache: {
+      const removed = cacheStats.entries;
+      cacheStats = { entries: 0, bytes: 0 };
+      return { body: removed };
+    }
     case M.GetMCPStatus:
       return { body: mcp };
     case M.StartServer: {

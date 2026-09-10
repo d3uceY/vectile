@@ -72,8 +72,8 @@ func TestIndexAndSearchEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(res) == 0 || res[0].Collection != "test" {
-		t.Fatalf("expected results from 'test', got %+v", res)
+	if len(res.Results) == 0 || res.Results[0].Collection != "test" {
+		t.Fatalf("expected results from 'test', got %+v", res.Results)
 	}
 
 	// Deleting a file then pruning drops its rows.

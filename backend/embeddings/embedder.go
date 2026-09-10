@@ -175,6 +175,52 @@ func (e *Embedder) EmbedBatch(texts []string) ([][]float32, error) {
 	return e.ctx.GetEmbeddingsBatch(texts)
 }
 
+// QueryEmbed embeds a search query through the query-vector cache: the cache is
+// consulted before any inference, and a miss is stored after it. Each entry is
+// keyed by the model that produced it.
+//
+// Lookup, inference, and store all happen under the inference lock, which is
+// the same lock SetModel takes. That is what keeps a cached vector and the
+// model it belongs to from ever drifting apart, and it also means a cached
+// query is served without waiting for the model to load.
+//
+// cache may be nil, in which case this behaves exactly like Embed.
+func (e *Embedder) QueryEmbed(text string, cache QueryCache) ([]float32, bool, error) {
+	e.inferMu.Lock()
+	defer e.inferMu.Unlock()
+
+	e.mu.Lock()
+	key := e.modelPath
+	e.mu.Unlock()
+	if cache != nil && key != "" {
+		if vec, ok := cache.Get(key, text); ok {
+			return vec, true, nil
+		}
+	}
+
+	if err := e.ensureLoaded(); err != nil {
+		return nil, false, err
+	}
+	vec, err := e.ctx.GetEmbeddings(text)
+	if err != nil {
+		return nil, false, err
+	}
+	if cache != nil && key != "" && len(vec) > 0 {
+		cache.Put(key, text, vec)
+	}
+	return vec, false, nil
+}
+
+// QueryCache is the slice of the query-vector cache the embedder needs. It is
+// an interface so the embeddings package stays free of storage concerns while
+// the lookup and the store still run inside the embedder's inference lock.
+type QueryCache interface {
+	// Get returns the vector cached for this model and text, if any.
+	Get(modelKey, text string) ([]float32, bool)
+	// Put caches a vector for this model and text.
+	Put(modelKey, text string, vec []float32)
+}
+
 // Close releases the model and context.
 func (e *Embedder) Close() {
 	e.inferMu.Lock()

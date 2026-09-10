@@ -3,7 +3,7 @@ import { useAppStore } from "../../lib/store";
 import { importModel, pickFolder, pickModelFile } from "../../lib/api";
 import type { AppConfig, GUIConfig, MascotConfig, MCPConfig, ModelInfo, SearchDefaults } from "../../lib/types";
 import { Button, ConfirmDialog, InfoTip, Select, StatusPill, Switch, Toggle, ViewHeading } from "../ui/primitives";
-import { ChunkNavIcon, ConnectNavIcon, IndexNavIcon, ModelNavIcon, SearchNavIcon, SourcesNavIcon } from "../ui/nav-icons";
+import { CacheNavIcon, ChunkNavIcon, ConnectNavIcon, IndexNavIcon, ModelNavIcon, SearchNavIcon, SourcesNavIcon } from "../ui/nav-icons";
 import {
   BoltIcon,
   CheckIcon,
@@ -21,6 +21,7 @@ import {
 import { CatalogModelCard } from "../ui/CatalogModelCard";
 import { MASCOT_ASSETS, MASCOT_STATIC } from "../shell/mascot/assets";
 import { openExternal } from "../../lib/update";
+import { fmtBytes } from "../../lib/format";
 
 
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max);
@@ -605,7 +606,7 @@ const MASCOT_STATES: {
 
 /* ---- the two-pane nav ---- */
 
-type SectionKey = "model" | "chunking" | "search" | "sources" | "indexing" | "vexter" | "connect";
+type SectionKey = "model" | "chunking" | "search" | "cache" | "sources" | "indexing" | "vexter" | "connect";
 
 type NavIconSlot = { size?: number; active?: boolean };
 
@@ -629,6 +630,7 @@ const NAV_GROUPS: {
       { key: "model", label: "Model", icon: ModelNavIcon },
       { key: "chunking", label: "Chunking", icon: ChunkNavIcon },
       { key: "search", label: "Search", icon: SearchNavIcon },
+      { key: "cache", label: "Cache", icon: CacheNavIcon },
     ],
   },
   {
@@ -825,6 +827,25 @@ export function SettingsView() {
     if (await copyText(u)) {
       setUrlCopied(true);
       setTimeout(() => setUrlCopied(false), 1600);
+    }
+  };
+
+  const cacheCount = () => store.cacheStats()?.entries ?? 0;
+  const cacheBytes = () => store.cacheStats()?.bytes ?? 0;
+  const [confirmClearCache, setConfirmClearCache] = createSignal(false);
+  const [clearingCache, setClearingCache] = createSignal(false);
+
+  createEffect(() => {
+    if (section() === "cache") void store.loadCacheStats();
+  });
+
+  const clearTheCache = async () => {
+    setClearingCache(true);
+    try {
+      await store.clearCache();
+    } finally {
+      setClearingCache(false);
+      setConfirmClearCache(false);
     }
   };
 
@@ -1261,6 +1282,74 @@ export function SettingsView() {
                       step={STATIC_BOUNDS.fts_weight.step}
                     />
                   </FieldList>
+                </Section>
+              </Show>
+
+              <Show when={section() === "cache"}>
+                <Section
+                  icon={<BoltIcon size={16} />}
+                  title="Cache"
+                  note="Repeated searches reuse the query embedding instead of computing it again."
+                >
+                  <div class="space-y-6">
+                    <div class="rounded-control border border-line-strong bg-paper-warm px-4 py-3.5">
+                      <div class="flex items-center gap-2">
+                        <span
+                          class={`h-2 w-2 shrink-0 rounded-full ${cacheCount() > 0 ? "bg-indigo" : "bg-faint"}`}
+                        />
+                        <span class="text-[12px] font-semibold leading-none text-ink-soft">
+                          {cacheCount() === 0
+                            ? "empty"
+                            : `${cacheCount().toLocaleString()} quer${cacheCount() === 1 ? "y" : "ies"} cached`}
+                        </span>
+                        <Show when={cacheBytes() > 0}>
+                          <span class="data ml-auto shrink-0 text-[11.5px] text-muted">
+                            {fmtBytes(cacheBytes())}
+                          </span>
+                        </Show>
+                      </div>
+                      <Show when={cacheCount() === 0}>
+                        <p class="note mt-2 text-[12.5px] leading-4 text-muted">
+                          Nothing cached yet.
+                        </p>
+                      </Show>
+                      <div class="mt-2.5 border-t border-line" aria-hidden="true" />
+                      <p class="note mt-2 text-[11.5px] leading-4 text-muted">
+                        only the query embedding is stored, never your results · cleared when you
+                        reindex or change the active model
+                      </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <p class="note max-w-[46ch] text-[12.5px] leading-4 text-muted">
+                        Clearing costs one extra embedding per repeated query.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        disabled={cacheCount() === 0}
+                        onClick={() => setConfirmClearCache(true)}
+                      >
+                        Clear cache
+                      </Button>
+                    </div>
+
+                    <ConfirmDialog
+                      open={confirmClearCache()}
+                      title="Clear the query cache?"
+                      body={
+                        <p>
+                          Every cached query embedding is dropped. The next search of the same text
+                          embeds it again. Your library, indexes, and settings are untouched.
+                        </p>
+                      }
+                      confirmLabel="Clear cache"
+                      busyLabel="Clearing…"
+                      busy={clearingCache()}
+                      onCancel={() => setConfirmClearCache(false)}
+                      onConfirm={() => void clearTheCache()}
+                    />
+                  </div>
                 </Section>
               </Show>
 

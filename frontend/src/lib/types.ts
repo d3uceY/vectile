@@ -66,6 +66,19 @@ export interface SearchResult {
   sourceType: string;
 }
 
+/** Mirrors search.SearchResponse. Cached means the query embedding was reused;
+    the results are always ranked fresh against the index. */
+export interface SearchResponse {
+  results: SearchResult[];
+  cached: boolean;
+}
+
+/** Mirrors db.QueryCacheStats (what the query-vector cache holds). */
+export interface CacheStats {
+  entries: number;
+  bytes: number;
+}
+
 /** Mirrors search.Filters. */
 export interface SearchFilters {
   collection?: string;

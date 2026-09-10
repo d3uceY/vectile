@@ -10,6 +10,7 @@ import * as ModelService from "../../bindings/vectile/backend/services/modelserv
 import * as SearchService from "../../bindings/vectile/backend/services/searchservice";
 import type {
   AppConfig,
+  CacheStats,
   CatalogModel,
   Collection,
   Document,
@@ -18,7 +19,7 @@ import type {
   ModelDownloadState,
   ModelInfo,
   SearchFilters,
-  SearchResult,
+  SearchResponse,
   SetActiveResult,
   Source,
   Status,
@@ -74,8 +75,16 @@ export async function listDocuments(collectionId: number, sourceId = 0): Promise
   return AppService.ListDocuments(collectionId, sourceId) as unknown as Document[];
 }
 
-export async function search(query: string, filters: SearchFilters): Promise<SearchResult[]> {
-  return SearchService.Search(query, filterToBackend(filters) as never) as unknown as SearchResult[];
+export async function search(query: string, filters: SearchFilters): Promise<SearchResponse> {
+  return SearchService.Search(query, filterToBackend(filters) as never) as unknown as SearchResponse;
+}
+
+export async function getCacheStats(): Promise<CacheStats> {
+  return SearchService.GetCacheStats() as unknown as CacheStats;
+}
+
+export async function clearCache(): Promise<number> {
+  return SearchService.ClearCache() as unknown as number;
 }
 
 export async function getConfig(): Promise<AppConfig> {

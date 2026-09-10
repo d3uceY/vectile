@@ -62,3 +62,31 @@ export class Model {
         return new Model($$parsedSource as Partial<Model>);
     }
 }
+
+/**
+ * QueryCacheStats summarises the query-vector cache for the Settings panel.
+ */
+export class QueryCacheStats {
+    "entries": number;
+    "bytes": number;
+
+    /** Creates a new QueryCacheStats instance. */
+    constructor($$source: Partial<QueryCacheStats> = {}) {
+        if (!("entries" in $$source)) {
+            this["entries"] = 0;
+        }
+        if (!("bytes" in $$source)) {
+            this["bytes"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new QueryCacheStats instance from a string or object.
+     */
+    static createFrom($$source: any = {}): QueryCacheStats {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new QueryCacheStats($$parsedSource as Partial<QueryCacheStats>);
+    }
+}

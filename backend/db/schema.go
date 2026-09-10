@@ -10,7 +10,7 @@ import (
 )
 
 // SchemaVersion is the current schema version, tracked in the meta table.
-const SchemaVersion = 2
+const SchemaVersion = 3
 
 // InitSchema creates all tables, virtual tables, and triggers if they don't
 // exist. Safe to call on every startup.
@@ -61,6 +61,18 @@ func InitSchema(db *sql.DB, embeddingDim int) error {
 			threads INTEGER NOT NULL DEFAULT 0,
 			is_active INTEGER NOT NULL DEFAULT 0,
 			created_at TEXT DEFAULT (datetime('now'))
+		);
+
+		-- Cached query embeddings, keyed by the model that produced them, so a
+		-- repeated search skips inference. Emptied whenever the model or the
+		-- indexed corpus changes. See backend/db/query_cache.go.
+		CREATE TABLE IF NOT EXISTS query_cache (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			model_key TEXT NOT NULL,
+			query TEXT NOT NULL,
+			embedding BLOB NOT NULL,
+			created_at TEXT DEFAULT (datetime('now')),
+			UNIQUE(model_key, query)
 		);
 
 		%s

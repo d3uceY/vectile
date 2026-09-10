@@ -98,7 +98,7 @@ func (s *IndexService) ToggleCollectionEnabled(name string, enabled bool) error 
 // frontend never gets stuck in an "indexing" state for a run that never
 // actually started.
 func (s *IndexService) IndexCollection(name string, force bool) (bool, error) {
-	if !s.lockIndex() {
+	if !s.startIndexRun() {
 		return false, nil
 	}
 	go func() {
@@ -113,7 +113,7 @@ func (s *IndexService) IndexCollection(name string, force bool) (bool, error) {
 
 // IndexAll starts pruning + indexing every enabled, configured collection.
 func (s *IndexService) IndexAll(force bool) (bool, error) {
-	if !s.lockIndex() {
+	if !s.startIndexRun() {
 		return false, nil
 	}
 	go func() {
@@ -148,7 +148,7 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 // an open frontend Index view stays in sync. Errors when another index run is
 // already in progress.
 func (s *IndexService) IndexSynchronous(name string, force bool) (result *indexer.IndexResult, err error) {
-	if !s.lockIndex() {
+	if !s.startIndexRun() {
 		return nil, fmt.Errorf("an index run is already in progress")
 	}
 	defer func() {
@@ -174,10 +174,14 @@ func (s *IndexService) CancelIndexing() bool {
 
 // Prune removes stale sources from a collection ("all" or "" for everything).
 func (s *IndexService) Prune(name string) (indexer.PruneResult, error) {
+	var res indexer.PruneResult
 	if name == "" || name == "all" {
-		return *indexer.PruneAll(db.DB, s.core.Cfg), nil
+		res = *indexer.PruneAll(db.DB, s.core.Cfg)
+	} else {
+		res = *indexer.PruneCollection(db.DB, s.core.Cfg, name)
 	}
-	return *indexer.PruneCollection(db.DB, s.core.Cfg, name), nil
+	s.core.clearQueryCache("prune")
+	return res, nil
 }
 
 // DeleteSource removes one indexed source and everything cascading from it:
@@ -334,6 +338,35 @@ func (s *IndexService) lockIndex() bool {
 	}
 	s.core.indexing = true
 	return true
+}
+
+// startIndexRun claims the index lock and drops the cached query vectors, so a
+// run that rewrites the corpus never leaves vectors cached from before it.
+// Returns false when another run already holds the lock.
+func (s *IndexService) startIndexRun() bool {
+	if !s.lockIndex() {
+		return false
+	}
+	s.core.clearQueryCache("index run")
+	return true
+}
+
+// clearQueryCache drops the cached query vectors. A query vector is valid only
+// for the model that produced it, so every path that changes the embedding
+// model or rewrites the indexed corpus calls this. Best effort: a failed clear
+// is logged rather than returned, because the cache is only an optimization.
+func (c *Core) clearQueryCache(reason string) {
+	if db.DB == nil {
+		return
+	}
+	n, err := db.ClearQueryCache(db.DB)
+	if err != nil {
+		slog.Warn("clear query cache failed", "reason", reason, "err", err)
+		return
+	}
+	if n > 0 {
+		slog.Info("query cache cleared", "reason", reason, "rows", n)
+	}
 }
 
 func (s *IndexService) unlockIndex() {

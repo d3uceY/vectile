@@ -23,10 +23,10 @@ main.go                     app startup, window, services, auto-reindex loop
 backend/appdata             the data directory and the model path
 backend/config              config.json load, save, defaults
 backend/embeddings          the llama.go embedder (bge-m3)
-backend/db                  SQLite schema and helpers (modernc + vec0 + FTS5)
+backend/db                  SQLite schema and helpers (modernc + vec0 + FTS5, query-vector cache)
 backend/chunker             word-window and markdown chunking
 backend/parser              file parsers: md, docx, html, epub, pdf, xlsx, pptx, ipynb, xml, sql, shell, csv/json, calibre, code
-backend/search              hybrid search: vector + FTS + RRF
+backend/search              hybrid search: vector + FTS + RRF, cached query vectors
 backend/indexer             obsidian, project, git, calibre indexers; prune
 backend/services            Wails services the UI calls
 backend/startup             launch-at-login per OS
@@ -51,6 +51,12 @@ Batching. local-rag embeds with several worker goroutines. vectile uses one work
 Git bookkeeping. Each code collection stores per-repo watermarks (the HEAD sha) as JSON in the collection's description column. Incremental index only reads files changed since the watermark. A failed run does not advance the watermark, so the failing file is retried next time.
 
 Config. The config file is modeled on local-rag's, minus the pieces vectile doesn't need. Unknown keys survive a save, so the file is never clobbered.
+
+Query vector cache. Every search used to embed its query from scratch, even a query you had just run. The embedding now goes through `query_cache` (schema v3), a table keyed by `(model_key, query)`: a repeat query returns the stored 1024-float vector and skips the model entirely. Results are NOT cached, they are always ranked fresh against the index, so the cache can never serve a stale hit.
+
+The lookup has to happen before inference, which is why `Embedder.QueryEmbed(text, cache)` takes the cache as an interface rather than the caller doing a read-then-embed. The whole thing runs under `inferMu`, the same lock `SetModel` takes, so the model a vector belongs to and the vector itself can never drift apart and a cached query is served without waiting for the model to load. The storage half lives in `backend/db/query_cache.go`; `backend/search` adapts it, so the MCP search tool gets caching for free.
+
+A query vector is a pure function of (text, model), so it does NOT go stale when the corpus changes. The cache is cleared anyway on reindex and prune, because that is what a user expects, and it MUST be cleared when the model changes. Clearing is wired at the choke points: `startIndexRun` (all three index entry points), `Prune`, `ModelService.applyActive` (only when the path or the vector dimension actually changed, so a restart keeps the cache), `UpdateModelSettings` for the active model, and `RebuildVectorTables`. Rows are capped at 2000, oldest dropped first (FIFO, not LRU: recency tracking would mean a write on every hit, and a hit should stay a pure read). Settings > Cache shows the count and size and clears on demand.
 
 Frontend bridge. Wails generates TypeScript bindings for the three services. The UI only talks to `frontend/src/lib/api.ts`, which wraps those bindings. Regenerating bindings never touches component code.
 
@@ -81,6 +87,10 @@ Open in the OS. AppService exposes `OpenFile` and `RevealInFolder`; the per-OS c
 9. vec_quantize_binary works on modernc. I Ire not sure sqlite-vec's binary quantization would work under the pure-Go driver. The db test queries `vec_documents_bin` with `embedding MATCH vec_quantize_binary(?)` and it returns rows. FTS5 also works. If it had not, the plan was to drop the binary mirror and use float-only KNN.
 
 10. The language server flags darwin (and sometimes linux). The Problems panel shows "undefined: llama.Model" and tree-sitter import errors tagged `[darwin]`/`[linux]`. These are usually not real: gopls cross-checks other GOOS targets, but it can't resolve the llama-go archives unless those OS archives exist in `third_party/llama-go/<os>/<arch>/`. The release workflow builds the Linux/macOS archives on its runners; for a local gopls run, build them with `scripts/build-llamago-archives.sh` so the matching OS targets resolve. The host build, vet and tests still pass regardless.
+
+11. An FTS cursor held across a second query deadlocked the pool. `ftsSearch` ran `passesFilters` (its own `QueryRow`) inside the loop over its own `Query` results. That needs a second pooled connection, and with `MaxOpenConns(1)` in the tests it hung forever; with the production pool of 4 it takes four concurrent filtered searches to wedge the app. Nothing had covered it because no earlier test combined filters with FTS hits. Fix: drain the cursor into a slice first, then filter. `vectorSearch` already worked that way.
+
+12. A hanging `go test` was actually a PowerShell pipe. `go test ... | Select-Object -Last 40` buffered everything until the stream closed, so a run that had finished looked like it was producing no output. Run `go test` with no pipe and let the output come back inline.
 
 11. Tailwind class suggestions. The linter suggested `text-ink/10` over `text-ink/[0.10]` and `max-w-245` over `max-w-[61.25rem]`. I applied the one I introduced and left the pre-existing ones alone.
 

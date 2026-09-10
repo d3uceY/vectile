@@ -150,6 +150,7 @@ func (s *ModelService) UpdateModelSettings(id int64, contextWindow, batchSize, t
 		if err := s.core.Embedder.SetModel(active.Path, contextWindow, threads); err != nil {
 			return err
 		}
+		s.core.clearQueryCache("active model settings changed")
 		if batchSize > 0 {
 			s.core.Cfg.EmbeddingBatchSize = batchSize
 		}
@@ -217,8 +218,16 @@ func (s *ModelService) applyActive(m db.Model, rebuild bool) error {
 	if err := db.SetActiveModelByPath(db.DB, m.Path); err != nil {
 		return err
 	}
+	// Cached query vectors belong to the model that produced them, so a real
+	// model change (or a rebuilt vector space) drops them. Re-applying the same
+	// model and dimension at startup must NOT clear, or the cache would never
+	// survive a restart.
+	modelChanged := rebuild || s.core.Embedder.ModelPath() != m.Path
 	if err := s.core.Embedder.SetModel(m.Path, m.ContextWindow, m.Threads); err != nil {
 		return err
+	}
+	if modelChanged {
+		s.core.clearQueryCache("active model changed")
 	}
 	cfg := s.core.Cfg
 	if m.BatchSize > 0 {
@@ -289,6 +298,7 @@ func (s *ModelService) syncModelsFromFolder() (added, removed int, err error) {
 			if err := db.ClearActiveModel(db.DB); err != nil {
 				return added, removed, err
 			}
+			s.core.clearQueryCache("active model removed")
 			s.core.Cfg.ActiveModel = ""
 			_ = config.Save(s.core.Cfg, s.core.CfgPath)
 		}

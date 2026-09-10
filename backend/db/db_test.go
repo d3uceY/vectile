@@ -33,7 +33,7 @@ func TestInitSchemaIdempotent(t *testing.T) {
 	if err := conn.QueryRow("SELECT value FROM meta WHERE key = 'schema_version'").Scan(&version); err != nil {
 		t.Fatalf("schema version not recorded: %v", err)
 	}
-	if version != "2" {
+	if version != "3" {
 		t.Fatalf("schema version = %q", version)
 	}
 }

@@ -148,6 +148,8 @@ The vector path is two-stage: a cheap binary-quantized index finds a pool of can
 
 Filters narrow results: collection, source type, path substring, sender or author, and date range. Top-k controls how many results come back.
 
+Query embeddings are cached per model in the local database, so searching the same text twice skips the model entirely. Results are always ranked fresh against the index. The cache empties when you reindex, prune, or switch the active model, and Settings has a Cache section that shows what it holds and clears it.
+
 ## Configuration
 
 Config file: `<os.UserConfigDir()>/vectile/config.json`

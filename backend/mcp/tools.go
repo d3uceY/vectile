@@ -48,10 +48,11 @@ func handleSearch(core *services.Core) server.ToolHandlerFunc {
 			TopK:            topK,
 		}
 
-		results, err := search.Search(db.DB, query, filters, core.Embedder, core.Cfg.SearchDefaults)
+		resp, err := search.Search(db.DB, query, filters, core.Embedder, core.Cfg.SearchDefaults)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("search failed: %v", err)), nil
 		}
+		results := resp.Results
 
 		output := make([]map[string]any, 0, len(results))
 		for _, r := range results {

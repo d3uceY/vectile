@@ -4,7 +4,7 @@ import { daysSince } from "../../lib/time";
 import type { SearchFilters } from "../../lib/types";
 import { exampleQueries, termsOf } from "../../lib/mock";
 import { SearchIcon, CloseIcon, BoltIcon } from "../ui/icons";
-import { EmptyState, Button, Kbd, Select, Skeleton } from "../ui/primitives";
+import { EmptyState, Button, Chip, Kbd, Select, Skeleton } from "../ui/primitives";
 import { ResultCard } from "./ResultCard";
 
 const typeOptions = [
@@ -307,8 +307,13 @@ function ResultList() {
     >
       <div class="enter-stagger space-y-3">
         <div class="flex items-center justify-between gap-3">
-          <p class="data text-muted">
+          <p class="data flex items-center gap-2 text-muted">
             {results().length} result{results().length === 1 ? "" : "s"} · hybrid ranked
+            <Show when={store.searchCached()}>
+              <span title="This query's embedding was reused from the cache. Results are still ranked fresh.">
+                <Chip tone="mint">cached</Chip>
+              </span>
+            </Show>
           </p>
           <div
             class="flex items-center rounded-full border border-line bg-paper p-0.5"

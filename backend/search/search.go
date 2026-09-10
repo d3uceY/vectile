@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"vectile/backend/config"
+	"vectile/backend/db"
 	"vectile/backend/embeddings"
 )
 
@@ -25,6 +26,14 @@ type SearchResult struct {
 	Collection string         `json:"collection"`
 	SourcePath string         `json:"sourcePath"`
 	SourceType string         `json:"sourceType"`
+}
+
+// SearchResponse is one search, mirrored to the frontend. Cached reports that
+// the query embedding was reused from the cache instead of recomputed; the
+// results themselves are always ranked fresh against the index.
+type SearchResponse struct {
+	Results []SearchResult `json:"results"`
+	Cached  bool           `json:"cached"`
 }
 
 // Filters holds optional filters for search queries.
@@ -66,7 +75,7 @@ type QueryEmbedder interface {
 }
 
 // Search runs hybrid search (vector + FTS5 fused with RRF) for query.
-func Search(db *sql.DB, query string, filters Filters, embedder QueryEmbedder, sd config.SearchDefaults) ([]SearchResult, error) {
+func Search(conn *sql.DB, query string, filters Filters, embedder QueryEmbedder, sd config.SearchDefaults) (SearchResponse, error) {
 	topK := filters.TopK
 	if topK <= 0 {
 		topK = sd.TopK
@@ -75,27 +84,90 @@ func Search(db *sql.DB, query string, filters Filters, embedder QueryEmbedder, s
 		topK = 10
 	}
 
-	vecResults, err := vectorSearch(db, query, topK, &filters, embedder)
+	// The query vector is reused when this exact query was already embedded for
+	// the active model. Embedding failures (no model loaded) fall back to FTS
+	// only, exactly as a cache miss does.
+	queryVec, cached, err := queryVector(conn, query, embedder)
 	if err != nil {
-		// Vector search failing (e.g. no model) shouldn't kill FTS.
 		slog.Warn("vector search failed, falling back to FTS only", "err", err)
-		vecResults = nil
+	}
+	var vecResults []rankedResult
+	if queryVec != nil {
+		vecResults, err = vectorSearch(conn, query, queryVec, topK, &filters)
+		if err != nil {
+			// Vector search failing shouldn't kill FTS.
+			slog.Warn("vector search failed, falling back to FTS only", "err", err)
+			vecResults = nil
+			cached = false
+		}
 	}
 
-	ftsResults, err := ftsSearch(db, query, topK, &filters)
+	ftsResults, err := ftsSearch(conn, query, topK, &filters)
 	if err != nil {
-		return nil, err
+		return SearchResponse{}, err
 	}
 
 	merged := RRFMerge(vecResults, ftsResults, sd.RRFK, sd.VectorWeight, sd.FTSWeight)
 
 	results := make([]SearchResult, 0, len(merged))
 	for _, r := range merged {
-		if res, err := fetchResult(db, r.docID, r.score); err == nil {
+		if res, err := fetchResult(conn, r.docID, r.score); err == nil {
 			results = append(results, *res)
 		}
 	}
-	return results, nil
+	return SearchResponse{Results: results, Cached: cached}, nil
+}
+
+// QueryCacheEmbedder is implemented by the in-process embedder: it embeds a
+// query through the query-vector cache instead of always running inference.
+type QueryCacheEmbedder interface {
+	QueryEmbed(text string, cache embeddings.QueryCache) ([]float32, bool, error)
+}
+
+// The real embedder has to satisfy this: queryVector's type assertion fails
+// silently, so without these two lines a rename would just stop caching.
+var (
+	_ QueryCacheEmbedder    = (*embeddings.Embedder)(nil)
+	_ embeddings.QueryCache = dbQueryCache{}
+)
+
+// queryVector returns the embedding for a search query, reusing a cached
+// vector when the same text was already embedded for the same model. The
+// second result reports a cache hit.
+//
+// Cache problems never fail a search: a read or write error just means the
+// query is embedded again (see dbQueryCache).
+func queryVector(conn *sql.DB, query string, embedder QueryEmbedder) ([]float32, bool, error) {
+	// A blank query still has to work (FTS ignores it) but is not worth a row.
+	if cacher, ok := embedder.(QueryCacheEmbedder); ok && strings.TrimSpace(query) != "" {
+		vec, hit, err := cacher.QueryEmbed(query, dbQueryCache{conn: conn})
+		if err != nil {
+			return nil, false, fmt.Errorf("embed query: %w", err)
+		}
+		return vec, hit, nil
+	}
+	// No cache seam on this embedder (test doubles): embed straight through.
+	vec, err := embedder.Embed(query)
+	return vec, false, err
+}
+
+// dbQueryCache adapts the query_cache table to the embedder's cache seam. Both
+// halves are best effort: a storage problem degrades to re-embedding.
+type dbQueryCache struct{ conn *sql.DB }
+
+func (c dbQueryCache) Get(modelKey, text string) ([]float32, bool) {
+	vec, ok, err := db.GetCachedQueryVector(c.conn, modelKey, text)
+	if err != nil {
+		slog.Warn("query cache read failed", "err", err)
+		return nil, false
+	}
+	return vec, ok
+}
+
+func (c dbQueryCache) Put(modelKey, text string, vec []float32) {
+	if err := db.PutCachedQueryVector(c.conn, modelKey, text, vec); err != nil {
+		slog.Warn("query cache write failed", "err", err)
+	}
 }
 
 // vectorCandidatePool returns how many binary-quantized candidates to retrieve
@@ -126,13 +198,9 @@ type binaryCandidate struct {
 	docID int64
 }
 
-// vectorSearch embeds the query, runs binary-quantized Hamming KNN to gather
-// a candidate pool, then reranks the pool with exact float L2 distances.
-func vectorSearch(db *sql.DB, query string, topK int, filters *Filters, embedder QueryEmbedder) ([]rankedResult, error) {
-	queryVec, err := embedder.Embed(query)
-	if err != nil {
-		return nil, fmt.Errorf("embed query: %w", err)
-	}
+// vectorSearch runs binary-quantized Hamming KNN over the query vector to
+// gather a candidate pool, then reranks the pool with exact float L2 distances.
+func vectorSearch(conn *sql.DB, query string, queryVec []float32, topK int, filters *Filters) ([]rankedResult, error) {
 	// TEMP DEBUG: verify the query actually produced a real embedding.
 	// slog.Info("[vector-debug] embedded query",
 	// 	"query", query,
@@ -144,7 +212,7 @@ func vectorSearch(db *sql.DB, query string, topK int, filters *Filters, embedder
 	pool := vectorCandidatePool(topK, filters)
 
 	// Stage 1: Hamming-distance KNN over the binary mirror.
-	rows, err := db.Query(
+	rows, err := conn.Query(
 		`SELECT rowid, document_id
 		 FROM vec_documents_bin
 		 WHERE embedding MATCH vec_quantize_binary(?) AND k = ?
@@ -182,7 +250,7 @@ func vectorSearch(db *sql.DB, query string, topK int, filters *Filters, embedder
 		docIDByRowid[c.rowid] = c.docID
 	}
 
-	frows, err := db.Query(fmt.Sprintf(
+	frows, err := conn.Query(fmt.Sprintf(
 		"SELECT rowid, embedding FROM vec_documents WHERE rowid IN (%s)",
 		strings.Join(rowidList, ","),
 	))
@@ -222,7 +290,7 @@ func vectorSearch(db *sql.DB, query string, topK int, filters *Filters, embedder
 	// Stage 3: apply filters and truncate to topK.
 	results := make([]rankedResult, 0, topK)
 	for _, r := range reranked {
-		if !filters.hasFilters() || passesFilters(db, r.docID, filters) {
+		if !filters.hasFilters() || passesFilters(conn, r.docID, filters) {
 			results = append(results, r)
 			if len(results) >= topK {
 				break
@@ -269,7 +337,7 @@ func escapeFTSQuery(query string) string {
 }
 
 // ftsSearch runs full-text search via FTS5.
-func ftsSearch(db *sql.DB, queryText string, topK int, filters *Filters) ([]rankedResult, error) {
+func ftsSearch(conn *sql.DB, queryText string, topK int, filters *Filters) ([]rankedResult, error) {
 	safeQuery := escapeFTSQuery(queryText)
 	if safeQuery == "" {
 		return nil, nil
@@ -280,7 +348,7 @@ func ftsSearch(db *sql.DB, queryText string, topK int, filters *Filters) ([]rank
 		candidateLimit = topK * 50
 	}
 
-	rows, err := db.Query(
+	rows, err := conn.Query(
 		`SELECT rowid, rank
 		 FROM documents_fts
 		 WHERE documents_fts MATCH ?
@@ -294,25 +362,36 @@ func ftsSearch(db *sql.DB, queryText string, topK int, filters *Filters) ([]rank
 	}
 	defer rows.Close()
 
-	var results []rankedResult
+	// Drain the cursor before filtering: passesFilters runs its own query, and
+	// holding this one open across it needs a second pooled connection (with
+	// four concurrent searches the pool is exhausted and this deadlocks).
+	var ranked []rankedResult
 	for rows.Next() {
 		var docID int64
 		var rank float64
 		if err := rows.Scan(&docID, &rank); err != nil {
 			return nil, fmt.Errorf("scan fts result: %w", err)
 		}
-		if !filters.hasFilters() || passesFilters(db, docID, filters) {
-			results = append(results, rankedResult{docID: docID, score: rank})
+		ranked = append(ranked, rankedResult{docID: docID, score: rank})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	results := make([]rankedResult, 0, min(topK, len(ranked)))
+	for _, r := range ranked {
+		if !filters.hasFilters() || passesFilters(conn, r.docID, filters) {
+			results = append(results, r)
 			if len(results) >= topK {
 				break
 			}
 		}
 	}
-	return results, rows.Err()
+	return results, nil
 }
 
 // passesFilters checks if a document passes the given filters.
-func passesFilters(db *sql.DB, documentID int64, filters *Filters) bool {
+func passesFilters(conn *sql.DB, documentID int64, filters *Filters) bool {
 	if filters == nil {
 		return true
 	}
@@ -320,7 +399,7 @@ func passesFilters(db *sql.DB, documentID int64, filters *Filters) bool {
 	var metadataStr sql.NullString
 	var collectionName, collectionType, sourceType, sourcePath string
 
-	err := db.QueryRow(
+	err := conn.QueryRow(
 		`SELECT d.metadata, c.name, c.collection_type, s.source_type, s.source_path
 		 FROM documents d
 		 JOIN collections c ON d.collection_id = c.id
@@ -458,12 +537,12 @@ func RRFMerge(vecResults, ftsResults []rankedResult, k int, vectorWeight, ftsWei
 }
 
 // fetchResult loads a SearchResult from the database for a document ID.
-func fetchResult(db *sql.DB, docID int64, score float64) (*SearchResult, error) {
+func fetchResult(conn *sql.DB, docID int64, score float64) (*SearchResult, error) {
 	var content, collectionName, sourcePath, sourceType string
 	var title sql.NullString
 	var metadataStr sql.NullString
 
-	err := db.QueryRow(
+	err := conn.QueryRow(
 		`SELECT d.content, d.title, d.metadata,
 		        c.name, s.source_path, s.source_type
 		 FROM documents d

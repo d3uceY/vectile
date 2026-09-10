@@ -210,3 +210,14 @@ export function ConnectNavIcon(props: NavIconProps) {
     </NavSvg>
   );
 }
+
+/** Cache: the stored layers separate as the section opens. */
+export function CacheNavIcon(props: NavIconProps) {
+  return (
+    <NavSvg {...props} open={props.active}>
+      <ellipse class="ms" style={{ "--ty": "3.4px" }} cx="12" cy="6.6" rx="7.2" ry="2.8" />
+      <path class="ms" d="M4.8 11.4c0 1.5 3.2 2.8 7.2 2.8s7.2-1.3 7.2-2.8" />
+      <path class="ms" style={{ "--ty": "-3.4px" }} d="M4.8 15.4c0 1.5 3.2 2.8 7.2 2.8s7.2-1.3 7.2-2.8" />
+    </NavSvg>
+  );
+}

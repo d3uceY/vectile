@@ -75,10 +75,11 @@ func TestHybridSearchRanksFTSAndVector(t *testing.T) {
 	seedDoc(t, conn, collID, sourceID, 1, "Other doc", "completely unrelated subject matter", d2v)
 
 	sd := config.SearchDefaults{TopK: 10, RRFK: 60, VectorWeight: 0.7, FTSWeight: 0.3}
-	results, err := Search(conn, "quick fox", Filters{TopK: 10}, fakeEmbedder{qv}, sd)
+	resp, err := Search(conn, "quick fox", Filters{TopK: 10}, fakeEmbedder{qv}, sd)
 	if err != nil {
 		t.Fatal(err)
 	}
+	results := resp.Results
 	if len(results) == 0 {
 		t.Fatal("expected at least one result")
 	}
@@ -103,10 +104,11 @@ func TestSearchFallsBackToFTSWithoutModel(t *testing.T) {
 	seedDoc(t, conn, collID, sourceID, 0, "K8s", "kubernetes deployment strategy for rollout", make([]float32, db.EmbeddingDim))
 
 	sd := config.SearchDefaults{TopK: 10, RRFK: 60, VectorWeight: 0.7, FTSWeight: 0.3}
-	results, err := Search(conn, "kubernetes rollout", Filters{}, failingEmbedder{}, sd)
+	resp, err := Search(conn, "kubernetes rollout", Filters{}, failingEmbedder{}, sd)
 	if err != nil {
 		t.Fatal(err)
 	}
+	results := resp.Results
 	if len(results) == 0 || results[0].Title != "K8s" {
 		t.Fatalf("expected FTS fallback to find K8s, got %+v", results)
 	}

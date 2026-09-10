@@ -3,5 +3,6 @@
 
 export {
     Filters,
+    SearchResponse,
     SearchResult
 } from "./models.js";
