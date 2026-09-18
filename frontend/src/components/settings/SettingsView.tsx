@@ -507,35 +507,158 @@ const copyText = async (text: string): Promise<boolean> => {
     return false;
   }
 };
-function Snippet(props: { label: string; code: string; multiline?: boolean }) {
+/* ---- MCP client matrix: what to paste, and where it goes ---- */
+
+/**
+ * One connectable MCP client. The payload is the only per-client difference
+ * worth showing; `where` carries the part a user cannot guess (which file, or
+ * which panel names a remote server).
+ */
+type MCPClient = {
+  id: string;
+  /** Tab label. */
+  label: string;
+  /** Panel heading when the tab label alone would be ambiguous. */
+  title?: string;
+  /** Where the setup goes, in plain words. */
+  where: string;
+  /** The exact text to copy. */
+  payload: (url: string) => string;
+  /** An extra step the client needs before it works. */
+  then?: string;
+};
+
+const MCP_CLIENTS: MCPClient[] = [
+  {
+    id: "claude-desktop",
+    label: "Claude Desktop",
+    where: "Add this to claude_desktop_config.json.",
+    payload: (url) => `{\n  "mcpServers": {\n    "vectile": {\n      "url": "${url}"\n    }\n  }\n}`,
+    then: "Edit it from Settings → Developer → Edit Config, then quit Claude completely and reopen it.",
+  },
+  {
+    id: "cursor",
+    label: "Cursor",
+    where: "Add this to ~/.cursor/mcp.json for every project, or .cursor/mcp.json for one.",
+    payload: (url) => `{\n  "mcpServers": {\n    "vectile": {\n      "url": "${url}"\n    }\n  }\n}`,
+  },
+  {
+    id: "windsurf",
+    label: "Windsurf",
+    where: "Add this to mcp_config.json.",
+    payload: (url) => `{\n  "mcpServers": {\n    "vectile": {\n      "serverUrl": "${url}"\n    }\n  }\n}`,
+    then: "Windsurf also takes this from Settings → Cascade → MCP Servers → Add remote server.",
+  },
+  {
+    id: "vscode",
+    label: "VS Code",
+    title: "VS Code / GitHub Copilot",
+    where: "Add this to .vscode/mcp.json for one workspace, or to your user mcp.json for every workspace.",
+    payload: (url) => `{\n  "servers": {\n    "vectile": {\n      "type": "sse",\n      "url": "${url}"\n    }\n  }\n}`,
+    then: "In VS Code the wrapper key is servers, not mcpServers, and it needs the type field.",
+  },
+  {
+    id: "cline",
+    label: "Cline",
+    where: "Open the MCP Servers panel in Cline and add a remote server with this URL.",
+    payload: (url) => url,
+  },
+  {
+    id: "claude-code",
+    label: "Claude Code",
+    where: "Run this in your terminal.",
+    payload: (url) => `claude mcp add vectile --transport sse ${url}`,
+  },
+  {
+    id: "other",
+    label: "Other",
+    where: "Use this URL with any MCP client that supports SSE.",
+    payload: (url) => url,
+  },
+];
+
+/** Client picker. Arrow keys, Home and End move between tabs, per the ARIA tabs pattern. */
+function ClientTabs(props: { value: string; onChange: (id: string) => void }) {
+  let els: HTMLButtonElement[] = [];
+  const onKey = (e: KeyboardEvent, i: number) => {
+    const n = MCP_CLIENTS.length;
+    let next = -1;
+    if (e.key === "ArrowRight") next = (i + 1) % n;
+    else if (e.key === "ArrowLeft") next = (i - 1 + n) % n;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = n - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    props.onChange(MCP_CLIENTS[next].id);
+    els[next]?.focus();
+  };
+  return (
+    <div
+      role="tablist"
+      aria-label="MCP client"
+      class="flex flex-wrap items-center gap-x-0.5 border-b border-line px-2.5 pt-1.5"
+    >
+      <For each={MCP_CLIENTS}>
+        {(c, i) => (
+          <button
+            ref={(el) => (els[i()] = el)}
+            role="tab"
+            id={`mcp-tab-${c.id}`}
+            aria-selected={props.value === c.id}
+            aria-controls="mcp-client-panel"
+            tabindex={props.value === c.id ? 0 : -1}
+            class={`-mb-px whitespace-nowrap border-b-2 px-2 py-2 text-[12px] outline-offset-2 transition-colors focus-visible:outline-2 focus-visible:outline-leaf-deep ${
+              props.value === c.id
+                ? "border-leaf-deep font-semibold text-leaf-deep"
+                : "border-transparent text-muted hover:text-ink-soft"
+            }`}
+            onClick={() => props.onChange(c.id)}
+            onKeyDown={(e) => onKey(e, i())}
+          >
+            {c.label}
+          </button>
+        )}
+      </For>
+    </div>
+  );
+}
+
+/** The selected client's setup: what it is, where it goes, and the payload. */
+function ClientSetup(props: { client: MCPClient; url: string }) {
   const [copied, setCopied] = createSignal(false);
+  const payload = () => props.client.payload(props.url);
   const copy = async () => {
-    if (await copyText(props.code)) {
+    if (await copyText(payload())) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     }
   };
   return (
     <div>
-      <p class="data mb-1 text-[11.5px] font-medium uppercase tracking-[0.08em] text-muted">{props.label}</p>
-      <div class="flex items-center gap-2 rounded-control border border-line-strong bg-surface/20 px-3 py-2">
-        <code
-          class={`data min-w-0 flex-1 font-mono text-[12px] leading-5 text-ink-soft ${
-            props.multiline ? "whitespace-pre-wrap break-all" : "truncate"
-          }`}
-          title={props.code}
-        >
-          {props.code}
-        </code>
+      <div class="flex items-start gap-3 px-4 pb-3 pt-3.5">
+        <div class="min-w-0 flex-1">
+          <p class="text-[13px] font-medium leading-5 text-ink">{props.client.title ?? props.client.label}</p>
+          <p class="mt-0.5 text-[12.5px] leading-4 text-muted">{props.client.where}</p>
+        </div>
         <button
-          class="shrink-0 rounded p-1 text-faint transition-colors hover:text-indigo"
+          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-strong px-2 py-1.5 text-[12px] text-ink-soft outline-offset-2 transition-colors hover:border-leaf hover:text-leaf-deep focus-visible:outline-2 focus-visible:outline-leaf-deep"
           onClick={() => void copy()}
-          aria-label={`Copy ${props.label}`}
+          aria-label={`Copy setup for ${props.client.label}`}
           title="Copy"
         >
           {copied() ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
+          {copied() ? "copied" : "copy"}
         </button>
       </div>
+      <pre class="select-text overflow-x-auto border-t border-line px-4 py-3 font-mono text-[12.5px] leading-[1.6] text-ink">
+        <code>{payload()}</code>
+      </pre>
+      <Show when={props.client.then}>
+        <p class="border-t border-line px-4 py-2.5 text-[12px] leading-4 text-muted">{props.client.then}</p>
+      </Show>
+      <p class="sr-only" role="status" aria-live="polite">
+        {copied() ? `${props.client.label} setup copied` : ""}
+      </p>
     </div>
   );
 }
@@ -825,7 +948,8 @@ export function SettingsView() {
   const running = () => store.mcpStatus()?.running ?? false;
   const mcpWriteAllowed = () => draft()?.mcp.allow_write ?? false;
   const mcpUrl = () => `http://127.0.0.1:${draft()!.mcp.port}/sse`;
-  const claudeJson = () => `{\n  "mcpServers": {\n    "vectile": { "url": "${mcpUrl()}" }\n  }\n}`;
+  const [mcpClient, setMcpClient] = createSignal(MCP_CLIENTS[0].id);
+  const activeClient = () => MCP_CLIENTS.find((c) => c.id === mcpClient()) ?? MCP_CLIENTS[0];
   const [urlCopied, setUrlCopied] = createSignal(false);
   const copyUrl = async () => {
     const u = store.mcpStatus()?.url ?? mcpUrl();
@@ -1695,11 +1819,20 @@ export function SettingsView() {
 
                     <div>
                       <SubHeading>How to connect</SubHeading>
-                      <p class="note mb-2 mt-0.5 text-[12.5px] leading-4 text-muted">Point an MCP client at the URL below.</p>
-                      <div class="space-y-3">
-                        <Snippet label="Claude Desktop" code={claudeJson()} multiline />
-                        <Snippet label="Claude Code" code={`claude mcp add vectile --transport sse ${mcpUrl()}`} />
-                        <Snippet label="Any MCP SSE client" code={mcpUrl()} />
+                      <p class="note mb-2.5 mt-0.5 text-[12.5px] leading-4 text-muted">
+                        Pick the app you're connecting, then paste the setup into it.
+                      </p>
+                      <div class="overflow-hidden rounded-control border border-line-strong bg-surface">
+                        <ClientTabs value={mcpClient()} onChange={setMcpClient} />
+                        <div
+                          role="tabpanel"
+                          id="mcp-client-panel"
+                          aria-labelledby={`mcp-tab-${mcpClient()}`}
+                          tabindex={0}
+                          class="-outline-offset-2 focus-visible:outline-2 focus-visible:outline-leaf-deep"
+                        >
+                          <ClientSetup client={activeClient()} url={mcpUrl()} />
+                        </div>
                       </div>
                     </div>
                   </div>
