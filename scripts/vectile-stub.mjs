@@ -64,9 +64,9 @@ const status = {
 const config = {
   embedding_model: MODEL_NAME,
   active_model: MODEL_PATH,
-  embedding_batch_size: 16,
-  chunk_size_tokens: 200,
-  chunk_overlap_tokens: 30,
+  embedding_batch_size: 32,
+  chunk_size_tokens: 500,
+  chunk_overlap_tokens: 50,
   obsidian_vaults: ["C:\\Users\\you\\Documents\\notes"],
   obsidian_exclude_folders: [".obsidian", ".trash"],
   project_exclude_folders: ["node_modules", "references"],
@@ -77,7 +77,7 @@ const config = {
   skip_cloud_placeholders: true,
   git_history_in_months: 6,
   git_commit_subject_blacklist: ["^Merge ", "^fixup! ", "^WIP "],
-  search_defaults: { top_k: 12, rrf_k: 60, vector_weight: 1.0, fts_weight: 1.0 },
+  search_defaults: { top_k: 10, rrf_k: 60, vector_weight: 0.7, fts_weight: 0.3 },
   gui: {
     auto_reindex: false,
     auto_reindex_interval_minutes: 60,

@@ -37,6 +37,18 @@ tasks:
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
 
+  docs:
+    summary: Serves the documentation site
+    dir: website
+    cmds:
+      - npm start
+
+  docs:build:
+    summary: Builds the static documentation site into website/build
+    dir: website
+    cmds:
+      - npm run build
+
   setup:docker:
     summary: Builds Docker image for cross-compilation (~800MB download)
     cmds:

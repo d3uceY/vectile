@@ -49,6 +49,18 @@ export async function interact(page, job) {
       .first()
       .waitFor({ state: "visible", timeout: 8000 })
       .catch(() => {});
+
+    // Optional: open the first result's full passage so the expanded state can
+    // be captured (the panel reveals Open file / Reveal in folder).
+    if (job.searchExpand) {
+      const expand = page
+        .locator('main article button:has-text("Read full passage")')
+        .first();
+      await expand.waitFor({ state: "visible", timeout: 5000 }).catch(() => {});
+      if (await expand.count()) await expand.click();
+      await page.waitForTimeout(600);
+    }
+
     await page.waitForTimeout(1700);
     return;
   }

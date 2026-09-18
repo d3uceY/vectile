@@ -16,6 +16,13 @@
       "query": "kubernetes rollout"
     },
     {
+      "name": "search-passage",
+      "out": "docs/screenshots/search-passage.png",
+      "interactView": "search",
+      "query": "kubernetes rollout",
+      "searchExpand": true
+    },
+    {
       "name": "library",
       "out": "docs/screenshots/library.png",
       "interactView": "library"
@@ -26,15 +33,63 @@
       "interactView": "browse"
     },
     {
+      "name": "index",
+      "out": "docs/screenshots/index.png",
+      "interactView": "index"
+    },
+    {
       "name": "settings",
       "out": "docs/screenshots/settings.png",
       "interactView": "settings"
+    },
+    {
+      "name": "settings-sources",
+      "out": "docs/screenshots/settings-sources.png",
+      "interactView": "settings",
+      "settingsSection": "Sources"
+    },
+    {
+      "name": "settings-chunking",
+      "out": "docs/screenshots/settings-chunking.png",
+      "interactView": "settings",
+      "settingsSection": "Chunking"
+    },
+    {
+      "name": "settings-search",
+      "out": "docs/screenshots/settings-search.png",
+      "interactView": "settings",
+      "settingsSection": "Search"
+    },
+    {
+      "name": "settings-cache",
+      "out": "docs/screenshots/settings-cache.png",
+      "interactView": "settings",
+      "settingsSection": "Cache"
+    },
+    {
+      "name": "settings-indexing",
+      "out": "docs/screenshots/settings-indexing.png",
+      "interactView": "settings",
+      "settingsSection": "Indexing"
     },
     {
       "name": "settings-mascot",
       "out": "docs/screenshots/settings-mascot.png",
       "interactView": "settings",
       "settingsSection": "vexter"
+    },
+    {
+      "name": "settings-connect",
+      "out": "docs/screenshots/settings-connect.png",
+      "interactView": "settings",
+      "settingsSection": "Connect",
+      "loadingSelectors": [
+        "[aria-busy=\"true\"]",
+        ".skeleton",
+        "[class*=\"skeleton\" i]",
+        ".spinner",
+        "[class*=\"spinner\" i]"
+      ]
     }
   ]
 }

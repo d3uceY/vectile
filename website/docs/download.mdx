@@ -1,0 +1,138 @@
+---
+title: Download
+sidebar_label: Download
+description: Get vectile for Windows, macOS, or Linux, and get past the first-launch warning.
+---
+
+# Download vectile
+
+Free, MIT licensed, no account. Pick your platform below, then follow
+[First run](/docs/first-run) to add a model and search something.
+
+<div className="dl-lanes">
+  <div className="dl-lane" id="windows">
+    <div className="dl-head">
+      <p className="dl-os">Windows</p>
+      <p className="dl-note">
+        Windows 10 or 11, 64-bit. The installer adds a Start menu entry. The portable file is a
+        single exe with no install step.
+      </p>
+    </div>
+    <div className="dl-actions">
+      <a
+        className="dl-btn"
+        href="https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-installer.exe">
+        Download installer
+      </a>
+      <a
+        className="dl-btn-alt"
+        href="https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64.exe">
+        Portable exe instead
+      </a>
+      <p className="dl-files">vectile-windows-amd64-installer.exe · vectile-windows-amd64.exe</p>
+    </div>
+  </div>
+
+  <div className="dl-lane" id="macos">
+    <div className="dl-head">
+      <p className="dl-os">macOS</p>
+      <p className="dl-note">
+        macOS 12 Monterey or newer. One universal build covers Apple Silicon and Intel.
+      </p>
+    </div>
+    <div className="dl-actions">
+      <a
+        className="dl-btn"
+        href="https://github.com/d3uceY/vectile/releases/latest/download/vectile-macos-universal.dmg">
+        Download dmg
+      </a>
+      <a
+        className="dl-btn-alt"
+        href="https://github.com/d3uceY/vectile/releases/latest/download/vectile-macos-universal.zip">
+        Zip instead
+      </a>
+      <p className="dl-files">vectile-macos-universal.dmg · vectile-macos-universal.zip</p>
+    </div>
+  </div>
+
+  <div className="dl-lane" id="linux">
+    <div className="dl-head">
+      <p className="dl-os">Linux</p>
+      <p className="dl-note">
+        The AppImage is one file that runs without installing anything. The deb is for Debian and
+        Ubuntu and pulls in the libraries it needs.
+      </p>
+    </div>
+    <div className="dl-actions">
+      <a
+        className="dl-btn"
+        href="https://github.com/d3uceY/vectile/releases/latest/download/vectile-linux-amd64.AppImage">
+        Download AppImage
+      </a>
+      <a
+        className="dl-btn-alt"
+        href="https://github.com/d3uceY/vectile/releases/latest/download/vectile-linux-amd64.deb">
+        Download deb instead
+      </a>
+      <p className="dl-files">vectile-linux-amd64.AppImage · vectile-linux-amd64.deb</p>
+    </div>
+  </div>
+</div>
+
+Every button downloads the newest release. Older versions, release notes, and SHA256 sums are on
+the [releases page](https://github.com/d3uceY/vectile/releases).
+
+## The first launch will warn you
+
+vectile is not code-signed, so your operating system cannot check who made the file and asks you
+to confirm before opening it. Every build comes from this repository, and you can read the source.
+
+### Windows
+
+Defender SmartScreen shows a blue box that says Windows protected your PC. Click **More info**,
+then **Run anyway**.
+
+To stop the warning next time, right-click the downloaded file, open **Properties**, tick
+**Unblock**, and click **Apply**.
+
+### macOS
+
+Gatekeeper says the app cannot be opened because Apple cannot check it for malicious software.
+Right-click the app, choose **Open**, then click **Open** again in the dialog. Once is enough.
+The same thing from a terminal:
+
+```bash
+xattr -d com.apple.quarantine /Applications/vectile.app
+```
+
+### Linux
+
+The deb installs with:
+
+```bash
+sudo apt install ./vectile-linux-amd64.deb
+```
+
+The AppImage needs the execute bit:
+
+```bash
+chmod +x vectile-linux-amd64.AppImage
+./vectile-linux-amd64.AppImage
+```
+
+## What happens next
+
+1. **Add a model.** It turns your text into numbers, and the app downloads one for you from a
+   short list. See [Models](/docs/models).
+2. **Point it at a folder.** Notes, documents, books, or code. See [What you can
+   index](/docs/sources).
+3. **Index, then search.** Press <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on
+   macOS) and type a question. [First run](/docs/first-run) walks through all of it.
+
+Indexing runs on your CPU, so the first pass over a large library takes a while.
+
+## Other ways to get it
+
+- [Build from source](/docs/build-from-source) if you would rather compile it yourself.
+- [All releases](https://github.com/d3uceY/vectile/releases), including older versions and
+  checksums.

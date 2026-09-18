@@ -1,0 +1,307 @@
+.card {
+  position: relative;
+  background: var(--vt-surface);
+  border: 1px solid var(--vt-line);
+  border-radius: 16px;
+  box-shadow: var(--vt-shadow-pop);
+  padding: 0 0 0.85rem;
+  overflow: hidden;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--vt-line);
+  background: var(--vt-paper-warm);
+}
+
+.windowDots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.windowDots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--vt-line-strong);
+}
+
+.cardLabel {
+  font-family: var(--vt-font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vt-faint);
+}
+
+.queryRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.05rem 1.15rem 0.95rem;
+  border-bottom: 1px solid var(--vt-line);
+}
+
+.queryIcon {
+  color: var(--vt-faint);
+  display: inline-flex;
+  flex: none;
+}
+
+.queryIcon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.query {
+  font-size: 1.02rem;
+  font-weight: 500;
+  color: var(--vt-ink);
+  letter-spacing: -0.012em;
+  animation: queryIn 420ms var(--vt-ease-out) both;
+}
+
+.caret {
+  width: 1.5px;
+  height: 1.15em;
+  background: var(--vt-leaf-deep);
+  margin-left: -0.35rem;
+  animation: blink 1.25s steps(1, end) infinite;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.7rem 1.15rem 0.2rem;
+}
+
+.chip {
+  font-family: var(--vt-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.01em;
+  color: var(--vt-muted);
+  background: var(--vt-paper-warm);
+  border: 1px solid var(--vt-line);
+  border-radius: 999px;
+  padding: 0.26rem 0.6rem;
+  cursor: pointer;
+  transition: color 140ms var(--vt-ease-out), border-color 140ms var(--vt-ease-out),
+    background-color 140ms var(--vt-ease-out);
+}
+
+.chip:hover {
+  color: var(--vt-ink);
+  border-color: var(--vt-line-strong);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--vt-mint);
+  border-color: var(--vt-mint-strong);
+  color: var(--vt-leaf-deep);
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0.55rem 0 0;
+}
+
+.result {
+  padding: 0.85rem 1.15rem 0.9rem;
+  border-bottom: 1px solid var(--vt-line);
+  animation: resultIn 400ms var(--vt-ease-out) both;
+  animation-delay: var(--step, 0ms);
+}
+
+.result:last-child {
+  border-bottom: 0;
+}
+
+.resultHead {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+}
+
+.rank {
+  font-family: var(--vt-font-mono);
+  font-size: 0.68rem;
+  color: var(--vt-faint);
+  flex: none;
+}
+
+.title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--vt-ink);
+  letter-spacing: -0.012em;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.percent {
+  font-family: var(--vt-font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--vt-leaf-deep);
+  flex: none;
+}
+
+/* One bar, two contributions. The green stretch is how much of this result's
+   score came from the meaning-based list, ink is how much came from words. */
+.bar {
+  height: 3px;
+  border-radius: 999px;
+  margin: 0.5rem 0 0.55rem;
+  background: linear-gradient(
+    to right,
+    var(--vt-leaf-deep) 0 var(--split),
+    var(--vt-ink) var(--split) 100%
+  );
+  opacity: 0.85;
+}
+
+.snippet {
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--vt-muted);
+  margin: 0 0 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--vt-font-mono);
+  font-size: 0.66rem;
+  color: var(--vt-faint);
+  min-width: 0;
+}
+
+.path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--vt-line-strong);
+  flex: none;
+}
+
+.collection {
+  color: var(--vt-leaf-deep);
+  flex: none;
+}
+
+.ranks {
+  margin-left: auto;
+  padding-left: 0.8rem;
+  flex: none;
+  color: var(--vt-faint);
+  white-space: nowrap;
+}
+
+@media (max-width: 460px) {
+  .ranks {
+    display: none;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.75rem 1.15rem 0.1rem;
+  border-top: 1px solid var(--vt-line);
+  margin-top: 0.2rem;
+  font-family: var(--vt-font-mono);
+  font-size: 0.64rem;
+  color: var(--vt-faint);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.swatchMeaning,
+.swatchWords {
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+}
+
+.swatchMeaning {
+  background: var(--vt-leaf-deep);
+}
+
+.swatchWords {
+  background: var(--vt-ink);
+}
+
+.legendK {
+  margin-left: auto;
+}
+
+@keyframes resultIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes queryIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 996px) {
+  .queryRow {
+    padding: 0.9rem 1rem 0.8rem;
+  }
+
+  .chips,
+  .result,
+  .legend {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
