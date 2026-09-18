@@ -1,10 +1,30 @@
-import { createSignal, For, Show } from "solid-js";
+import { createSignal, For, Show, type JSX } from "solid-js";
 import { useAppStore } from "../../lib/store";
+import type { AppConfig } from "../../lib/types";
 import { Button, Chip, ConfirmDialog, EmptyState, Toggle, ViewHeading } from "../ui/primitives";
-import { IndexIcon } from "../ui/icons";
+import { CodeIcon, FileIcon, FolderOpenIcon, IndexIcon, LibraryIcon } from "../ui/icons";
 import { IndexProgressBar } from "./IndexProgressBar";
 
 type Configured = { name: string; type: string; enabled: boolean };
+
+const SYSTEM_KIND: Record<string, { label: string; icon: (p: { size?: number }) => JSX.Element }> = {
+  obsidian: { label: "vaults", icon: FileIcon },
+  calibre: { label: "ebooks", icon: LibraryIcon },
+};
+
+const kindOf = (item: Configured) =>
+  item.type === "project"
+    ? { label: "project folders", icon: FolderOpenIcon }
+    : item.type === "code"
+      ? { label: "code repos", icon: CodeIcon }
+      : (SYSTEM_KIND[item.name] ?? { label: "vaults", icon: FileIcon });
+
+const SOURCE_TYPES: { label: string; has: (c: AppConfig) => boolean }[] = [
+  { label: "Project folders", has: (c) => Object.keys(c.projects).length > 0 },
+  { label: "Code repositories", has: (c) => Object.keys(c.repositories).length > 0 },
+  { label: "Obsidian vaults", has: (c) => c.obsidian_vaults.length > 0 },
+  { label: "Calibre libraries", has: (c) => c.calibre_libraries.length > 0 },
+];
 
 export function IndexView() {
   const store = useAppStore();
@@ -29,12 +49,22 @@ export function IndexView() {
   const dbCol = (name: string) => store.collections().find((c) => c.name === name);
   const progressOf = (name: string) => store.indexByCollection()[name];
 
+  const missingKinds = (): string[] => {
+    const cfg = store.config();
+    if (!cfg) return [];
+    return SOURCE_TYPES.filter((t) => !t.has(cfg)).map((t) => t.label);
+  };
+
   return (
     <div class="relative flex h-full flex-col">
       <ViewHeading
         title="Index"
-        note="Add sources in Settings, then index them here. Deleted files are pruned automatically. Index new adds only changed files; Re-index all re-embeds everything."
+        note="Index new adds only changed files; Re-index all re-embeds everything. Deleted files are pruned automatically."
       >
+        <Button variant="outline" onClick={() => store.openSettings("sources")}>
+          <FolderOpenIcon size={15} />
+          Add sources
+        </Button>
         <Button
           id="setup-index-all"
           onClick={() => store.startIndexAll(false)}
@@ -83,12 +113,10 @@ export function IndexView() {
           <div class="flex flex-1 items-center justify-center">
             <EmptyState
               icon={<IndexIcon size={20} />}
-              title="Nothing configured yet"
-              note="Add a folder or library under Settings."
+              title="No sources yet"
+              note="Add a folder, vault, or library in Settings. Each one becomes a collection you can index here."
             >
-              <Button onClick={() => store.setView("settings")}>
-                Add sources in Settings
-              </Button>
+              <Button onClick={() => store.openSettings("sources")}>Add sources</Button>
             </EmptyState>
           </div>
         }
@@ -101,10 +129,13 @@ export function IndexView() {
               return (
                 <div class="sheet p-5">
                   <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-paper text-muted">
+                      {kindOf(item).icon({ size: 16 })}
+                    </span>
                     <div class="min-w-0 flex-1">
                       <div class="flex items-center gap-2">
                         <span class="title truncate text-[15px] tracking-[-0.01em] text-ink">{item.name}</span>
-                        <Chip tone={item.type === "code" ? "code" : "neutral"}>{item.type}</Chip>
+                        <Chip tone={item.type === "code" ? "code" : "neutral"}>{kindOf(item).label}</Chip>
                         {!item.enabled && <Chip>disabled</Chip>}
                         {col()?.needsReindex && <Chip tone="amber">needs reindex</Chip>}
                       </div>
@@ -156,6 +187,20 @@ export function IndexView() {
               );
             }}
           </For>
+        </div>
+      </Show>
+
+      <Show when={configured().length > 0 && missingKinds().length > 0}>
+        <div class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-card border border-dashed border-line-strong px-4 py-2.5">
+          <span class="text-[12.5px] text-muted">Not indexing yet:</span>
+          <span class="text-[12.5px] font-medium text-ink-soft">{missingKinds().join(" · ")}</span>
+          <button
+            type="button"
+            class="ml-auto text-[12.5px] font-medium text-indigo hover:underline"
+            onClick={() => store.openSettings("sources")}
+          >
+            Add in Settings
+          </button>
         </div>
       </Show>
 

@@ -40,12 +40,19 @@ The app keeps three things in the data directory.
 
 ## Adding sources (Settings)
 
-In Settings you add where your knowledge lives.
+In Settings you add where your knowledge lives. Each kind is its own tab under
+Sources, with a count in the tab, so you only see the type you are editing.
 
 - Obsidian vaults: a folder of markdown notes.
 - Project folders: any folder of documents.
 - Code repositories: folders containing git repos. The app finds nested repos automatically.
 - Calibre libraries: folders that hold a Calibre library.
+
+Each tab says what its paths become, because that name is what you see later in
+Index, Library, Browse, and Search. Every vault lands in one `obsidian`
+collection and every library in one `calibre` collection; each project or repo
+group becomes its own collection, named after the group. Vaults and project
+folders also carry their own excluded-folder list.
 
 Each saved change writes `config.json`. You also set chunk size, search weights, auto-reindex, and start-on-login here.
 
@@ -53,7 +60,7 @@ Each saved change writes `config.json`. You also set chunk size, search weights,
 
 Indexing turns files into searchable chunks.
 
-1. You press "Index new" on a collection to pick up changed files, or "Re-index all" to re-embed everything, or Index all / Re-index all in the header for every collection at once.
+1. You press "Index new" on a collection to pick up changed files, or "Re-index all" to re-embed everything, or Index all / Re-index all in the header for every collection at once. If a kind of source is not set up yet, the footer names it and links to Settings; "Add sources" in the header goes there too.
 2. A background goroutine walks the source. For each file it checks whether the file changed since the last run. Unchanged files are skipped. That is the incremental part.
 3. Each file is parsed into text, then cut into chunks of about 500 words with a small overlap.
 4. Each chunk is embedded. The bge-m3 model turns the text into a list of 1024 numbers that capture its meaning.

@@ -247,6 +247,7 @@ function ChipList(props: {
   onAdd: (v: string) => void;
   onRemove: (v: string) => void;
   title?: string;
+  empty?: string;
 }) {
   const [input, setInput] = createSignal("");
 
@@ -265,7 +266,9 @@ function ChipList(props: {
   return (
     <div class="flex flex-col gap-2">
       {props.values.length === 0 ? (
-        <p class="text-[12.5px] leading-4 text-muted">None. Every folder inside a vault is indexed.</p>
+        <p class="text-[12.5px] leading-4 text-muted">
+          {props.empty ?? "None. Every folder inside a vault is indexed."}
+        </p>
       ) : (
         <ul class="flex flex-wrap gap-1.5">
           <For each={props.values}>
@@ -413,7 +416,7 @@ function GroupList(props: {
     <div class="flex flex-col gap-2">
       {entries().length === 0 ? (
         <p class="rounded-control border border-dashed border-line-strong px-3 py-2.5 text-[13px] leading-5 text-muted">
-          {props.empty ?? "No groups yet. Create one below, then add its folders."}
+          {props.empty ?? "No collections yet. Create one, then add its folders."}
         </p>
       ) : (
         <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
@@ -438,48 +441,154 @@ function GroupList(props: {
           onKeyDown={(e) => {
             if (e.key === "Enter") addGroup();
           }}
-          placeholder="collection name…"
+          placeholder="collection name, e.g. client-work"
           class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
         />
         <Button size="sm" onClick={addGroup}>
-          New group
+          New collection
         </Button>
       </div>
     </div>
   );
 }
 
-function SourceHeading(props: {
-  id?: string;
-  icon: JSX.Element;
-  title: string;
-  hint: string;
-  count: number;
-  unit: string;
+/* ---- Sources: one tab per source type ---- */
+
+type SourceKindId = "projects" | "repositories" | "obsidian" | "calibre";
+
+type SourceKind = {
+  id: SourceKindId;
+  label: string;
+  icon: (p: { size?: number }) => JSX.Element;
+  blurb: string;
+  count: (c: AppConfig) => number;
+};
+
+/* One entry per type, because each is a different machine underneath: a vault
+   walks markdown, a repository walks git history, a project group is a named
+   bag of folders. Each panel states what its paths become, since that name is
+   what shows up later in Index, Library, Browse, and Search. */
+const SOURCE_KINDS: SourceKind[] = [
+  {
+    id: "projects",
+    label: "Project folders",
+    icon: FolderOpenIcon,
+    blurb: "Folders you work in. Every file type vectile reads is parsed, subfolders included.",
+    count: (c) => Object.keys(c.projects).length,
+  },
+  {
+    id: "repositories",
+    label: "Code repositories",
+    icon: CodeIcon,
+    blurb: "Git repositories: the current file tree, plus commit history. Nested repos included.",
+    count: (c) => Object.keys(c.repositories).length,
+  },
+  {
+    id: "obsidian",
+    label: "Obsidian vaults",
+    icon: FileIcon,
+    blurb: "Markdown notes, subfolders included.",
+    count: (c) => c.obsidian_vaults.length,
+  },
+  {
+    id: "calibre",
+    label: "Calibre libraries",
+    icon: LibraryIcon,
+    blurb: "Book text and metadata, read straight from the library folder.",
+    count: (c) => c.calibre_libraries.length,
+  },
+];
+
+/** Type picker. Arrow keys, Home, and End move between tabs, per the ARIA tabs pattern. */
+function SourceTabs(props: {
+  value: SourceKindId;
+  counts: Record<SourceKindId, number>;
+  onChange: (id: SourceKindId) => void;
 }) {
+  let els: HTMLButtonElement[] = [];
+  const onKey = (e: KeyboardEvent, i: number) => {
+    const n = SOURCE_KINDS.length;
+    let next = -1;
+    if (e.key === "ArrowRight") next = (i + 1) % n;
+    else if (e.key === "ArrowLeft") next = (i - 1 + n) % n;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = n - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    props.onChange(SOURCE_KINDS[next].id);
+    els[next]?.focus();
+  };
   return (
-    <div id={props.id} class="flex items-center gap-2.5">
-      <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-control text-muted">
-        {props.icon}
-      </span>
-      <h4 class="text-[13.5px] font-semibold tracking-[-0.01em] text-ink">{props.title}</h4>
-      <InfoTip text={props.hint} />
-      <span class="data ml-auto shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 font-mono text-[11px] text-muted">
-        {props.count} {props.count === 1 ? props.unit : `${props.unit}s`}
-      </span>
+    <div
+      role="tablist"
+      aria-label="Source type"
+      class="grid grid-cols-1 gap-1 rounded-control border border-line-strong bg-surface p-1 min-[430px]:grid-cols-2"
+    >
+      <For each={SOURCE_KINDS}>
+        {(k, i) => {
+          const active = () => props.value === k.id;
+          return (
+            <button
+              ref={(el) => (els[i()] = el)}
+              type="button"
+              role="tab"
+              id={`source-tab-${k.id}`}
+              aria-selected={active()}
+              aria-controls="source-panel"
+              tabindex={active() ? 0 : -1}
+              onClick={() => props.onChange(k.id)}
+              onKeyDown={(e) => onKey(e, i())}
+              class={`flex min-w-0 items-center gap-2 rounded-[7px] px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
+                active() ? "bg-indigo text-white" : "text-ink-soft hover:bg-surface-2 hover:text-ink"
+              }`}
+            >
+              <k.icon size={15} />
+              <span class="min-w-0 flex-1 truncate text-left">{k.label}</span>
+              <span
+                class={`data shrink-0 rounded-full px-1.5 py-0.5 text-[11px] tabular-nums ${
+                  active() ? "bg-white/25 text-white" : "bg-paper text-muted"
+                }`}
+              >
+                {props.counts[k.id]}
+              </span>
+            </button>
+          );
+        }}
+      </For>
     </div>
   );
 }
 
-function SourceGroup(props: { title: string; note: string; children: JSX.Element }) {
+/** Folder names kept out of the index, at any depth, under the type they belong to. */
+function ExcludeBlock(props: {
+  values: string[];
+  onAdd: (v: string) => void;
+  onRemove: (v: string) => void;
+  hint: string;
+  note: string;
+  empty: string;
+  title: string;
+}) {
   return (
-    <div>
-      <div class="mb-1.5 flex items-center gap-3">
-        <h3 class="text-[14px] font-semibold tracking-[-0.01em] text-ink">{props.title}</h3>
-        <div class="h-px flex-1 bg-line" aria-hidden="true" />
+    <div class="mt-5 border-t border-line pt-4">
+      <div class="flex items-center gap-2">
+        <SlashIcon size={14} class="shrink-0 text-muted" />
+        <h5 class="text-[13px] font-semibold tracking-[-0.01em] text-ink-soft">Skip these folders</h5>
+        <InfoTip text={props.hint} />
+        <span class="data ml-auto shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] text-muted tabular-nums">
+          {props.values.length}
+        </span>
       </div>
-      <p class="note mb-4 text-[13px] leading-5 text-muted">{props.note}</p>
-      {props.children}
+      <p class="note mt-1.5 text-[12.5px] leading-4 text-muted">{props.note}</p>
+      <div class="mt-2.5">
+        <ChipList
+          values={props.values}
+          onAdd={props.onAdd}
+          onRemove={props.onRemove}
+          title={props.title}
+          empty={props.empty}
+        />
+      </div>
     </div>
   );
 }
@@ -727,14 +836,11 @@ const MASCOT_STATES: {
   },
 ];
 
-/* ---- the two-pane nav ---- */
 
 type SectionKey = "model" | "chunking" | "search" | "cache" | "sources" | "indexing" | "vexter" | "connect";
 
 type NavIconSlot = { size?: number; active?: boolean };
 
-/* The Vexter row keeps its living pixel sprite; every other rail icon is a
-   morphing nav icon (nav-icons.tsx) that opens while its section is active. */
 function VexterNavIcon(_p: NavIconSlot) {
   return (
     <span class="flex h-4 w-4 items-center justify-center overflow-hidden">
@@ -789,8 +895,6 @@ const cloneCfg = (c: AppConfig): AppConfig => ({
   mcp: { ...c.mcp },
 });
 
-/** Clamp a freshly loaded config into the hard bounds so out-of-range values
-    saved by an older version or a hand-edited file get corrected on open. */
 const sanitizeConfig = (cfg: AppConfig): AppConfig => {
   cfg.embedding_batch_size = clamp(
     cfg.embedding_batch_size,
@@ -899,6 +1003,16 @@ export function SettingsView() {
       delete m[name];
       return { ...d, [mapKey]: m };
     });
+
+  const [sourceKind, setSourceKind] = createSignal<SourceKindId>("projects");
+  const activeKind = (): SourceKind =>
+    SOURCE_KINDS.find((k) => k.id === sourceKind()) ?? SOURCE_KINDS[0];
+  const sourceCounts = (): Record<SourceKindId, number> => ({
+    projects: SOURCE_KINDS[0].count(draft()!),
+    repositories: SOURCE_KINDS[1].count(draft()!),
+    obsidian: SOURCE_KINDS[2].count(draft()!),
+    calibre: SOURCE_KINDS[3].count(draft()!),
+  });
 
   const setSearch = (k: keyof SearchDefaults, n: number) =>
     store.setSettingsDraft((d) => {
@@ -1537,126 +1651,119 @@ export function SettingsView() {
                 <Section
                   icon={<FolderOpenIcon size={16} />}
                   title="Sources"
-                  note="Folders are walked all the way down: point at the top of a tree and everything under it is indexed."
+                  note="Choose your sources for indexing."
                 >
-                  <div class="space-y-8">
-                    <SourceGroup
-                      title="Code"
-                      note="Folders you work in, grouped into searchable collections."
-                    >
-                      <div class="grid items-start gap-x-8 gap-y-7 md:grid-cols-2">
-                        <div class="space-y-3">
-                          <SourceHeading
-                            id="setup-add-folder"
-                            icon={<FolderOpenIcon size={15} />}
-                            title="Project folders"
-                            hint="A group of folders indexed together as one collection. Each group becomes its own searchable set, so you can keep client work separate from personal files."
-                            count={Object.keys(draft()!.projects).length}
-                            unit="group"
-                          />
-                          <GroupList
-                            groups={draft()!.projects}
-                            onAddPath={(n, v) => addGroupPath("projects", n, v)}
-                            onRemovePath={(n, v) => removeGroupPath("projects", n, v)}
-                            onAddGroup={(n) => addGroup("projects", n)}
-                            onRemoveGroup={(n) => removeGroup("projects", n)}
-                            title="Choose a project folder"
-                            empty="No project groups yet. Create one, then add its folders."
-                          />
-                          <div class="space-y-2.5">
-                            <SourceHeading
-                              icon={<SlashIcon size={14} />}
-                              title="Excluded folders"
-                              hint="Folder names skipped anywhere inside a project folder, at any depth. node_modules is skipped by default; add any other folder you never want in search results."
-                              count={draft()!.project_exclude_folders.length}
-                              unit="folder"
-                            />
-                            <ChipList
-                              values={draft()!.project_exclude_folders}
-                              onAdd={(v) => addPath("project_exclude_folders", v)}
-                              onRemove={(v) => removePath("project_exclude_folders", v)}
-                              title="Name a folder to exclude"
-                            />
-                          </div>
-                        </div>
-                        <div class="space-y-3">
-                          <SourceHeading
-                            icon={<CodeIcon size={15} />}
-                            title="Code repositories"
-                            hint="Git repositories to index as code. Indexes the current file tree and the commit history (how far back is set below), nested repos included."
-                            count={Object.keys(draft()!.repositories).length}
-                            unit="group"
-                          />
-                          <GroupList
-                            groups={draft()!.repositories}
-                            onAddPath={(n, v) => addGroupPath("repositories", n, v)}
-                            onRemovePath={(n, v) => removeGroupPath("repositories", n, v)}
-                            onAddGroup={(n) => addGroup("repositories", n)}
-                            onRemoveGroup={(n) => removeGroup("repositories", n)}
-                            title="Choose a code repository"
-                            empty="No repository groups yet. Create one, then add its repos."
-                          />
-                        </div>
-                      </div>
-                    </SourceGroup>
+                  <SourceTabs value={sourceKind()} counts={sourceCounts()} onChange={setSourceKind} />
 
-                    <SourceGroup
-                      title="Documents"
-                      note="Notes and books you read, searchable by meaning and keyword."
+                  <div
+                    id="source-panel"
+                    role="tabpanel"
+                    aria-labelledby={`source-tab-${sourceKind()}`}
+                    class="mt-5"
+                  >
+                    <div
+                      id={sourceKind() === "projects" ? "setup-add-folder" : undefined}
+                      class="flex items-start gap-2.5"
                     >
-                      <div class="grid items-start gap-x-8 gap-y-7 md:grid-cols-2">
-                        <div class="space-y-3">
-                          <SourceHeading
-                            icon={<FileIcon size={15} />}
-                            title="Obsidian vaults"
-                            hint="Point at an Obsidian vault and every markdown note in it gets indexed, subfolders included. Use the exclude list below to keep noisy folders out."
-                            count={draft()!.obsidian_vaults.length}
-                            unit="path"
-                          />
-                          <PathList
-                            values={draft()!.obsidian_vaults}
-                            onAdd={(v) => addPath("obsidian_vaults", v)}
-                            onRemove={(v) => removePath("obsidian_vaults", v)}
-                            title="Choose an Obsidian vault"
-                            placeholder="path to a vault…"
-                            empty="No vaults yet. Add one and its notes become searchable."
-                          />
-                          <div class="space-y-2.5">
-                            <SourceHeading
-                              icon={<SlashIcon size={14} />}
-                              title="Excluded folders"
-                              hint="Folders listed here are skipped when vaults are indexed. Handy for hiding attachments, templates, .trash, or anything else you don't want in search results."
-                              count={draft()!.obsidian_exclude_folders.length}
-                              unit="folder"
-                            />
-                            <ChipList
-                              values={draft()!.obsidian_exclude_folders}
-                              onAdd={(v) => addPath("obsidian_exclude_folders", v)}
-                              onRemove={(v) => removePath("obsidian_exclude_folders", v)}
-                              title="Choose a folder to exclude"
-                            />
-                          </div>
-                        </div>
-                        <div class="space-y-3">
-                          <SourceHeading
-                            icon={<LibraryIcon size={15} />}
-                            title="Calibre libraries"
-                            hint="Point at a Calibre library. The app reads the metadata and indexes the text of the formats it understands, so your books are searchable without opening them."
-                            count={draft()!.calibre_libraries.length}
-                            unit="path"
-                          />
-                          <PathList
-                            values={draft()!.calibre_libraries}
-                            onAdd={(v) => addPath("calibre_libraries", v)}
-                            onRemove={(v) => removePath("calibre_libraries", v)}
-                            title="Choose a Calibre library"
-                            placeholder="path to a library…"
-                            empty="No libraries yet. Add a Calibre library to search its books."
-                          />
-                        </div>
+                      <span class="mt-0.75 shrink-0 text-muted">
+                        {activeKind().icon({ size: 18 })}
+                      </span>
+                      <div class="min-w-0">
+                        <h4 class="text-[15px] font-semibold tracking-[-0.01em] text-ink">
+                          {activeKind().label}
+                        </h4>
+                        <p class="note mt-1 max-w-[64ch] text-[13px] leading-5 text-muted">
+                          {activeKind().blurb}
+                        </p>
                       </div>
-                    </SourceGroup>
+                    </div>
 
+                    <Show when={sourceKind() === "projects"}>
+                      <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+                        Each group becomes one collection, named after the group.
+                      </p>
+                      <div class="mt-3.5">
+                        <GroupList
+                          groups={draft()!.projects}
+                          onAddPath={(n, v) => addGroupPath("projects", n, v)}
+                          onRemovePath={(n, v) => removeGroupPath("projects", n, v)}
+                          onAddGroup={(n) => addGroup("projects", n)}
+                          onRemoveGroup={(n) => removeGroup("projects", n)}
+                          title="Choose a project folder"
+                          empty="No collections yet. Create one, then add its folders."
+                        />
+                      </div>
+                      <ExcludeBlock
+                        values={draft()!.project_exclude_folders}
+                        onAdd={(v) => addPath("project_exclude_folders", v)}
+                        onRemove={(v) => removePath("project_exclude_folders", v)}
+                        hint="Folder names skipped anywhere inside a project folder, at any depth. node_modules is always skipped; add any other folder you never want in search results."
+                        note="Folder names skipped at any depth, inside every project collection."
+                        empty="None. Only node_modules is skipped."
+                        title="Name a folder to exclude"
+                      />
+                    </Show>
+
+                    <Show when={sourceKind() === "repositories"}>
+                      <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+                        Each group becomes one collection. How far back commit history reaches is
+                        set under Indexing.
+                      </p>
+                      <div class="mt-3.5">
+                        <GroupList
+                          groups={draft()!.repositories}
+                          onAddPath={(n, v) => addGroupPath("repositories", n, v)}
+                          onRemovePath={(n, v) => removeGroupPath("repositories", n, v)}
+                          onAddGroup={(n) => addGroup("repositories", n)}
+                          onRemoveGroup={(n) => removeGroup("repositories", n)}
+                          title="Choose a code repository"
+                          empty="No collections yet. Create one, then add its repositories."
+                        />
+                      </div>
+                    </Show>
+
+                    <Show when={sourceKind() === "obsidian"}>
+                      <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+                        Every vault lands in one collection called{" "}
+                        <span class="data text-ink-soft">obsidian</span>.
+                      </p>
+                      <div class="mt-3.5">
+                        <PathList
+                          values={draft()!.obsidian_vaults}
+                          onAdd={(v) => addPath("obsidian_vaults", v)}
+                          onRemove={(v) => removePath("obsidian_vaults", v)}
+                          title="Choose an Obsidian vault"
+                          placeholder="path to a vault…"
+                          empty="No vaults yet. Add one and its notes become searchable."
+                        />
+                      </div>
+                      <ExcludeBlock
+                        values={draft()!.obsidian_exclude_folders}
+                        onAdd={(v) => addPath("obsidian_exclude_folders", v)}
+                        onRemove={(v) => removePath("obsidian_exclude_folders", v)}
+                        hint="Folders listed here are skipped when vaults are indexed. Handy for hiding attachments, templates, .trash, or anything else you don't want in search results."
+                        note="Folder names skipped at any depth, inside every vault."
+                        empty="None. Every folder inside a vault is indexed."
+                        title="Choose a folder to exclude"
+                      />
+                    </Show>
+
+                    <Show when={sourceKind() === "calibre"}>
+                      <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+                        Every library lands in one collection called{" "}
+                        <span class="data text-ink-soft">calibre</span>.
+                      </p>
+                      <div class="mt-3.5">
+                        <PathList
+                          values={draft()!.calibre_libraries}
+                          onAdd={(v) => addPath("calibre_libraries", v)}
+                          onRemove={(v) => removePath("calibre_libraries", v)}
+                          title="Choose a Calibre library"
+                          placeholder="path to a library…"
+                          empty="No libraries yet. Add a Calibre library to search its books."
+                        />
+                      </div>
+                    </Show>
                   </div>
                 </Section>
               </Show>
