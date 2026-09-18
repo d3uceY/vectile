@@ -60,9 +60,24 @@ func main() {
 	notifier := notifications.New()
 	core.Notifications = notifier
 
+	// The window is assigned right after application.New and read by the
+	// single-instance callback, which can fire while the app is still starting.
+	var win *application.WebviewWindow
+
 	app := application.New(application.Options{
 		Name:        "vectile",
 		Description: "A local, private search across everything you've written, read, and kept.",
+		// Only one vectile at a time. A second launch hands its args to the
+		// running instance, which raises its window, and then exits from
+		// application.New — before the database, the model, the tray, or the
+		// MCP port are touched (two copies would fight over all four).
+		SingleInstance: &application.SingleInstanceOptions{
+			UniqueID: "com.d3ucey.vectile",
+			ExitCode: 0,
+			OnSecondInstanceLaunch: func(application.SecondInstanceData) {
+				raiseMainWindow(win)
+			},
+		},
 		Services: []application.Service{
 			application.NewService(services.NewAppService(core)),
 			application.NewService(services.NewSearchService(core)),
@@ -92,7 +107,7 @@ func main() {
 		}
 	}
 
-	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
+	win = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "vectile",
 		Width:     1180,
 		Height:    760,
@@ -154,6 +169,18 @@ func main() {
 	parser.ClosePDFPool()
 	core.Embedder.Close()
 	_ = db.Close()
+}
+
+// raiseMainWindow shows the window for a second launch that was routed to this
+// instance. The window normally exists by then; if the launch arrives mid
+// startup, wait briefly for it rather than doing nothing at all.
+func raiseMainWindow(win *application.WebviewWindow) {
+	for i := 0; i < 60 && win == nil; i++ {
+		time.Sleep(50 * time.Millisecond)
+	}
+	if win != nil {
+		showMainWindow(win)
+	}
 }
 
 // autoReindexLoop reads core.Cfg live so settings changes (auto-reindex toggle

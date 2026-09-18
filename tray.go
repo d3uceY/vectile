@@ -219,14 +219,21 @@ func (t *tray) triggerIndex(name string) {
 	t.requestRebuild()
 }
 
-// showWindow brings the main window forward. The brief always-on-top toggle
-// helps on window managers that won't raise a hidden window otherwise, without
-// leaving the window permanently on top.
+// showWindow brings the main window forward from the tray.
 func (t *tray) showWindow() {
-	t.window.Show()
-	t.window.Focus()
-	t.window.SetAlwaysOnTop(true)
-	t.window.SetAlwaysOnTop(false)
+	showMainWindow(t.window)
+}
+
+// showMainWindow brings the main window forward. Focus also restores the window
+// if it is minimised; the brief always-on-top toggle helps on window managers
+// that won't raise a hidden window otherwise, without leaving the window
+// permanently on top. Called from the tray and from the single-instance
+// callback in main.go, both of which run on background goroutines.
+func showMainWindow(win *application.WebviewWindow) {
+	win.Show()
+	win.Focus()
+	win.SetAlwaysOnTop(true)
+	win.SetAlwaysOnTop(false)
 }
 
 // trayStatus returns the status line shown in the menu.
