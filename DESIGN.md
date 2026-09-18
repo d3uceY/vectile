@@ -46,6 +46,8 @@ The old Fraunces serif voice was removed; display hierarchy comes from weight an
 
 - Flat surfaces only: no noise, dot, or grid texture backgrounds.
 - White cards on a warm bone ground; hairline 1px borders (`line`); cards are `.sheet` (border + 14px radius).
+- Settings is the one white desk: its pane is `surface` and its section cards are bone (`paper`, `line-strong`). Anything nested inside those cards is either a **cardstock plate** (`paper-warm`, `line` hairline) or a **field** (`surface` fill, `line-strong` border). A fill that is neither is not a fill: ghost values like `bg-surface/20` are banned, because on bone they render as nothing.
+- Popovers are the lightest layer: dropdown menus and info tips are `surface` with a `line-strong` hairline and `shadow-pop`, so they read above both the bone cards and the white desk.
 - Elevation declared once: cards may take `shadow-card` (offset + blur), never a zero-offset halo.
 - No gradient text, no glass, no colored border-left/right accents, no emoji icons (all icons are drawn SVG, 24px grid, 1.75 stroke).
 - Type measure 65–75ch on readable passages; tracking never below -0.02em at display size.

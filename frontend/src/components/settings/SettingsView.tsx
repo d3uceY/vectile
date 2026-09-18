@@ -117,7 +117,7 @@ function NumField(props: {
         max={props.max}
         step={props.step}
         onInput={(e) => props.onChange(Number(e.currentTarget.value))}
-        class="h-8 w-24 rounded-control border border-line-strong bg-surface/40 px-2 text-right text-[13px] outline-none transition-colors focus:border-leaf"
+        class="h-8 w-24 rounded-control border border-line-strong bg-surface px-2 text-right text-[13px] outline-none transition-colors focus:border-leaf"
       />
     </div>
   );
@@ -196,11 +196,11 @@ function PathList(props: {
   return (
     <div class="flex flex-col gap-2">
       {props.values.length === 0 ? (
-        <p class="rounded-control border border-dashed border-line-strong bg-surface/30 px-3 py-2.5 text-[13px] leading-5 text-muted">
+        <p class="rounded-control border border-dashed border-line-strong px-3 py-2.5 text-[13px] leading-5 text-muted">
           {props.empty ?? "Nothing here yet. Add a path below."}
         </p>
       ) : (
-        <ul class="divide-y divide-line/70 overflow-hidden rounded-control border border-line-strong bg-surface/20 pb-1.5">
+        <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
           <For each={props.values}>
             {(v) => (
               <li class="group flex items-center gap-2 px-3 py-2">
@@ -227,7 +227,7 @@ function PathList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder={props.placeholder ?? "/absolute/path"}
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface/40 px-3 text-[13px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()} aria-label="Browse for folder">
@@ -270,7 +270,7 @@ function ChipList(props: {
         <ul class="flex flex-wrap gap-1.5">
           <For each={props.values}>
             {(v) => (
-              <li class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-line-strong bg-surface/30 px-2.5 py-1">
+              <li class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-line-strong bg-surface px-2.5 py-1">
                 <span class="min-w-0 truncate font-mono text-[12px] text-ink-soft" title={v}>
                   {v}
                 </span>
@@ -294,7 +294,7 @@ function ChipList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="folder name, e.g. .trash"
-          class="h-7 min-w-0 flex-1 rounded-control border border-line-strong bg-surface/40 px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()}>
@@ -375,7 +375,7 @@ function GroupItem(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="/absolute/path"
-          class="h-7 min-w-0 flex-1 rounded-control border border-line-strong bg-surface/40 px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()}>
@@ -412,11 +412,11 @@ function GroupList(props: {
   return (
     <div class="flex flex-col gap-2">
       {entries().length === 0 ? (
-        <p class="rounded-control border border-dashed border-line-strong bg-surface/30 px-3 py-2.5 text-[13px] leading-5 text-muted">
+        <p class="rounded-control border border-dashed border-line-strong px-3 py-2.5 text-[13px] leading-5 text-muted">
           {props.empty ?? "No groups yet. Create one below, then add its folders."}
         </p>
       ) : (
-        <ul class="divide-y divide-line/70 overflow-hidden rounded-control border border-line-strong bg-surface/20 pb-1.5">
+        <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
           <For each={entries()}>
             {([gname, paths]) => (
               <GroupItem
@@ -439,7 +439,7 @@ function GroupList(props: {
             if (e.key === "Enter") addGroup();
           }}
           placeholder="collection name…"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface/40 px-3 text-[13px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
         />
         <Button size="sm" onClick={addGroup}>
           New group
@@ -459,7 +459,7 @@ function SourceHeading(props: {
 }) {
   return (
     <div id={props.id} class="flex items-center gap-2.5">
-      <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-control bg-surface-2 text-indigo">
+      <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-control text-muted">
         {props.icon}
       </span>
       <h4 class="text-[13.5px] font-semibold tracking-[-0.01em] text-ink">{props.title}</h4>
@@ -948,12 +948,51 @@ export function SettingsView() {
   const running = () => store.mcpStatus()?.running ?? false;
   const mcpWriteAllowed = () => draft()?.mcp.allow_write ?? false;
   const mcpUrl = () => `http://127.0.0.1:${draft()!.mcp.port}/sse`;
+
+  /* The plate answers for the draft as well as the saved server, so flipping the
+     switch below it can never leave the plate stating the opposite. */
+  const mcpPending = () => !!draft()?.mcp.enabled && !running() && store.settingsDirty();
+  const mcpStopping = () => !draft()?.mcp.enabled && running() && store.settingsDirty();
+  const mcpStateLabel = () =>
+    mcpStopping()
+      ? "stops when you save"
+      : running()
+        ? "running"
+        : mcpPending()
+          ? "starts when you save"
+          : "stopped";
+  const mcpDot = () =>
+    running() && !mcpStopping() ? "bg-indigo" : mcpPending() || mcpStopping() ? "bg-amber" : "bg-faint";
+  const mcpStateText = () =>
+    running() && !mcpStopping()
+      ? "text-indigo-deep"
+      : mcpPending() || mcpStopping()
+        ? "text-amber-deep"
+        : "text-muted";
+  const mcpStateNote = () => {
+    if (mcpStopping()) return "Still running. Save settings to stop the server.";
+    if (running()) return "AI tools on this machine can connect now.";
+    if (mcpPending()) return "Switched on. Save settings to start the server.";
+    if (!draft()?.mcp.enabled) return "Turn on Share your library below, then save settings.";
+    return "Not running. Save settings to start it again.";
+  };
+  /** The URL a client can actually reach: the live server's while it runs, the
+      draft's while nothing is running, so editing the port never hands out a URL
+      that is not answering yet. */
+  const mcpConnectUrl = () => (running() ? store.mcpStatus()?.url || mcpUrl() : mcpUrl());
+  /** What the server would expose right now, so the size of the decision is visible. */
+  const mcpScope = () => {
+    const s = store.status();
+    const chunks = s?.chunks ?? 0;
+    if (chunks === 0) return "Nothing indexed yet, so there is nothing to share";
+    const readable = mcpWriteAllowed() ? "readable and writable" : "readable";
+    return `${s?.collections ?? 0} collections · ${chunks.toLocaleString()} chunks ${readable}`;
+  };
   const [mcpClient, setMcpClient] = createSignal(MCP_CLIENTS[0].id);
   const activeClient = () => MCP_CLIENTS.find((c) => c.id === mcpClient()) ?? MCP_CLIENTS[0];
   const [urlCopied, setUrlCopied] = createSignal(false);
   const copyUrl = async () => {
-    const u = store.mcpStatus()?.url ?? mcpUrl();
-    if (await copyText(u)) {
+    if (await copyText(mcpConnectUrl())) {
       setUrlCopied(true);
       setTimeout(() => setUrlCopied(false), 1600);
     }
@@ -1080,13 +1119,17 @@ export function SettingsView() {
 
       <Show when={draft()} fallback={<p class="note px-6 text-muted">Loading settings…</p>}>
         <div class="flex min-h-0 flex-1 flex-col">
-          {/* Mobile: horizontal chip row instead of the rail (only below md) */}
           <div class="scroll-quiet flex w-full shrink-0 items-center gap-1.5 overflow-x-auto px-4 pb-3 md:hidden">
             <For each={NAV_GROUPS.flatMap((g) => g.items)}>
               {(it) => {
                 const active = () => section() === it.key;
+                let el: HTMLButtonElement | undefined;
+                createEffect(() => {
+                  if (active()) el?.scrollIntoView({ block: "nearest", inline: "nearest" });
+                });
                 return (
                   <button
+                    ref={el}
                     type="button"
                     onClick={() => setSection(it.key)}
                     aria-current={active() ? "page" : undefined}
@@ -1176,6 +1219,25 @@ export function SettingsView() {
                       </div>
                     </div>
 
+                    <FieldList>
+                      <div class="flex items-center justify-between gap-4 py-3.5">
+                        <span class="text-[13.5px] text-ink-soft">Active model</span>
+                        <Select
+                          aria-label="Active model"
+                          placeholder="No model installed"
+                          value={selModel()}
+                          options={store.models().map((m) => ({ value: m.path, label: modelLabel(m) }))}
+                          onChange={(v) => void switchModel(v)}
+                        />
+                      </div>
+                      <div class="flex items-center justify-between gap-4 py-3.5">
+                        <span class="text-[13.5px] text-ink-soft">Add a model file</span>
+                        <Button size="sm" variant="outline" onClick={() => void importModelFlow()}>
+                          Import model…
+                        </Button>
+                      </div>
+                    </FieldList>
+
                     <div>
                       <SubHeading
                         action={
@@ -1210,26 +1272,9 @@ export function SettingsView() {
                       </div>
                     </div>
 
-                    <div class="flex items-center justify-between gap-4">
-                      <span class="text-[13.5px] text-ink-soft">Active model</span>
-                      <Select
-                        aria-label="Active model"
-                        value={selModel()}
-                        options={store.models().map((m) => ({ value: m.path, label: modelLabel(m) }))}
-                        onChange={(v) => void switchModel(v)}
-                      />
-                    </div>
-
-                    <div class="flex items-center justify-between gap-4">
-                      <span class="text-[13.5px] text-ink-soft">Add a model file</span>
-                      <Button size="sm" onClick={() => void importModelFlow()}>
-                        Import model…
-                      </Button>
-                    </div>
-
                     <Show when={activeModel()}>
                       {(m) => (
-                        <div class="rounded-control border border-line-strong bg-surface/20 p-5">
+                        <div class="rounded-control border border-line bg-paper-warm p-5">
                           <p class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-ink-soft">
                             {m().name} settings
                             <InfoTip text="Each model carries its own settings. Context window 0 falls back to the model's native maximum (shown here when the .gguf reports one); threads 0 uses all cores." />
@@ -1280,7 +1325,7 @@ export function SettingsView() {
                     <Show when={store.models().length > 0}>
                       <div>
                         <SubHeading>Installed models</SubHeading>
-                        <ul class="divide-y divide-line/70 overflow-hidden rounded-control border border-line-strong bg-surface/20 pb-1.5">
+                        <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
                           <For each={store.models()}>
                             {(m) => (
                               <li class="flex items-center gap-2 px-3 py-2">
@@ -1288,7 +1333,7 @@ export function SettingsView() {
                                   {modelLabel(m)}
                                 </span>
                                 {m.isActive && (
-                                  <span class="shrink-0 rounded-control bg-indigo px-1.5 py-0.5 text-[11px] font-medium text-white">
+                                  <span class="shrink-0 rounded-full bg-indigo-soft px-2 py-0.5 text-[11px] font-medium text-indigo-deep">
                                     active
                                   </span>
                                 )}
@@ -1373,44 +1418,55 @@ export function SettingsView() {
                   title="Search"
                   note="Hybrid ranking blends exact-term and meaning results."
                 >
-                  <FieldList>
-                    <NumField
-                      label="Top results"
-                      value={draft()!.search_defaults.top_k}
-                      onChange={(n) => setSearch("top_k", n)}
-                      hint="How many matches a search returns by default. Raise it for a longer list, lower it for a shorter one. Set a different number per search under Filters."
-                      min={STATIC_BOUNDS.top_k.min}
-                      max={STATIC_BOUNDS.top_k.max}
-                      step={STATIC_BOUNDS.top_k.step}
-                    />
-                    <NumField
-                      label="RRF constant (k)"
-                      value={draft()!.search_defaults.rrf_k}
-                      onChange={(n) => setSearch("rrf_k", n)}
-                      hint="A smoothing value in the math that merges the two search lists. Bigger k flattens the gap between high- and low-ranked matches, so entries further down still get a fair shot. 60 is the usual value."
-                      min={STATIC_BOUNDS.rrf_k.min}
-                      max={STATIC_BOUNDS.rrf_k.max}
-                      step={STATIC_BOUNDS.rrf_k.step}
-                    />
-                    <RangeField
-                      label="Vector weight"
-                      value={draft()!.search_defaults.vector_weight}
-                      onChange={(n) => setSearch("vector_weight", n)}
-                      hint="How much the meaning-based ranking counts when the two search lists are blended. It works against the full-text weight like a seesaw: raise it and results lean toward semantic matches, even when the words don't line up exactly."
-                      min={STATIC_BOUNDS.vector_weight.min}
-                      max={STATIC_BOUNDS.vector_weight.max}
-                      step={STATIC_BOUNDS.vector_weight.step}
-                    />
-                    <RangeField
-                      label="Full-text weight"
-                      value={draft()!.search_defaults.fts_weight}
-                      onChange={(n) => setSearch("fts_weight", n)}
-                      hint="How much exact-word matches count in the final blend. Raise it when you're hunting a precise phrase or a name and want literal hits to win. Lower it and meaning takes over from wording."
-                      min={STATIC_BOUNDS.fts_weight.min}
-                      max={STATIC_BOUNDS.fts_weight.max}
-                      step={STATIC_BOUNDS.fts_weight.step}
-                    />
-                  </FieldList>
+                  <div class="space-y-6">
+                    <div>
+                      <SubHeading>Results</SubHeading>
+                      <FieldList>
+                        <NumField
+                          label="Top results"
+                          value={draft()!.search_defaults.top_k}
+                          onChange={(n) => setSearch("top_k", n)}
+                          hint="How many matches a search returns by default. Raise it for a longer list, lower it for a shorter one. Set a different number per search under Filters."
+                          min={STATIC_BOUNDS.top_k.min}
+                          max={STATIC_BOUNDS.top_k.max}
+                          step={STATIC_BOUNDS.top_k.step}
+                        />
+                      </FieldList>
+                    </div>
+
+                    <div>
+                      <SubHeading>Ranking blend</SubHeading>
+                      <FieldList>
+                        <NumField
+                          label="RRF constant (k)"
+                          value={draft()!.search_defaults.rrf_k}
+                          onChange={(n) => setSearch("rrf_k", n)}
+                          hint="A smoothing value in the math that merges the two search lists. Bigger k flattens the gap between high- and low-ranked matches, so entries further down still get a fair shot. 60 is the usual value."
+                          min={STATIC_BOUNDS.rrf_k.min}
+                          max={STATIC_BOUNDS.rrf_k.max}
+                          step={STATIC_BOUNDS.rrf_k.step}
+                        />
+                        <RangeField
+                          label="Vector weight"
+                          value={draft()!.search_defaults.vector_weight}
+                          onChange={(n) => setSearch("vector_weight", n)}
+                          hint="How much the meaning-based ranking counts when the two search lists are blended. It works against the full-text weight like a seesaw: raise it and results lean toward semantic matches, even when the words don't line up exactly."
+                          min={STATIC_BOUNDS.vector_weight.min}
+                          max={STATIC_BOUNDS.vector_weight.max}
+                          step={STATIC_BOUNDS.vector_weight.step}
+                        />
+                        <RangeField
+                          label="Full-text weight"
+                          value={draft()!.search_defaults.fts_weight}
+                          onChange={(n) => setSearch("fts_weight", n)}
+                          hint="How much exact-word matches count in the final blend. Raise it when you're hunting a precise phrase or a name and want literal hits to win. Lower it and meaning takes over from wording."
+                          min={STATIC_BOUNDS.fts_weight.min}
+                          max={STATIC_BOUNDS.fts_weight.max}
+                          step={STATIC_BOUNDS.fts_weight.step}
+                        />
+                      </FieldList>
+                    </div>
+                  </div>
                 </Section>
               </Show>
 
@@ -1421,14 +1477,14 @@ export function SettingsView() {
                   note="Repeated searches reuse the query embedding instead of computing it again."
                 >
                   <div class="space-y-6">
-                    <div class="rounded-control border border-line-strong bg-paper-warm px-4 py-3.5">
+                    <div class="rounded-control border border-line bg-paper-warm px-4 py-3.5">
                       <div class="flex items-center gap-2">
                         <span
                           class={`h-2 w-2 shrink-0 rounded-full ${cacheCount() > 0 ? "bg-indigo" : "bg-faint"}`}
                         />
                         <span class="text-[12px] font-semibold leading-none text-ink-soft">
                           {cacheCount() === 0
-                            ? "empty"
+                            ? "nothing cached yet"
                             : `${cacheCount().toLocaleString()} quer${cacheCount() === 1 ? "y" : "ies"} cached`}
                         </span>
                         <Show when={cacheBytes() > 0}>
@@ -1437,11 +1493,6 @@ export function SettingsView() {
                           </span>
                         </Show>
                       </div>
-                      <Show when={cacheCount() === 0}>
-                        <p class="note mt-2 text-[12.5px] leading-4 text-muted">
-                          Nothing cached yet.
-                        </p>
-                      </Show>
                       <div class="mt-2.5 border-t border-line" aria-hidden="true" />
                       <p class="note mt-2 text-[11.5px] leading-4 text-muted">
                         only the query embedding is stored, never your results · cleared when you
@@ -1486,7 +1537,7 @@ export function SettingsView() {
                 <Section
                   icon={<FolderOpenIcon size={16} />}
                   title="Sources"
-                  note="Folders are walked recursively;"
+                  note="Folders are walked all the way down: point at the top of a tree and everything under it is indexed."
                 >
                   <div class="space-y-8">
                     <SourceGroup
@@ -1678,7 +1729,7 @@ export function SettingsView() {
                       description="Hide the mascot for every moment at once."
                       hint="Vexter is the small pixel dinosaur in the sidebar. When this is on, it never appears, whether you're searching, indexing, or turning up nothing."
                     />
-                    <div class="divide-y divide-line/70 overflow-hidden rounded-control border border-line-strong bg-surface/20 pb-1.5">
+                    <div class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
                       <For each={MASCOT_STATES}>
                         {(s) => (
                           <div
@@ -1714,23 +1765,19 @@ export function SettingsView() {
                   note="Let AI assistants on this machine search your library."
                 >
                   <div class="space-y-6">
-                    {/* Status plate: live from the backend, not the draft */}
-                    <div class="rounded-control border border-line-strong bg-paper-warm px-4 py-3.5">
+                    <div class="rounded-control border border-line bg-paper-warm px-4 py-3.5">
                       <div class="flex items-center gap-2">
                         <span class="relative flex h-2 w-2 shrink-0">
-                          <span class={`h-2 w-2 rounded-full ${running() ? "bg-indigo" : "bg-faint"}`} />
+                          <span class={`h-2 w-2 rounded-full ${mcpDot()}`} />
                         </span>
-                        <span
-                          class={`text-[12px] font-semibold leading-none ${
-                            running() ? "text-indigo-deep" : "text-muted"
-                          }`}
-                        >
-                          {running() ? "running" : "stopped"}
+                        <span class={`text-[12px] font-semibold leading-none ${mcpStateText()}`}>
+                          {mcpStateLabel()}
                         </span>
                         <Show when={running()}>
                           <button
-                            class="ml-auto flex shrink-0 items-center gap-1 rounded-control px-1.5 py-1 text-[11.5px] text-muted transition-colors hover:bg-surface-2 hover:text-indigo"
+                            class="ml-auto -mr-1 flex h-6 shrink-0 items-center gap-1 rounded-control px-1.5 text-[11.5px] text-muted outline-offset-2 transition-colors hover:bg-surface-2 hover:text-indigo focus-visible:outline-2 focus-visible:outline-leaf-deep"
                             onClick={() => void copyUrl()}
+                            aria-label="Copy server URL"
                             title="Copy URL"
                           >
                             {urlCopied() ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
@@ -1738,21 +1785,14 @@ export function SettingsView() {
                           </button>
                         </Show>
                       </div>
-                      <Show
-                        when={running()}
-                        fallback={
-                          <p class="note mt-2 text-[12.5px] leading-4 text-muted">
-                            No server running. Enable it below, then save settings.
-                          </p>
-                        }
-                      >
-                        <p class="data mt-2 truncate font-mono text-[12px] text-ink-soft" title={store.mcpStatus()?.url}>
-                          {store.mcpStatus()?.url}
+                      <Show when={running()}>
+                        <p class="data mt-2 truncate text-ink-soft" title={mcpConnectUrl()}>
+                          {mcpConnectUrl()}
                         </p>
                       </Show>
-                      <div class="mt-2.5 border-t border-line" aria-hidden="true" />
-                      <p class="note mt-2 text-[11.5px] leading-4 text-muted">
-                        binds to 127.0.0.1 · nothing leaves this machine
+                      <p class="mt-2 text-[12px] leading-4 text-muted">{mcpStateNote()}</p>
+                      <p class="mt-2.5 text-[12px] leading-4 text-ink-soft">
+                        {mcpScope()}. Binds to 127.0.0.1, so nothing leaves this machine.
                       </p>
                     </div>
 
@@ -1785,27 +1825,22 @@ export function SettingsView() {
                     </FieldList>
 
                     <div>
-                      <SubHeading>
-                        <span class="inline-flex items-center gap-1.5">
-                          <PlugIcon size={14} class="text-indigo" />
-                          What your AI can do
-                        </span>
-                      </SubHeading>
+                      <SubHeading>What your AI can do</SubHeading>
                       <p class="note mb-2 mt-0.5 text-[12.5px] leading-4 text-muted">
                         {mcpWriteAllowed()
                           ? "Search, plus index and prune, scoped to your library."
                           : "Read-only search now. Turn on Allow write tools to let an AI index and prune."}
                       </p>
-                      <ul class="divide-y divide-line/70 overflow-hidden rounded-control border border-line-strong bg-surface/20 pb-1.5">
+                      <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
                         <For each={MCP_TOOLS}>
                           {(t) => (
                             <li class="flex items-start gap-3 px-3 py-2">
-                              <span class="data mt-px shrink-0 font-mono text-[11.5px] text-indigo-deep">{t.name}</span>
-                              <span class="text-[12.5px] leading-5 text-ink-soft">{t.desc}</span>
+                              <span class="data mt-px shrink-0 text-[11.5px] text-ink-soft">{t.name}</span>
+                              <span class="text-[12.5px] leading-5 text-muted">{t.desc}</span>
                               <Show when={t.kind === "write"}>
                                 <span
-                                  class={`ml-auto shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide ${
-                                    mcpWriteAllowed() ? "bg-amber-soft text-amber-deep" : "bg-surface-2 text-faint"
+                                  class={`ml-auto shrink-0 rounded-full px-2 py-0.5 font-mono text-[11px] ${
+                                    mcpWriteAllowed() ? "bg-amber-soft text-amber-deep" : "bg-surface-2 text-muted"
                                   }`}
                                 >
                                   write
@@ -1822,7 +1857,7 @@ export function SettingsView() {
                       <p class="note mb-2.5 mt-0.5 text-[12.5px] leading-4 text-muted">
                         Pick the app you're connecting, then paste the setup into it.
                       </p>
-                      <div class="overflow-hidden rounded-control border border-line-strong bg-surface">
+                      <div class="overflow-hidden rounded-control border border-line bg-surface">
                         <ClientTabs value={mcpClient()} onChange={setMcpClient} />
                         <div
                           role="tabpanel"
@@ -1831,7 +1866,7 @@ export function SettingsView() {
                           tabindex={0}
                           class="-outline-offset-2 focus-visible:outline-2 focus-visible:outline-leaf-deep"
                         >
-                          <ClientSetup client={activeClient()} url={mcpUrl()} />
+                          <ClientSetup client={activeClient()} url={mcpConnectUrl()} />
                         </div>
                       </div>
                     </div>

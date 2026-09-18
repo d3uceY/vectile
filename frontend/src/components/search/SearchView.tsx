@@ -156,7 +156,7 @@ export function SearchView() {
             class={`inline-flex h-8 items-center gap-1.5 rounded-control border px-3 text-[13px] transition-colors ${
               showAdvanced()
                 ? "border-indigo/40 bg-indigo-mist text-indigo-deep"
-                : "border-line bg-paper text-ink-soft hover:border-line-strong"
+                : "border-line-strong bg-surface text-ink-soft hover:border-faint"
             }`}
             onClick={() => setShowAdvanced((v) => !v)}
             aria-expanded={showAdvanced()}
@@ -173,7 +173,7 @@ export function SearchView() {
           <div class="mt-3 grid grid-cols-2 gap-3 rounded-card border border-line bg-paper/80 p-4 md:grid-cols-4">
             <FilterField label="Path contains">
               <input
-                class="h-8 w-full rounded-control border border-line bg-paper px-3 text-[13px] outline-none placeholder:text-faint focus:border-leaf"
+                class="h-8 w-full rounded-control border border-line-strong bg-surface px-3 text-[13px] outline-none placeholder:text-faint focus:border-leaf"
                 placeholder="e.g. rustyquill"
                 value={store.filters().path ?? ""}
                 onInput={(e) => applyFilter({ path: e.currentTarget.value }, true)}
@@ -181,7 +181,7 @@ export function SearchView() {
             </FilterField>
             <FilterField label="Sender / author">
               <input
-                class="h-8 w-full rounded-control border border-line bg-paper px-3 text-[13px] outline-none placeholder:text-faint focus:border-leaf"
+                class="h-8 w-full rounded-control border border-line-strong bg-surface px-3 text-[13px] outline-none placeholder:text-faint focus:border-leaf"
                 placeholder="e.g. orders@…"
                 value={store.filters().sender ?? ""}
                 onInput={(e) => applyFilter({ sender: e.currentTarget.value }, true)}
@@ -190,7 +190,7 @@ export function SearchView() {
             <FilterField label="From">
               <input
                 type="date"
-                class="h-8 w-full rounded-control border border-line bg-paper px-2 text-[13px] outline-none focus:border-leaf"
+                class="h-8 w-full rounded-control border border-line-strong bg-surface px-2 text-[13px] outline-none focus:border-leaf"
                 value={store.filters().dateFrom ?? ""}
                 onChange={(e) => applyFilter({ dateFrom: e.currentTarget.value })}
               />

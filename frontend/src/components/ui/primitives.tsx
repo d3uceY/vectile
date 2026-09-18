@@ -1,7 +1,7 @@
 import { createEffect, createSignal, createUniqueId, For, onCleanup, Show, type JSX } from "solid-js";
 import { Portal } from "solid-js/web";
 import type { ModelState } from "../../lib/types";
-import { ChevronDown, CloseIcon, InfoIcon } from "./icons";
+import { CheckIcon, ChevronDown, CloseIcon, InfoIcon } from "./icons";
 
 /* ---------------- Button ---------------- */
 
@@ -86,28 +86,56 @@ type SelectProps = {
   options: { value: string; label: string }[];
   value: string;
   onChange?: (value: string) => void;
+  /** Muted text shown when the value matches no option (no data yet). */
+  placeholder?: string;
+  disabled?: boolean;
   "aria-label"?: string;
   class?: string;
 };
 
-/* A custom listbox styled to match the app's form controls. The trigger keeps
-   focus (combobox pattern) and the menu is rendered in a fixed-position portal
-   so it escapes any overflow-hidden / scrollable ancestor that would clip it.
-   Keyboard: type-ahead is omitted, but Arrow/Home/End/Enter/Space/Escape/Tab
-   all work, and the active option is reported via aria-activedescendant. */
+const MENU_MAX_H = 256;
+const MENU_GAP = 4;
+const MENU_PAD = 8;
+
 export function Select(props: SelectProps) {
   const listId = createUniqueId();
   const [open, setOpen] = createSignal(false);
   const [activeIdx, setActiveIdx] = createSignal(-1);
-  const [rect, setRect] = createSignal<DOMRect | null>(null);
+  const [menuStyle, setMenuStyle] = createSignal<JSX.CSSProperties>({});
   let trigger: HTMLButtonElement | undefined;
   let list: HTMLUListElement | undefined;
+  let typed = "";
+  let typedAt = 0;
 
+  const disabled = () => props.disabled || props.options.length === 0;
   const selected = () => props.options.find((o) => o.value === props.value);
-  const selectedLabel = () => selected()?.label ?? props.value ?? "";
+  const selectedLabel = () => selected()?.label ?? (props.value || props.placeholder || "");
+
+  const place = () => {
+    if (!trigger) return;
+    const r = trigger.getBoundingClientRect();
+    const rows = Math.min(props.options.length, 8);
+    const estimate = Math.min(MENU_MAX_H, rows * 34 + 12);
+    const below = window.innerHeight - r.bottom - MENU_GAP - MENU_PAD;
+    const flip = below < estimate && r.top - MENU_GAP - MENU_PAD > below;
+    const style: JSX.CSSProperties = {
+      "min-width": `${r.width}px`,
+      "max-width": `${Math.max(160, window.innerWidth - MENU_PAD * 2)}px`,
+      left: `${Math.max(MENU_PAD, r.left)}px`,
+      ...(flip
+        ? { bottom: `${window.innerHeight - r.top + MENU_GAP}px`, top: "auto" }
+        : { top: `${r.bottom + MENU_GAP}px`, bottom: "auto" }),
+    };
+    if (r.left + Math.max(r.width, 200) > window.innerWidth - MENU_PAD) {
+      style.left = "auto";
+      style.right = `${MENU_PAD}px`;
+    }
+    setMenuStyle(style);
+  };
 
   const openMenu = () => {
-    if (trigger) setRect(trigger.getBoundingClientRect());
+    if (disabled()) return;
+    place();
     setActiveIdx(Math.max(0, props.options.findIndex((o) => o.value === props.value)));
     setOpen(true);
   };
@@ -115,6 +143,7 @@ export function Select(props: SelectProps) {
   const closeMenu = (focusTrigger = true) => {
     setOpen(false);
     setActiveIdx(-1);
+    typed = "";
     if (focusTrigger) trigger?.focus();
   };
 
@@ -123,8 +152,31 @@ export function Select(props: SelectProps) {
     closeMenu();
   };
 
+  /** Jump to the next option starting with the typed letters (600ms buffer). */
+  const typeAhead = (key: string) => {
+    const now = Date.now();
+    typed = now - typedAt > 600 ? key : typed + key;
+    typedAt = now;
+    const q = typed.toLowerCase();
+    const n = props.options.length;
+    const start = open() ? activeIdx() : -1;
+    for (let step = 1; step <= n; step++) {
+      const i = (start + step) % n;
+      if (props.options[i].label.toLowerCase().startsWith(q)) {
+        if (!open()) openMenu();
+        setActiveIdx(i);
+        return true;
+      }
+    }
+    return false;
+  };
+
   const onTriggerKey = (e: KeyboardEvent) => {
     const last = props.options.length - 1;
+    if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (typeAhead(e.key)) e.preventDefault();
+      return;
+    }
     if (!open()) {
       if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
@@ -163,12 +215,23 @@ export function Select(props: SelectProps) {
     if (list?.contains(e.target as Node)) return;
     closeMenu(false);
   };
+  const onAnyScroll = (e: Event) => {
+    if (list && e.target instanceof Node && list.contains(e.target)) return;
+    closeMenu(false);
+  };
+  const onViewportChange = () => closeMenu(false);
 
   createEffect(() => {
-    if (open()) document.addEventListener("mousedown", onDocMouseDown);
-    else document.removeEventListener("mousedown", onDocMouseDown);
+    if (!open()) return;
+    document.addEventListener("mousedown", onDocMouseDown);
+    window.addEventListener("scroll", onAnyScroll, true);
+    window.addEventListener("resize", onViewportChange);
+    onCleanup(() => {
+      document.removeEventListener("mousedown", onDocMouseDown);
+      window.removeEventListener("scroll", onAnyScroll, true);
+      window.removeEventListener("resize", onViewportChange);
+    });
   });
-  onCleanup(() => document.removeEventListener("mousedown", onDocMouseDown));
 
   createEffect(() => {
     if (!open()) return;
@@ -177,37 +240,42 @@ export function Select(props: SelectProps) {
   });
 
   return (
-    <span class={`inline-flex items-center gap-2 text-[13px] text-muted ${props.class ?? ""}`}>
+    <span class={`inline-flex min-w-0 items-center gap-2 text-[13px] text-muted ${props.class ?? ""}`}>
       {props.label && <span class="whitespace-nowrap">{props.label}</span>}
       <span class="relative inline-flex min-w-0 flex-1">
         <button
           ref={trigger}
           type="button"
-          class="inline-flex h-8 min-w-0 flex-1 items-center rounded-control border border-line bg-paper pl-3 pr-8 text-[13px] text-ink transition-colors hover:border-line-strong focus:border-indigo"
+          class={`inline-flex h-8 min-w-0 flex-1 items-center rounded-control border bg-surface pl-3 pr-8 text-left text-[13px] transition-colors duration-150 ease-snappy disabled:pointer-events-none disabled:opacity-45 ${
+            open() ? "border-leaf" : "border-line-strong hover:border-faint"
+          } ${selected() ? "text-ink" : "text-muted"}`}
           aria-label={props["aria-label"]}
           aria-haspopup="listbox"
+          aria-controls={open() ? listId : undefined}
           aria-expanded={open()}
           aria-activedescendant={open() && activeIdx() >= 0 ? `${listId}-option-${activeIdx()}` : undefined}
+          disabled={disabled()}
+          title={selectedLabel()}
           onClick={openMenu}
           onKeyDown={onTriggerKey}
         >
           <span class="min-w-0 truncate">{selectedLabel()}</span>
         </button>
-        <ChevronDown size={14} class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-faint" />
+        <ChevronDown
+          size={14}
+          class={`pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-faint transition-transform duration-150 ease-snappy ${
+            open() ? "rotate-180" : ""
+          }`}
+        />
       </span>
       <Show when={open()}>
         <Portal>
           <ul
             ref={list}
+            id={listId}
             role="listbox"
-            class="scroll-quiet fixed z-50 max-h-56 overflow-y-auto rounded-control border border-line bg-paper py-1 shadow-pop"
-            style={
-              {
-                top: `${(rect()?.bottom ?? 0) + 4}px`,
-                left: `${rect()?.left ?? 0}px`,
-                minWidth: `${rect()?.width ?? 0}px`,
-              } as JSX.CSSProperties
-            }
+            class="scroll-quiet fixed z-50 max-h-64 overflow-y-auto rounded-control border border-line-strong bg-surface py-1.5 shadow-pop"
+            style={menuStyle()}
           >
             <For each={props.options}>
               {(o, i) => (
@@ -215,20 +283,20 @@ export function Select(props: SelectProps) {
                   id={`${listId}-option-${i()}`}
                   role="option"
                   aria-selected={o.value === props.value}
-                  class={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] ${
-                    i() === activeIdx()
-                      ? "bg-indigo-mist text-ink"
-                      : o.value === props.value
-                        ? "text-ink"
-                        : "text-ink-soft"
-                  }`}
+                  title={o.label}
+                  class={`flex min-h-8 cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] ${
+                    i() === activeIdx() ? "bg-indigo-soft" : ""
+                  } ${o.value === props.value ? "font-medium text-ink" : "text-ink-soft"}`}
                   onMouseEnter={() => setActiveIdx(i())}
                   onMouseDown={(e) => {
                     e.preventDefault();
                     pick(o.value);
                   }}
                 >
-                  <span class="min-w-0 truncate">{o.label}</span>
+                  <span class="min-w-0 flex-1 truncate">{o.label}</span>
+                  <Show when={o.value === props.value}>
+                    <CheckIcon size={13} class="shrink-0 text-indigo-deep" />
+                  </Show>
                 </li>
               )}
             </For>
@@ -339,7 +407,7 @@ export function InfoTip(props: { text: string; class?: string }) {
         <Portal mount={document.body}>
           <div
             role="tooltip"
-            class="pointer-events-none fixed z-100 w-75 rounded-control border border-line bg-paper p-3 text-[13px] leading-5 text-ink shadow-pop"
+            class="pointer-events-none fixed z-100 w-75 rounded-control border border-line-strong bg-surface p-3 text-[13px] leading-5 text-ink shadow-pop"
             style={{ left: `${pos()!.x}px`, top: `${pos()!.y}px` }}
           >
             {props.text}
