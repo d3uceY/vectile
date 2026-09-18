@@ -60,7 +60,10 @@ func (s *MCPService) StartServer(port int) (string, error) {
 	}
 	ln.Close()
 
-	sse := server.NewSSEServer(CreateServer(s.core))
+	sse := server.NewSSEServer(
+		CreateServer(s.core),
+		server.WithKeepAliveInterval(15*time.Second),
+	)
 	addr := fmt.Sprintf("127.0.0.1:%d", port)
 	s.sseServer = sse
 	s.port = port
