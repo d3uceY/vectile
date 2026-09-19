@@ -161,6 +161,52 @@ platforms:
 The version injected into `main.Version`, the Windows metadata, the nfpm version and the Info.plist
 all come from the git tag (minus the leading `v`).
 
+## Build cache and build times
+
+Go's build cache is on by default (`go env GOCACHE` -> `%LOCALAPPDATA%\go-build`) and nothing in the
+Wails v3 build system clears it: `wails3 dev`, `wails3 build` and `wails3 task <platform>:build` all
+end up running a plain `go build`, and `wails3 build` has no clean/force flag. Measured on this repo
+with a warm cache:
+
+| Step | Time |
+| --- | --- |
+| `go mod tidy` (no-op, but runs on every build) | 0.8 s |
+| `wails3 generate bindings` | 2.5 s |
+| frontend `vite build` | 2.7 s |
+| `go build`, dev flags (warm) | 0.3 s |
+| `go build`, production flags (warm) | 0.3 s |
+| `go build`, production flags, first build in that flag set | 17.6 s |
+
+So a warm `wails3 task build DEV=true` is about 7 s end to end, and "over a minute" means the cache
+did not apply to the compile. Go keys each package on the toolchain version plus the exact compiler
+flags, so a cache only pays off inside one flag set, and this repo has two that never share:
+
+- **dev:** `-buildvcs=false -gcflags=vectile/...=-l`
+- **production:** `-tags production -trimpath -buildvcs=false -ldflags="-w -s ..."`
+
+Adding, removing or reordering a flag starts a third, empty cache set. To keep builds cached:
+
+- **Never run `go clean -cache`** (or delete `%LOCALAPPDATA%\go-build`) to "fix" a build. It is the
+  one thing guaranteed to make the next build take minutes: the standard library and every
+  dependency has to be recompiled again, once per flag set in use.
+- Expect exactly one slow build after a Go toolchain upgrade, since a new toolchain invalidates
+  every entry and the cache refills gradually as you work.
+- Keep antivirus out of the cache, or real-time scanning of a ~600 MB cache is paid on every build.
+  Run once in an elevated PowerShell:
+
+  ```powershell
+  Add-MpPreference -ExclusionPath "$env:LOCALAPPDATA\go-build", "$env:USERPROFILE\go\pkg\mod", "$env:ProgramFiles\Go"
+  ```
+
+- Do not fiddle with the flag strings in `build/<os>/Taskfile.yml`. Any change means the next build
+  of that mode is a full rebuild, so change them deliberately and not while iterating.
+- Note the deliberate deviation from the Wails template in the DEV flag set: `-gcflags` is scoped to
+  `vectile/...` rather than the template's `all="-l"`. With `all=` the standard library and every
+  dependency are compiled into a dev-only namespace, so a dev build shares no compiled artifacts
+  with `go build`, `go test`, `go vet` or gopls, and the first dev build after a cache reset has to
+  rebuild the whole graph. Scoped, only this module's packages get `-l` (which is the code a
+  debugger steps through anyway) and the dependencies reuse the normal cache entries.
+
 ## Troubleshooting
 
 - **`go build` can't find `-lggml` / link fails on an OS** - the archives for that OS/arch aren't in
