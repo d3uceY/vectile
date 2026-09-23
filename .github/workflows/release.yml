@@ -319,6 +319,13 @@ jobs:
           echo "==> Before"
           df -h
           df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+          # Where the space actually is. If a run ever fails on disk again,
+          # these lines say whether it is one of our own artifacts or something
+          # the image ships.
+          echo "--- largest under HOME ---"
+          du -sh "$HOME"/* 2>/dev/null | sort -h | tail -12 || true
+          echo "--- toolchains ---"
+          du -sh /Applications /Library/Developer /usr/local /opt 2>/dev/null | sort -h || true
           # Simulator runtimes are several GB and a desktop app never loads one.
           sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes || true
           sudo rm -rf /Library/Developer/CoreSimulator/Volumes || true
@@ -411,19 +418,23 @@ jobs:
 
       - name: Reclaim build inputs before packaging
         run: |
-          # All of this is dead weight once the .app exists: the frontend is
-          # already bundled inside the binary, the .app holds its own copy of
-          # that binary, and nothing compiles again. hdiutil stages a temp image
-          # roughly the size of the .app, so this step needs the headroom more
-          # than any other.
+          # Sizes first. For reference the last three releases shipped a ~40 MB
+          # DMG and a ~35 MB .app zip, so a .app of hundreds of MB would mean the
+          # binary itself changed rather than the disk having shrunk.
+          echo "==> Sizes"
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+          du -sh build/bin/vectile.app build/bin 2>/dev/null || true
+          du -sh dist 2>/dev/null || true
+          # Everything below is dead weight now: the frontend is bundled inside
+          # the binary, the .app holds its own copy of that binary, and nothing
+          # compiles again. hdiutil stages a temp image roughly the size of the
+          # .app, so this step needs the headroom more than any other.
           rm -rf frontend/node_modules || true
           rm -f build/bin/vectile || true
           go clean -cache || true
-          echo "==> Before packaging"
+          echo "==> After reclaim"
           df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
-          du -sh build/bin dist 2>/dev/null || true
-          echo "==> After"
-          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+          du -sh build/bin 2>/dev/null || true
 
       # The DMG needs the most free disk (hdiutil temp image ~= .app size, then
       # the compressed .dmg), so build it BEFORE the .zip adds another copy of
@@ -431,6 +442,16 @@ jobs:
       - name: Create DMG
         run: |
           mkdir -p dist
+          # Numbers at the point of failure. hdiutil stages a temp image sized
+          # from the source and copies the .app into it, so "No space left on
+          # device" here means either the host volume ran out or the staged image
+          # was sized too small. These lines are what tell the two apart, and the
+          # step has failed twice without them being recorded here.
+          echo "==> .app"
+          du -sh build/bin/vectile.app
+          echo "==> free space"
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+          echo "==> hdiutil create"
           hdiutil create -volname "vectile" -srcfolder build/bin/vectile.app -ov -format UDZO dist/vectile-macos-universal.dmg
 
       - name: Create .app zip
