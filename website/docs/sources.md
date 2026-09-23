@@ -69,7 +69,9 @@ so a hit reads like a citation rather than a file path.
 
 - **Email and RSS.** The project vectile grew out of read email and RSS databases. vectile does
   not.
-- **Scanned PDFs.** A PDF with real text works. A PDF that is photos of pages produces nothing.
+- **Scanned PDFs, until you install the plugin.** A PDF with real text works as it is. A PDF that
+  is photos of pages needs the optional [OCR plugin](/docs/ocr). A run tells you when it finds
+  pages it could not read.
 - **`.xls` and `.ppt`.** The old binary Office formats are unsupported. Save as `.xlsx` or
   `.pptx` first.
 - **Cloud-only files.** A OneDrive or iCloud placeholder with no contents on disk is skipped

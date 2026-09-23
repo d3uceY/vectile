@@ -14,8 +14,46 @@ const NAV_LABEL = {
   settings: "Settings",
 };
 
+const OCR_DIALOG = '[aria-label="Read scanned PDFs"]';
+const OCR_SEEN_KEY = "vectile.ocr-prompt-seen";
+
+// The OCR offer is a first-run dialog, so on a fresh profile it covers the app
+// as soon as it loads. Every capture except the one that shows it has to get it
+// out of the way first, or it dims the page and swallows the nav clicks.
+// Checking the flag first keeps this free for the later pages in a batch, which
+// reuse one browser context.
+async function dismissOCR(page) {
+  const alreadySeen = await page.evaluate((k) => localStorage.getItem(k) !== null, OCR_SEEN_KEY);
+  if (alreadySeen) return;
+
+  const dialog = page.locator(OCR_DIALOG);
+  for (let i = 0; i < 12; i++) {
+    if (await dialog.count()) break;
+    await page.waitForTimeout(250);
+  }
+  const notNow = page.locator(`${OCR_DIALOG} button:has-text("Not now")`);
+  if (await notNow.count()) {
+    await notNow.first().click();
+    await dialog.waitFor({ state: "detached", timeout: 3000 }).catch(() => {});
+  }
+}
+
 export async function interact(page, job) {
   const view = job.interactView ?? "search";
+
+  // Capture the first-run offer itself: clear the flag and reload so it shows
+  // whichever order this page runs in.
+  if (job.ocrDialog) {
+    await page.evaluate((k) => localStorage.removeItem(k), OCR_SEEN_KEY);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page
+      .locator(`${OCR_DIALOG} button:has-text("Install")`)
+      .waitFor({ state: "visible", timeout: 15000 })
+      .catch(() => {});
+    return;
+  }
+
+  await dismissOCR(page);
 
   // Route to the target view via the sidebar nav.
   const label = NAV_LABEL[view];

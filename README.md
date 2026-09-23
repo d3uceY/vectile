@@ -14,6 +14,7 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 - **Hybrid search.** Vector and full-text results are fused with Reciprocal Rank Fusion, so a query can find a note that never uses your exact words.
 - **Index what you keep.** Obsidian vaults, project folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, XML, SQL, shell, XLSX, PPTX, Jupyter notebooks, EPUB), Calibre libraries, and code repositories including their commit history.
 - **Built-in model manager.** Import your own `.gguf`, pick the active model, or download one from the curated catalog in Settings with a live progress bar.
+- **Reads scanned PDFs (optional).** One click in Settings installs a Tesseract OCR plugin, and PDFs that are photos of pages become searchable text. The card shows the version, the size, and the exact address the download comes from, and a run tells you when it hits pages it could not read.
 - **Keyboard-first desktop UI.** Jump to search from anywhere with ⌘K / Ctrl K, and move between Search, Library, Browse, Index, and Settings from the sidebar.
 - **Manage your library.** Expand a collection to its files, page through individual chunks, and delete stale sources, selected chunks, or a whole library in place.
 - **AI assistant access (MCP).** Serve search and collection tools to Claude Desktop or any MCP client over a local server, with index and prune tools available behind an Allow write tools toggle.
@@ -82,6 +83,13 @@ Screenshots show sample data.
   <img src="docs/screenshots/settings-mascot.png" alt="Settings → Vexter: show the sidebar mascot while searching, indexing, or on no results" width="100%">
 </p>
 
+<table>
+  <tr>
+    <td><img src="docs/screenshots/ocr-setup.png" alt="The one-time offer to install the OCR plugin, showing the version, the size, and the download address" width="100%"></td>
+    <td><img src="docs/screenshots/settings-ocr.png" alt="Settings → OCR: plugin status, where it downloads from, an Install button, and a switch for using OCR on pages with no text" width="100%"></td>
+  </tr>
+</table>
+
 ## Supported sources
 
 | Source | Collection Type | What Gets Indexed |
@@ -90,6 +98,8 @@ Screenshots show sample data.
 | Project folders | project | Any folder of documents, each file parsed by its extension (`.md`, `.pdf`, `.docx`, `.html`, `.txt`, `.csv`, `.json`, `.yaml`, `.xml`, `.sql`, `.sh`, `.xlsx`, `.pptx`, `.ipynb`, `.epub`) |
 | Code repositories | code | Git repos: tree-sitter splits each function and class into its own chunk (cAST split-then-merge); commit history is indexed as its own source |
 | Calibre | system | Ebook metadata + content: title, author, tags, series, publisher, description, and EPUB/PDF text |
+
+A PDF that is photos of pages rather than text needs the optional OCR plugin (Settings → OCR). A run reports the pages it could not read, so you find out instead of wondering why a document is missing from your results.
 
 ## Installation
 
@@ -132,7 +142,7 @@ Five views, keyboard-first:
 - **Library**: every collection with its file and chunk counts and the last time it was indexed; expand one to list its files, and remove a source or its documents in place.
 - **Browse**: the chunks of one library, paged in as you scroll and grouped under their file. Select chunks to delete them, or remove a whole library. Old pages drop out of memory and come back if you scroll up again.
 - **Index**: run "Index new" (only changed files) or "Re-index all" (re-embed everything) per collection, or index all collections at once, with live progress.
-- **Settings**: sources, model (download an embedding model from the curated catalog, or import your own), chunking, search defaults, auto-reindex, start-on-login, Vexter (the sidebar mascot), and a Connect section that runs a local MCP server for AI assistants.
+- **Settings**: sources, model (download an embedding model from the curated catalog, or import your own), OCR (an optional plugin that reads scanned PDFs), chunking, search defaults, auto-reindex, start-on-login, Vexter (the sidebar mascot), and a Connect section that runs a local MCP server for AI assistants.
 
 The sidebar shows the model state: idle, loaded, or failed. If the model file is missing or corrupt, vector search falls back to full-text search, so exact-word matches still work.
 
@@ -193,6 +203,8 @@ Config file: `<os.UserConfigDir()>/vectile/config.json`
 | mcp.enabled | false | Serve MCP tools to local AI assistants on launch |
 | mcp.port | 31123 | Port the MCP server listens on (127.0.0.1 only) |
 | mcp.allow_write | false | Let AI assistants call the index and prune tools |
+| ocr.enabled | true | Run OCR on PDF pages that come back with no text |
+| ocr.languages | [eng] | Language codes to read with; codes with no matching data are ignored |
 
 ## Tech stack
 

@@ -13,7 +13,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Using vectile',
       collapsed: false,
-      items: ['search', 'library', 'indexing', 'models', 'mcp'],
+      items: ['search', 'library', 'indexing', 'models', 'mcp', 'ocr'],
     },
     {
       type: 'category',

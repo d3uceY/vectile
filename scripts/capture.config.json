@@ -67,6 +67,17 @@
       "settingsSection": "Cache"
     },
     {
+      "name": "settings-ocr",
+      "out": "docs/screenshots/settings-ocr.png",
+      "interactView": "settings",
+      "settingsSection": "OCR"
+    },
+    {
+      "name": "ocr-setup",
+      "out": "docs/screenshots/ocr-setup.png",
+      "ocrDialog": true
+    },
+    {
       "name": "settings-indexing",
       "out": "docs/screenshots/settings-indexing.png",
       "interactView": "settings",

@@ -31,6 +31,12 @@ answer. Check the model state in the sidebar.
 2. **Configured but never indexed.** Open Index and run **Index new**.
 3. **Indexed, but no match.** Try an example query, or loosen the filters.
 
+## A scanned PDF returns nothing
+
+A PDF that is photos of pages has no text in it to index, so it needs the OCR plugin. Install it
+from **Settings → OCR**, then click **Re-index everything** there. A plain re-index skips files that
+have not changed, so it would not pick the PDF up. See [Scanned PDFs](/docs/ocr).
+
 ## A collection shows a "needs reindex" badge
 
 That collection has documents but no usable numbers stored for them, usually after switching to a

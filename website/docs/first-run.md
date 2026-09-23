@@ -28,7 +28,16 @@ catalog.
   caption="Three ways in, all of them local: the catalog, the import dialog, or a file dropped into the models folder."
 />
 
-## 2. Add a source
+## 2. Install OCR (only if you have scans)
+
+One dialog after the model step offers to install Tesseract, the engine that reads PDFs which are
+photos of pages rather than text.
+
+It is genuinely optional. Plain PDFs, notes, code, and ebooks need nothing. If you do keep scans,
+installing it here saves you finding the setting later, and **Not now** is remembered. Either way
+it lives in **Settings → OCR**, and [Scanned PDFs](/docs/ocr) explains the rest.
+
+## 3. Add a source
 
 Open **Settings → Sources**. It is grouped by the kind of thing you have. Pick the kind, then add
 a path by typing it or clicking **Browse**.
@@ -49,7 +58,7 @@ pill, and leaving Settings asks what to do.
   caption="A group becomes a collection, so the name you give the group is the name you see in Library."
 />
 
-## 3. Index
+## 4. Index
 
 Open the **Index** view. Each collection has **Index new** and **Re-index all**, and the header
 has **Index all**.
@@ -66,7 +75,7 @@ Progress shows per collection and the run can be cancelled at any point. See
   caption="The first run does the work. Every run after it skips files that have not changed."
 />
 
-## 4. Search
+## 5. Search
 
 Press <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on macOS) from any view, or pick
 **Search** in the sidebar. Type the question you would ask out loud, not the file name you wish
@@ -89,6 +98,7 @@ reveal it in your file manager.
 | Your settings | `config.json` |
 | The index | `db/vectile.db` |
 | Models | `models/*.gguf` |
+| The OCR plugin, if installed | `plugins/tesseract` |
 
 All of it sits in one `vectile` folder in your app data directory:
 `%AppData%\vectile` on Windows, `~/Library/Application Support/vectile` on macOS,

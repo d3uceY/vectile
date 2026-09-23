@@ -57,6 +57,15 @@ its allowed range is pulled back to the nearest one.
 | `mascot.show_indexing` | bool | `true` | Show Vexter while a library indexes. |
 | `mascot.show_nothing` | bool | `true` | Show Vexter when a search comes back empty. |
 
+## `ocr`
+
+| Key | Type | Default | What it does |
+|---|---|---|---|
+| `enabled` | bool | `true` | Run OCR on pages that come back with no text. |
+| `languages` | string[] | `["eng"]` | Language codes to read with. Codes with no matching `.traineddata` file are ignored. |
+
+See [Scanned PDFs](/docs/ocr).
+
 ## `mcp`
 
 | Key | Type | Default | What it does |
@@ -109,6 +118,10 @@ its allowed range is pulled back to the nearest one.
     "enabled": false,
     "port": 31123,
     "allow_write": false
+  },
+  "ocr": {
+    "enabled": true,
+    "languages": ["eng"]
   }
 }
 ```

@@ -27,6 +27,18 @@ settings, the catalog under **Get a model**, and the installed models. See
   caption="State, active model, and catalog on one screen."
 />
 
+### OCR
+
+An optional plugin that reads PDF pages which came back with no text, meaning scans and photos of
+pages. The card shows the version, the file size, and the address the download comes from. See
+[Scanned PDFs](/docs/ocr).
+
+<Shot
+  src="screenshots/settings-ocr.png"
+  alt="Settings, OCR section: plugin status and version, what it is for, the download URL, an Install button, an Open release page link, and a switch for using OCR on pages with no text"
+  caption="Most libraries never need this. The card says what it costs in size before you click Install."
+/>
+
 ### Chunking
 
 | Setting | Default | Range | What it does |
