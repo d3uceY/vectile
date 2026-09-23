@@ -200,6 +200,19 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      # Same reason as the macOS job: the ubuntu image ships a large Android
+      # SDK and .NET that this build never uses, and this job also compiles
+      # llama.cpp from source on a volume with only ~14 GB free.
+      - name: Free disk space
+        run: |
+          echo "==> Before"
+          df -h /
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /usr/local/.ghcup /opt/ghc || true
+          echo "==> After"
+          df -h /
+
       - name: Install system deps (GTK/WebKit + CGO toolchain)
         run: |
           sudo apt update
@@ -291,6 +304,32 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      # The runner image carries multi-GB toolchains this build never touches
+      # (iOS simulator runtimes, .NET, Android), and the arm64 image has much
+      # less free disk than the Intel one it replaced. This job compiles
+      # llama.cpp twice and then stages a temp image the size of the .app for
+      # the DMG, so reclaiming space up front is what keeps the packaging step
+      # from failing with "No space left on device".
+      - name: Free disk space
+        run: |
+          # On macOS `df -h /` can report the sealed read-only system snapshot
+          # rather than the volume the build writes to, so list every volume and
+          # then the two that matter: the workspace (artifacts and the DMG) and
+          # TMPDIR (the llama.cpp build tree).
+          echo "==> Before"
+          df -h
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+          # Simulator runtimes are several GB and a desktop app never loads one.
+          sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes || true
+          sudo rm -rf /Library/Developer/CoreSimulator/Volumes || true
+          rm -rf ~/Library/Developer/Xcode/DerivedData || true
+          # SDKs for stacks this project does not build with.
+          sudo rm -rf /usr/local/share/dotnet || true
+          sudo rm -rf /usr/local/lib/android || true
+          rm -rf ~/Library/Android/sdk ~/.gradle ~/.m2 || true
+          echo "==> After"
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
 
@@ -370,10 +409,21 @@ jobs:
           cp build/bin/vectile       "$APP/MacOS/vectile"
           cp build/darwin/Info.plist "$APP/Info.plist"
 
-      - name: Check disk usage before packaging
+      - name: Reclaim build inputs before packaging
         run: |
-          df -h /
-          du -sh build/bin third_party/llama-go dist 2>/dev/null || true
+          # All of this is dead weight once the .app exists: the frontend is
+          # already bundled inside the binary, the .app holds its own copy of
+          # that binary, and nothing compiles again. hdiutil stages a temp image
+          # roughly the size of the .app, so this step needs the headroom more
+          # than any other.
+          rm -rf frontend/node_modules || true
+          rm -f build/bin/vectile || true
+          go clean -cache || true
+          echo "==> Before packaging"
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+          du -sh build/bin dist 2>/dev/null || true
+          echo "==> After"
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
 
       # The DMG needs the most free disk (hdiutil temp image ~= .app size, then
       # the compressed .dmg), so build it BEFORE the .zip adds another copy of
