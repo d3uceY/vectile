@@ -124,18 +124,19 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 		if pr := indexer.PruneAll(db.DB, s.core.Cfg); pr.Pruned > 0 {
 			s.core.App.Event.Emit("indexing:pruned", pr.Pruned)
 		}
+		noText := 0
 		for _, name := range s.configuredCollections() {
 			if ctx.Err() != nil {
 				break
 			}
-			s.runIndex(ctx, name, force)
+			noText += s.runIndex(ctx, name, force).PDFNoTextPages
 		}
 		// The whole index-all run is done (all collections, or the first
 		// cancellation): the frontend reloads the library exactly once here
 		// instead of once per collection. Only announce a finished run; a
 		// cancellation already told the frontend its state.
 		if ctx.Err() == nil {
-			s.core.App.Event.Emit("indexing:all-done", nil)
+			s.core.App.Event.Emit("indexing:all-done", IndexAllDone{PDFNoTextPages: noText})
 			s.core.sendNotification("index-all", "Indexing finished", "All collections indexed")
 		}
 	}()
@@ -448,11 +449,12 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *i
 	}
 
 	s.core.App.Event.Emit("indexing:complete", IndexComplete{
-		Collection: name,
-		Indexed:    result.Indexed,
-		Skipped:    result.Skipped,
-		Errors:     result.Errors,
-		Messages:   result.ErrorMessages,
+		Collection:     name,
+		Indexed:        result.Indexed,
+		Skipped:        result.Skipped,
+		Errors:         result.Errors,
+		Messages:       result.ErrorMessages,
+		PDFNoTextPages: result.PDFNoTextPages,
 	})
 	// A single-collection run notifies here; an Index All notifies once at
 	// indexing:all-done below.

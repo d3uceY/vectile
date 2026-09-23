@@ -52,7 +52,7 @@ func IndexCalibre(ctx context.Context, conn *sql.DB, cfg *config.Config, force b
 
 	indexItemsBatched(ctx, conn, cfg, collectionID, "calibre", len(allBooks),
 		func(i int) *indexItem {
-			return bookToItem(conn, cfg, collectionID, allBooks[i].libraryPath, allBooks[i].book, force)
+			return bookToItem(ctx, conn, cfg, collectionID, allBooks[i].libraryPath, allBooks[i].book, force, result)
 		},
 		embedder, result, progress, cleared)
 	return result
@@ -97,7 +97,7 @@ func buildBookMetadata(book *parser.CalibreBook, libraryPath, format string) map
 
 // bookToItem prepares one book for indexing, or returns nil if it should be
 // skipped — unchanged, or no extractable content.
-func bookToItem(conn *sql.DB, cfg *config.Config, collectionID int64, libraryPath string, book *parser.CalibreBook, force bool) *indexItem {
+func bookToItem(ctx context.Context, conn *sql.DB, cfg *config.Config, collectionID int64, libraryPath string, book *parser.CalibreBook, force bool, res *IndexResult) *indexItem {
 	filePath, format := parser.GetBookFilePath(libraryPath, book, preferredFormats)
 
 	var sourcePath, contentHash, sourceType string
@@ -127,7 +127,7 @@ func bookToItem(conn *sql.DB, cfg *config.Config, collectionID int64, libraryPat
 	}
 
 	bookMeta := buildBookMetadata(book, libraryPath, format)
-	chunks := extractAndChunkBook(book, filePath, format, cfg, bookMeta)
+	chunks := extractAndChunkBook(ctx, book, filePath, format, cfg, bookMeta, res)
 	if len(chunks) == 0 {
 		slog.Warn("no content extracted from book, skipping", "title", book.Title)
 		return nil
@@ -143,7 +143,7 @@ func bookToItem(conn *sql.DB, cfg *config.Config, collectionID int64, libraryPat
 	}
 }
 
-func extractAndChunkBook(book *parser.CalibreBook, filePath, format string, cfg *config.Config, bookMeta map[string]any) []chunker.Chunk {
+func extractAndChunkBook(ctx context.Context, book *parser.CalibreBook, filePath, format string, cfg *config.Config, bookMeta map[string]any, res *IndexResult) []chunker.Chunk {
 	chunkSize := cfg.ChunkSizeTokens
 	overlap := cfg.ChunkOverlapTokens
 	var chunks []chunker.Chunk
@@ -165,13 +165,20 @@ func extractAndChunkBook(book *parser.CalibreBook, filePath, format string, cfg 
 				}
 			}
 		case "pdf":
-			for _, pg := range parser.ParsePDF(filePath) {
+			pages, stats := parser.ParsePDF(ctx, filePath, pdfOptions(cfg))
+			if res != nil {
+				res.PDFNoTextPages += stats.NoTextPages
+			}
+			for _, pg := range pages {
 				sectionTitle := fmt.Sprintf("%s (page %d)", book.Title, pg.PageNumber)
 				sectionChunks := chunker.ChunkPlain(pg.Text, sectionTitle, chunkSize, overlap)
 				for j := range sectionChunks {
 					sectionChunks[j].ChunkIndex = chunkIdx
 					meta := copyMeta(bookMeta)
 					meta["page_number"] = pg.PageNumber
+					if pg.OCR {
+						meta["ocr"] = true
+					}
 					sectionChunks[j].Metadata = meta
 					chunks = append(chunks, sectionChunks[j])
 					chunkIdx++

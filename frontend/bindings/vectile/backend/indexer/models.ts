@@ -13,6 +13,13 @@ export class IndexResult {
     "Skipped": number;
     "Errors": number;
     "TotalFound": number;
+
+    /**
+     * PDFNoTextPages counts PDF pages that yielded neither text nor OCR text.
+     * Non-zero means the library holds scans, which is what lets the app offer
+     * to install OCR instead of leaving the user with an empty collection.
+     */
+    "PDFNoTextPages": number;
     "ErrorMessages": string[];
 
     /** Creates a new IndexResult instance. */
@@ -29,6 +36,9 @@ export class IndexResult {
         if (!("TotalFound" in $$source)) {
             this["TotalFound"] = 0;
         }
+        if (!("PDFNoTextPages" in $$source)) {
+            this["PDFNoTextPages"] = 0;
+        }
         if (!("ErrorMessages" in $$source)) {
             this["ErrorMessages"] = [];
         }
@@ -40,10 +50,10 @@ export class IndexResult {
      * Creates a new IndexResult instance from a string or object.
      */
     static createFrom($$source: any = {}): IndexResult {
-        const $$createField4_0 = $$createType0;
+        const $$createField5_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("ErrorMessages" in $$parsedSource) {
-            $$parsedSource["ErrorMessages"] = $$createField4_0($$parsedSource["ErrorMessages"]);
+            $$parsedSource["ErrorMessages"] = $$createField5_0($$parsedSource["ErrorMessages"]);
         }
         return new IndexResult($$parsedSource as Partial<IndexResult>);
     }

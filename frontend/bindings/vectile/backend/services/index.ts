@@ -4,11 +4,13 @@
 import * as AppService from "./appservice.js";
 import * as IndexService from "./indexservice.js";
 import * as ModelService from "./modelservice.js";
+import * as OCRService from "./ocrservice.js";
 import * as SearchService from "./searchservice.js";
 export {
     AppService,
     IndexService,
     ModelService,
+    OCRService,
     SearchService
 };
 
@@ -21,6 +23,7 @@ export {
     IndexFileProgress,
     IndexState,
     ModelDownloadState,
+    OCRState,
     SetActiveResult,
     Source,
     SourcePage,

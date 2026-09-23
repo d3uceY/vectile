@@ -94,21 +94,26 @@ const indexSimPlugin = {
     const tick = () => {
       if (!sim) return;
       if (sim.indexed >= sim.total) {
+        // The first collection stands in for a PDF-heavy library, so the
+        // "pages had no readable text" offer has something to report.
+        const noText = sim.colIdx === 0 ? 12 : 0;
         emit("indexing:complete", {
           collection: sim.collection,
           indexed: sim.indexed,
           skipped: 0,
           errors: 0,
           messages: [],
+          pdfNoTextPages: noText,
         });
         sim.colIdx++;
+        sim.noText = (sim.noText || 0) + noText;
         if (sim.all && sim.colIdx < sim.names.length) {
           sim.collection = sim.names[sim.colIdx];
           sim.indexed = 0;
           sim.timer = setTimeout(tick, 80);
           return;
         }
-        if (sim.all) emit("indexing:all-done", null);
+        if (sim.all) emit("indexing:all-done", { pdfNoTextPages: sim.noText || 0 });
         sim = null;
         return;
       }
@@ -224,9 +229,76 @@ const downloadSimPlugin = {
   },
 };
 
+// Drives the OCR install bar in the browser: watches the InstallOCR method ID
+// and emits ocr:install-progress ticks ending in ocr:install-complete, or
+// ocr:install-cancelled when CancelOCRInstall is hit. The stub's own timer
+// lands the installed flag at the same moment, so the reload the frontend does
+// on completion shows the installed card.
+const ocrSimPlugin = {
+  name: "vectile-ocr-sim",
+  transformIndexHtml() {
+    return [
+      {
+        tag: "script",
+        attrs: { type: "module" },
+        children: `(() => {
+  const INSTALL = 2152838503;
+  const CANCEL_INSTALL = 4022925375;
+
+  let sim = null;
+
+  const boot = () => {
+    if (!(window._wails && window._wails.dispatchWailsEvent)) {
+      setTimeout(boot, 20);
+      return;
+    }
+    const emit = (name, data) => window._wails.dispatchWailsEvent({ name, data });
+    const stop = () => { if (sim) { clearInterval(sim.timer); sim = null; } };
+
+    const start = () => {
+      stop();
+      const total = 17882639;
+      let downloaded = 0;
+      sim = { total, timer: null };
+      sim.timer = setInterval(() => {
+        downloaded = Math.min(total, downloaded + total / 16);
+        emit("ocr:install-progress", {
+          downloaded, total,
+          percent: (downloaded / total) * 100,
+          speed: 7.4 * 1024 * 1024,
+        });
+        if (downloaded >= total) {
+          stop();
+          emit("ocr:install-complete", null);
+        }
+      }, 120);
+    };
+
+    const origFetch = window.fetch.bind(window);
+    window.fetch = async (url, opts) => {
+      try {
+        if (String(url).indexOf("/wails/runtime") !== -1 && opts && opts.method === "POST") {
+          const body = JSON.parse(opts.body || "{}");
+          const args = body && body.args;
+          const mid = args && args.methodID;
+          if (mid === INSTALL) start();
+          else if (mid === CANCEL_INSTALL) { stop(); emit("ocr:install-cancelled", null); }
+        }
+      } catch (_) {}
+      return origFetch(url, opts);
+    };
+  };
+
+  boot();
+})();`,
+      },
+    ];
+  },
+};
+
 process.chdir(frontendRoot);
 const server = await createServer({
-  plugins: [stubPlugin, indexSimPlugin, downloadSimPlugin],
+  plugins: [stubPlugin, indexSimPlugin, downloadSimPlugin, ocrSimPlugin],
   server: { port: 9255, strictPort: false },
 });
 

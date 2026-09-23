@@ -1,9 +1,9 @@
 import { createEffect, createSignal, createUniqueId, For, Show, type JSX } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import { importModel, pickFolder, pickModelFile } from "../../lib/api";
-import type { AppConfig, GUIConfig, MascotConfig, MCPConfig, ModelInfo, SearchDefaults } from "../../lib/types";
+import type { AppConfig, GUIConfig, MascotConfig, MCPConfig, ModelInfo, OCRConfig, SearchDefaults } from "../../lib/types";
 import { Button, ConfirmDialog, InfoTip, Select, StatusPill, Switch, Toggle, ViewHeading } from "../ui/primitives";
-import { CacheNavIcon, ChunkNavIcon, ConnectNavIcon, IndexNavIcon, ModelNavIcon, SearchNavIcon, SourcesNavIcon } from "../ui/nav-icons";
+import { CacheNavIcon, ChunkNavIcon, ConnectNavIcon, IndexNavIcon, ModelNavIcon, OcrNavIcon, SearchNavIcon, SourcesNavIcon } from "../ui/nav-icons";
 import {
   BoltIcon,
   CheckIcon,
@@ -19,6 +19,7 @@ import {
   SlashIcon,
 } from "../ui/icons";
 import { CatalogModelCard } from "../ui/CatalogModelCard";
+import { OcrCard } from "../ui/OcrCard";
 import { MASCOT_ASSETS, MASCOT_STATIC } from "../shell/mascot/assets";
 import { openExternal } from "../../lib/update";
 import { fmtBytes } from "../../lib/format";
@@ -837,7 +838,7 @@ const MASCOT_STATES: {
 ];
 
 
-type SectionKey = "model" | "chunking" | "search" | "cache" | "sources" | "indexing" | "vexter" | "connect";
+type SectionKey = "model" | "ocr" | "chunking" | "search" | "cache" | "sources" | "indexing" | "vexter" | "connect";
 
 type NavIconSlot = { size?: number; active?: boolean };
 
@@ -857,6 +858,7 @@ const NAV_GROUPS: {
     label: "Engine",
     items: [
       { key: "model", label: "Model", icon: ModelNavIcon },
+      { key: "ocr", label: "OCR", icon: OcrNavIcon },
       { key: "chunking", label: "Chunking", icon: ChunkNavIcon },
       { key: "search", label: "Search", icon: SearchNavIcon },
       { key: "cache", label: "Cache", icon: CacheNavIcon },
@@ -893,6 +895,7 @@ const cloneCfg = (c: AppConfig): AppConfig => ({
   search_defaults: { ...c.search_defaults },
   gui: { ...c.gui, mascot: { ...(c.gui.mascot ?? DEFAULT_MASCOT) } },
   mcp: { ...c.mcp },
+  ocr: { ...c.ocr, languages: [...c.ocr.languages] },
 });
 
 const sanitizeConfig = (cfg: AppConfig): AppConfig => {
@@ -1059,6 +1062,9 @@ export function SettingsView() {
       return { ...d, mcp };
     });
 
+  const setOCR = (p: Partial<OCRConfig>) =>
+    store.setSettingsDraft((d) => (d ? { ...d, ocr: { ...d.ocr, ...p } } : d));
+
   const running = () => store.mcpStatus()?.running ?? false;
   const mcpWriteAllowed = () => draft()?.mcp.allow_write ?? false;
   const mcpUrl = () => `http://127.0.0.1:${draft()!.mcp.port}/sse`;
@@ -1117,9 +1123,24 @@ export function SettingsView() {
   const [confirmClearCache, setConfirmClearCache] = createSignal(false);
   const [clearingCache, setClearingCache] = createSignal(false);
 
+  const [confirmReindex, setConfirmReindex] = createSignal(false);
+  const [reindexBusy, setReindexBusy] = createSignal(false);
+
   createEffect(() => {
     if (section() === "cache") void store.loadCacheStats();
+    // Plugin state is live disk state, so re-read it whenever the section opens.
+    if (section() === "ocr") void store.loadOCRState();
   });
+
+  const reindexForOCR = async () => {
+    setReindexBusy(true);
+    try {
+      await store.startIndexAll(true);
+    } finally {
+      setReindexBusy(false);
+      setConfirmReindex(false);
+    }
+  };
 
   const clearTheCache = async () => {
     setClearingCache(true);
@@ -1642,6 +1663,68 @@ export function SettingsView() {
                       busy={clearingCache()}
                       onCancel={() => setConfirmClearCache(false)}
                       onConfirm={() => void clearTheCache()}
+                    />
+                  </div>
+                </Section>
+              </Show>
+
+              <Show when={section() === "ocr"}>
+                <Section
+                  icon={<OcrNavIcon size={16} />}
+                  title="OCR"
+                  note="Read PDFs that are photos of pages instead of text."
+                >
+                  <div class="space-y-6">
+                    <OcrCard
+                      state={store.ocrState()}
+                      onInstall={() => void store.installOCRPlugin()}
+                      onCancel={() => void store.cancelOCRPluginInstall()}
+                      onRemove={() => void store.removeOCRPlugin()}
+                    />
+
+                    <Show when={store.ocrState()?.supported}>
+                      <FieldList>
+                        <Toggle
+                          checked={draft()!.ocr.enabled}
+                          onChange={(v) => setOCR({ enabled: v })}
+                          label="Use OCR for pages with no text"
+                          description="Only runs for pages that come back empty."
+                          hint="Applies when you save settings. A PDF with real text is never sent through OCR, so this costs nothing on documents that already have a text layer."
+                        />
+                      </FieldList>
+                    </Show>
+
+                    <Show when={store.ocrState()?.installed}>
+                      <div class="flex flex-wrap items-center justify-between gap-3">
+                        <p class="note max-w-[46ch] text-[12.5px] leading-4 text-muted">
+                          PDFs you already indexed keep the text they have. Re-indexing reads them
+                          again, this time with OCR.
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setConfirmReindex(true)}
+                        >
+                          Re-index everything
+                        </Button>
+                      </div>
+                    </Show>
+
+                    <ConfirmDialog
+                      open={confirmReindex()}
+                      title="Re-index everything?"
+                      body={
+                        <p>
+                          Every file in every library is read again so scanned PDFs get read as
+                          text. On a large library this takes a while. Nothing is deleted: each
+                          file's chunks are replaced as it is re-read.
+                        </p>
+                      }
+                      confirmLabel="Re-index all"
+                      busyLabel="Starting…"
+                      busy={reindexBusy()}
+                      onCancel={() => setConfirmReindex(false)}
+                      onConfirm={() => void reindexForOCR()}
                     />
                   </div>
                 </Section>

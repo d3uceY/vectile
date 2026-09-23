@@ -31,11 +31,15 @@ type ProgressCallback func(current, total int, itemName string)
 
 // IndexResult summarises an indexing run.
 type IndexResult struct {
-	Indexed       int
-	Skipped       int
-	Errors        int
-	TotalFound    int
-	ErrorMessages []string
+	Indexed    int
+	Skipped    int
+	Errors     int
+	TotalFound int
+	// PDFNoTextPages counts PDF pages that yielded neither text nor OCR text.
+	// Non-zero means the library holds scans, which is what lets the app offer
+	// to install OCR instead of leaving the user with an empty collection.
+	PDFNoTextPages int
+	ErrorMessages  []string
 }
 
 func (r *IndexResult) String() string {
@@ -49,6 +53,7 @@ func (r *IndexResult) Merge(other *IndexResult) {
 	r.Skipped += other.Skipped
 	r.Errors += other.Errors
 	r.TotalFound += other.TotalFound
+	r.PDFNoTextPages += other.PDFNoTextPages
 	r.ErrorMessages = append(r.ErrorMessages, other.ErrorMessages...)
 }
 
@@ -196,8 +201,19 @@ func collectFiles(paths []string, skipPlaceholders bool, excludeDirs map[string]
 	return files
 }
 
-// parseAndChunk dispatches a file to the right parser and returns chunks.
-func parseAndChunk(path, sourceType string, cfg *config.Config) []chunker.Chunk {
+// pdfOptions turns the OCR config into parser options, so both PDF call sites
+// stay in step.
+func pdfOptions(cfg *config.Config) *parser.PDFOptions {
+	return &parser.PDFOptions{
+		OCR:       cfg.OCR.Enabled,
+		Languages: cfg.OCR.Languages,
+	}
+}
+
+// parseAndChunk dispatches a file to the right parser and returns chunks. ctx
+// reaches the PDF OCR fallback so a cancel lands mid-scan; res (may be nil)
+// collects run-level counts.
+func parseAndChunk(ctx context.Context, path, sourceType string, cfg *config.Config, res *IndexResult) []chunker.Chunk {
 	chunkSize := cfg.ChunkSizeTokens
 	overlap := cfg.ChunkOverlapTokens
 	title := filepath.Base(path)
@@ -228,7 +244,10 @@ func parseAndChunk(path, sourceType string, cfg *config.Config) []chunker.Chunk 
 		return chunks
 
 	case "pdf":
-		pages := parser.ParsePDF(path)
+		pages, stats := parser.ParsePDF(ctx, path, pdfOptions(cfg))
+		if res != nil {
+			res.PDFNoTextPages += stats.NoTextPages
+		}
 		if len(pages) == 0 {
 			return nil
 		}
@@ -240,6 +259,9 @@ func parseAndChunk(path, sourceType string, cfg *config.Config) []chunker.Chunk 
 			for i := range pageChunks {
 				pageChunks[i].ChunkIndex = chunkIdx
 				pageChunks[i].Metadata["page_number"] = page.PageNumber
+				if page.OCR {
+					pageChunks[i].Metadata["ocr"] = true
+				}
 				chunks = append(chunks, pageChunks[i])
 				chunkIdx++
 			}
@@ -420,7 +442,7 @@ func deleteOldDocs(conn *sql.DB, sourceID int64) {
 // fileToItem prepares one file for indexing, or returns nil if it should be
 // skipped — unchanged since the last run, or nothing extractable. The cheap
 // checks run first: stat, then hash, then parse (the expensive step).
-func fileToItem(conn *sql.DB, cfg *config.Config, filePath string, collectionID int64, force bool) *indexItem {
+func fileToItem(ctx context.Context, conn *sql.DB, cfg *config.Config, filePath string, collectionID int64, force bool, res *IndexResult) *indexItem {
 	absPath, _ := filepath.Abs(filePath)
 
 	info, statErr := os.Stat(filePath)
@@ -454,7 +476,7 @@ func fileToItem(conn *sql.DB, cfg *config.Config, filePath string, collectionID 
 		return nil
 	}
 
-	chunks := parseAndChunk(filePath, sourceType, cfg)
+	chunks := parseAndChunk(ctx, filePath, sourceType, cfg, res)
 	if len(chunks) == 0 {
 		slog.Warn("no content extracted, skipping", "path", filePath)
 		return nil
@@ -489,7 +511,7 @@ func IndexProject(ctx context.Context, conn *sql.DB, cfg *config.Config, collect
 
 	slog.Info("project indexer: found files", "count", len(files), "collection", collectionName)
 	indexItemsBatched(ctx, conn, cfg, collectionID, collectionName, len(files),
-		func(i int) *indexItem { return fileToItem(conn, cfg, files[i], collectionID, force) },
+		func(i int) *indexItem { return fileToItem(ctx, conn, cfg, files[i], collectionID, force, result) },
 		embedder, result, progress, cleared)
 	return result
 }

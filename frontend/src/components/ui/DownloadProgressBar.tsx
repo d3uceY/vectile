@@ -1,16 +1,18 @@
 import { Show } from "solid-js";
 import { fmtBytes } from "../../lib/format";
-import type { ModelDownloadProgress } from "../../lib/types";
 import { ProgressBar } from "./ProgressBar";
 
 /**
- * Determinate download bar driven by model:download-progress events. Reuses
- * the shared ProgressBar: the fill holds at 96% until the backend finishes
- * (rename + register), and a "Preparing…" state shows when the total isn't
- * known yet.
+ * Determinate download bar driven by progress events. Reuses the shared
+ * ProgressBar: the fill holds at 96% until the backend finishes (rename +
+ * register), and a "Preparing…" state shows when the total isn't known yet.
+ *
+ * The progress shape is structural, so a model download and an OCR install
+ * share this one component.
  */
 export function DownloadProgressBar(props: {
-  progress: ModelDownloadProgress;
+  progress: { downloaded: number; total: number; speed: number };
+  label?: string;
   onCancel?: () => void;
 }) {
   const pct = () => {
@@ -21,7 +23,12 @@ export function DownloadProgressBar(props: {
   const preparing = () => props.progress.total <= 0;
 
   return (
-    <ProgressBar label="Downloading model" percent={pct()} preparing={preparing()} onCancel={props.onCancel}>
+    <ProgressBar
+      label={props.label ?? "Downloading model"}
+      percent={pct()}
+      preparing={preparing()}
+      onCancel={props.onCancel}
+    >
       <Show when={!preparing()}>
         <span class="data shrink-0 text-leaf-deep">{Math.round(pct())}%</span>
         <span class="data truncate text-muted">

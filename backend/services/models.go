@@ -187,6 +187,15 @@ type IndexComplete struct {
 	Skipped    int      `json:"skipped"`
 	Errors     int      `json:"errors"`
 	Messages   []string `json:"messages"`
+	// PDFNoTextPages counts pages that yielded neither text nor OCR text. The
+	// frontend uses it to offer installing OCR when a run hits scans.
+	PDFNoTextPages int `json:"pdfNoTextPages"`
+}
+
+// IndexAllDone is emitted once an "Index all" run finishes, carrying the
+// per-run totals that a finished single collection cannot report on its own.
+type IndexAllDone struct {
+	PDFNoTextPages int `json:"pdfNoTextPages"`
 }
 
 // IndexFileProgress is emitted per successfully indexed file during a run,

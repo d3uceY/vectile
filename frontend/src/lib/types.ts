@@ -189,6 +189,13 @@ export interface AppConfig {
   search_defaults: SearchDefaults;
   gui: GUIConfig;
   mcp: MCPConfig;
+  ocr: OCRConfig;
+}
+
+/** Mirrors config.OCRConfig: the OCR fallback switch and its languages. */
+export interface OCRConfig {
+  enabled: boolean;
+  languages: string[];
 }
 
 /** Mirrors services.IndexProgress / IndexComplete (indexing events). */
@@ -205,6 +212,13 @@ export interface IndexComplete {
   skipped: number;
   errors: number;
   messages: string[];
+  /** PDF pages that yielded no text at all: the scans in this run. */
+  pdfNoTextPages: number;
+}
+
+/** Mirrors services.IndexAllDone; the totals for a whole "Index all" run. */
+export interface IndexAllDone {
+  pdfNoTextPages: number;
 }
 
 /** Mirrors services.IndexFileProgress; emitted per indexed file. */
@@ -297,5 +311,37 @@ export interface ModelDownloadState {
 /** Mirrors services.ModelDownloadError; emitted when a download fails. */
 export interface ModelDownloadError {
   key: string;
+  message: string;
+}
+
+/** Mirrors services.OCRState: the OCR plugin as getOCRState() reports it. */
+export interface OCRState {
+  supported: boolean;
+  platform: string;
+  version: string;
+  installed: boolean;
+  enabled: boolean;
+  sizeBytes: number;
+  dir: string;
+  downloadUrl: string;
+  releaseUrl: string;
+  installing: boolean;
+  downloaded: number;
+  total: number;
+  percent: number;
+  speed: number;
+  error: string;
+}
+
+/** Mirrors services.OCRInstallProgress; emitted while the bundle downloads. */
+export interface OCRInstallProgress {
+  downloaded: number;
+  total: number;
+  percent: number;
+  speed: number;
+}
+
+/** Mirrors services.OCRInstallError; emitted when an install fails. */
+export interface OCRInstallError {
   message: string;
 }

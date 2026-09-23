@@ -409,6 +409,89 @@ export class ModelDownloadState {
 }
 
 /**
+ * OCRState is the OCR plugin as the UI needs to see it. Disk-derived fields
+ * (installed, platform, paths) are filled in on every call so a frontend that
+ * reloads mid-install rebuilds the right thing, and installing from another
+ * window shows up here.
+ */
+export class OCRState {
+    "supported": boolean;
+    "platform": string;
+    "version": string;
+    "installed": boolean;
+    "enabled": boolean;
+    "sizeBytes": number;
+    "dir": string;
+    "downloadUrl": string;
+    "releaseUrl": string;
+    "installing": boolean;
+    "downloaded": number;
+    "total": number;
+    "percent": number;
+    "speed": number;
+    "error": string;
+
+    /** Creates a new OCRState instance. */
+    constructor($$source: Partial<OCRState> = {}) {
+        if (!("supported" in $$source)) {
+            this["supported"] = false;
+        }
+        if (!("platform" in $$source)) {
+            this["platform"] = "";
+        }
+        if (!("version" in $$source)) {
+            this["version"] = "";
+        }
+        if (!("installed" in $$source)) {
+            this["installed"] = false;
+        }
+        if (!("enabled" in $$source)) {
+            this["enabled"] = false;
+        }
+        if (!("sizeBytes" in $$source)) {
+            this["sizeBytes"] = 0;
+        }
+        if (!("dir" in $$source)) {
+            this["dir"] = "";
+        }
+        if (!("downloadUrl" in $$source)) {
+            this["downloadUrl"] = "";
+        }
+        if (!("releaseUrl" in $$source)) {
+            this["releaseUrl"] = "";
+        }
+        if (!("installing" in $$source)) {
+            this["installing"] = false;
+        }
+        if (!("downloaded" in $$source)) {
+            this["downloaded"] = 0;
+        }
+        if (!("total" in $$source)) {
+            this["total"] = 0;
+        }
+        if (!("percent" in $$source)) {
+            this["percent"] = 0;
+        }
+        if (!("speed" in $$source)) {
+            this["speed"] = 0;
+        }
+        if (!("error" in $$source)) {
+            this["error"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new OCRState instance from a string or object.
+     */
+    static createFrom($$source: any = {}): OCRState {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new OCRState($$parsedSource as Partial<OCRState>);
+    }
+}
+
+/**
  * SetActiveResult reports the outcome of SetActiveModel. NeedsRebuild is true
  * when switching would change the embedding dimension — the switch is NOT
  * applied until the frontend confirms and calls SetActiveModel(force=true).

@@ -516,7 +516,12 @@ export function ViewHeading(props: { title: string; note?: string; children?: JS
 /* ---------------- Toast ---------------- */
 
 export function ToastStack(props: {
-  toasts: { id: number; message: string; tone: "neutral" | "success" | "danger" }[];
+  toasts: {
+    id: number;
+    message: string;
+    tone: "neutral" | "success" | "danger";
+    action?: { label: string; run: () => void };
+  }[];
   onDismiss: (id: number) => void;
 }) {
   return (
@@ -533,7 +538,20 @@ export function ToastStack(props: {
                 t.tone === "success" ? "bg-leaf" : t.tone === "danger" ? "bg-danger" : "bg-faint"
               }`}
             />
-            <p class="flex-1 text-[13px] leading-5 text-ink-soft">{t.message}</p>
+            <div class="flex-1">
+              <p class="text-[13px] leading-5 text-ink-soft">{t.message}</p>
+              <Show when={t.action}>
+                <button
+                  class="mt-1.5 text-[12px] font-medium text-leaf-deep hover:underline"
+                  onClick={() => {
+                    t.action?.run();
+                    props.onDismiss(t.id);
+                  }}
+                >
+                  {t.action?.label}
+                </button>
+              </Show>
+            </div>
             <button
               class="text-faint hover:text-ink"
               onClick={() => props.onDismiss(t.id)}

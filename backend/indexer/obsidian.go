@@ -47,7 +47,7 @@ func IndexObsidian(ctx context.Context, conn *sql.DB, cfg *config.Config, force 
 	cleared := clearForRebuild(conn, collectionID, force)
 
 	indexItemsBatched(ctx, conn, cfg, collectionID, "obsidian", len(allFiles),
-		func(i int) *indexItem { return fileToItem(conn, cfg, allFiles[i], collectionID, force) },
+		func(i int) *indexItem { return fileToItem(ctx, conn, cfg, allFiles[i], collectionID, force, result) },
 		embedder, result, progress, cleared)
 	return result
 }

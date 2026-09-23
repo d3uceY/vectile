@@ -40,6 +40,10 @@ const M = {
   StopServer: 2204354075,
   GetCacheStats: 84102949,
   ClearCache: 1916537253,
+  GetOCRState: 1941606847,
+  InstallOCR: 2152838503,
+  CancelOCRInstall: 4022925375,
+  RemoveOCR: 3310393162,
 };
 
 const MODEL_NAME = "bge-m3";
@@ -95,6 +99,56 @@ let mcp = { running: true, port: 31123, url: "http://127.0.0.1:31123/sse" };
 // and repeating a search flips the "cached" chip on the results header.
 let cacheStats = { entries: 128, bytes: 524288 };
 let lastQuery = "";
+
+// ---------------------------------------------------------------------------
+// OCR plugin (Settings panel + first-run dialog)
+// ---------------------------------------------------------------------------
+
+// Mirrors the bundled Tesseract release. The install is simulated from a start
+// timestamp, so a screenshot taken mid-install and a reload both agree, and
+// dev-stub.mjs emits the matching ocr:install-progress ticks. OCR_SIM_MS is
+// shorter than the sim's own tick run so the frontend's post-install refetch
+// (which fires on the last tick) already reads a settled state.
+const OCR_SIZE = 17882639;
+const OCR_SIM_MS = 1700;
+const OCR_DIR = "C:\\Users\\you\\AppData\\Roaming\\vectile\\plugins\\tesseract\\5.5.3";
+
+let ocrInstalled = false;
+let ocrStartedAt = 0;
+
+// settleOCR finishes a simulated install whose time has elapsed, so the state is
+// current whenever it is read.
+function settleOCR() {
+  if (ocrStartedAt && Date.now() - ocrStartedAt >= OCR_SIM_MS) {
+    ocrInstalled = true;
+    ocrStartedAt = 0;
+  }
+}
+
+function ocrState() {
+  settleOCR();
+  const installing = ocrStartedAt > 0;
+  const frac = installing ? Math.min(1, (Date.now() - ocrStartedAt) / OCR_SIM_MS) : 0;
+  return {
+    supported: true,
+    platform: "windows-amd64",
+    version: "5.5.3",
+    installed: ocrInstalled,
+    enabled: true,
+    sizeBytes: OCR_SIZE,
+    dir: OCR_DIR,
+    downloadUrl:
+      "https://github.com/d3uceY/Tesseract-bundler-/releases/download/tesseract-5.5.3/tesseract-5.5.3-windows-amd64.zip",
+    releaseUrl:
+      "https://github.com/d3uceY/Tesseract-bundler-/releases/tag/tesseract-5.5.3",
+    installing,
+    downloaded: Math.round(OCR_SIZE * frac),
+    total: installing ? OCR_SIZE : 0,
+    percent: frac * 100,
+    speed: installing ? 7.4 * 1024 * 1024 : 0,
+    error: "",
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Models (installed embedding models)
@@ -416,8 +470,7 @@ export async function stub(request) {
     case M.GetConfig:
       return { body: config };
     case M.GetCacheStats:
-      return { body: cacheStats };
-    case M.ClearCache: {
+      return { body: cacheStats };    case M.ClearCache: {
       const removed = cacheStats.entries;
       cacheStats = { entries: 0, bytes: 0 };
       return { body: removed };
@@ -495,6 +548,21 @@ export async function stub(request) {
     }
     case M.ListRecommendedModels:
       return { body: recommendedModels };
+    case M.GetOCRState:
+      return { body: ocrState() };
+    case M.InstallOCR: {
+      settleOCR();
+      if (ocrInstalled || ocrStartedAt) return { body: false };
+      ocrStartedAt = Date.now();
+      return { body: true };
+    }
+    case M.CancelOCRInstall:
+      ocrStartedAt = 0;
+      return { body: true };
+    case M.RemoveOCR:
+      ocrInstalled = false;
+      ocrStartedAt = 0;
+      return { body: null };
     case M.GetDownloadState:
       return { body: downloadState };
     case M.DownloadModel: {

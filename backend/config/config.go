@@ -47,6 +47,17 @@ type MCPConfig struct {
 	AllowWrite bool `json:"allow_write"`
 }
 
+// OCRConfig holds the OCR fallback settings. Only the switch and the language
+// list live here: whether the Tesseract bundle is installed, and which version,
+// is disk state owned by the ocr package, not configuration.
+type OCRConfig struct {
+	Enabled bool `json:"enabled"`
+	// Languages are tesseract language codes, joined with "+" for the command
+	// line. The bundle ships eng and osd; codes with no matching traineddata
+	// are ignored, so a typo degrades to English instead of failing every page.
+	Languages []string `json:"languages"`
+}
+
 // Config is the full application configuration.
 type Config struct {
 	EmbeddingModel            string              `json:"embedding_model"`
@@ -67,6 +78,7 @@ type Config struct {
 	SearchDefaults            SearchDefaults      `json:"search_defaults"`
 	GUI                       GUIConfig           `json:"gui"`
 	MCP                       MCPConfig           `json:"mcp"`
+	OCR                       OCRConfig           `json:"ocr"`
 }
 
 // IsCollectionEnabled reports whether the named collection is not disabled.
@@ -210,6 +222,7 @@ func Save(cfg *Config, path string) error {
 	existing["search_defaults"] = cfg.SearchDefaults
 	existing["gui"] = cfg.GUI
 	existing["mcp"] = cfg.MCP
+	existing["ocr"] = cfg.OCR
 
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return fmt.Errorf("create config dir: %w", err)
@@ -263,6 +276,12 @@ func defaults() *Config {
 		MCP: MCPConfig{
 			Enabled: false,
 			Port:    31123,
+		},
+		// On by default: the fallback only runs for pages that produced no
+		// text at all, and it does nothing while no bundle is installed.
+		OCR: OCRConfig{
+			Enabled:   true,
+			Languages: []string{"eng"},
 		},
 	}
 }

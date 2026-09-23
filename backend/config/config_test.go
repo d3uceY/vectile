@@ -28,6 +28,12 @@ func TestDefaults(t *testing.T) {
 	if len(cfg.ProjectExcludeFolders) != 1 || cfg.ProjectExcludeFolders[0] != "node_modules" {
 		t.Fatalf("project folders should skip node_modules by default, got %v", cfg.ProjectExcludeFolders)
 	}
+	if !cfg.OCR.Enabled {
+		t.Fatal("OCR should default to on; it only runs for pages with no text")
+	}
+	if len(cfg.OCR.Languages) != 1 || cfg.OCR.Languages[0] != "eng" {
+		t.Fatalf("default OCR languages = %v, want [eng]", cfg.OCR.Languages)
+	}
 }
 
 func TestSaveLoadRoundtrip(t *testing.T) {
@@ -40,6 +46,8 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	cfg.MCP.Enabled = true
 	cfg.MCP.Port = 40404
 	cfg.ProjectExcludeFolders = []string{"node_modules", "references"}
+	cfg.OCR.Enabled = false
+	cfg.OCR.Languages = []string{"eng", "deu"}
 
 	if err := Save(cfg, path); err != nil {
 		t.Fatal(err)
@@ -63,6 +71,14 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	}
 	if len(got.ProjectExcludeFolders) != 2 || got.ProjectExcludeFolders[1] != "references" {
 		t.Fatalf("project exclude folders not round-tripped: %v", got.ProjectExcludeFolders)
+	}
+	// Save whitelists keys explicitly, so a section missing from that list
+	// silently never persists. This is the check that catches it.
+	if got.OCR.Enabled {
+		t.Fatal("ocr.enabled not round-tripped")
+	}
+	if len(got.OCR.Languages) != 2 || got.OCR.Languages[1] != "deu" {
+		t.Fatalf("ocr.languages not round-tripped: %v", got.OCR.Languages)
 	}
 }
 

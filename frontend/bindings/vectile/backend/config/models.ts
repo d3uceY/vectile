@@ -27,6 +27,7 @@ export class Config {
     "search_defaults": SearchDefaults;
     "gui": GUIConfig;
     "mcp": MCPConfig;
+    "ocr": OCRConfig;
 
     /** Creates a new Config instance. */
     constructor($$source: Partial<Config> = {}) {
@@ -84,6 +85,9 @@ export class Config {
         if (!("mcp" in $$source)) {
             this["mcp"] = (new MCPConfig());
         }
+        if (!("ocr" in $$source)) {
+            this["ocr"] = (new OCRConfig());
+        }
 
         Object.assign(this, $$source);
     }
@@ -103,6 +107,7 @@ export class Config {
         const $$createField15_0 = $$createType2;
         const $$createField16_0 = $$createType3;
         const $$createField17_0 = $$createType4;
+        const $$createField18_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("obsidian_vaults" in $$parsedSource) {
             $$parsedSource["obsidian_vaults"] = $$createField5_0($$parsedSource["obsidian_vaults"]);
@@ -136,6 +141,9 @@ export class Config {
         }
         if ("mcp" in $$parsedSource) {
             $$parsedSource["mcp"] = $$createField17_0($$parsedSource["mcp"]);
+        }
+        if ("ocr" in $$parsedSource) {
+            $$parsedSource["ocr"] = $$createField18_0($$parsedSource["ocr"]);
         }
         return new Config($$parsedSource as Partial<Config>);
     }
@@ -172,7 +180,7 @@ export class GUIConfig {
      * Creates a new GUIConfig instance from a string or object.
      */
     static createFrom($$source: any = {}): GUIConfig {
-        const $$createField3_0 = $$createType5;
+        const $$createField3_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("mascot" in $$parsedSource) {
             $$parsedSource["mascot"] = $$createField3_0($$parsedSource["mascot"]);
@@ -250,6 +258,46 @@ export class MascotConfig {
 }
 
 /**
+ * OCRConfig holds the OCR fallback settings. Only the switch and the language
+ * list live here: whether the Tesseract bundle is installed, and which version,
+ * is disk state owned by the ocr package, not configuration.
+ */
+export class OCRConfig {
+    "enabled": boolean;
+
+    /**
+     * Languages are tesseract language codes, joined with "+" for the command
+     * line. The bundle ships eng and osd; codes with no matching traineddata
+     * are ignored, so a typo degrades to English instead of failing every page.
+     */
+    "languages": string[];
+
+    /** Creates a new OCRConfig instance. */
+    constructor($$source: Partial<OCRConfig> = {}) {
+        if (!("enabled" in $$source)) {
+            this["enabled"] = false;
+        }
+        if (!("languages" in $$source)) {
+            this["languages"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new OCRConfig instance from a string or object.
+     */
+    static createFrom($$source: any = {}): OCRConfig {
+        const $$createField1_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("languages" in $$parsedSource) {
+            $$parsedSource["languages"] = $$createField1_0($$parsedSource["languages"]);
+        }
+        return new OCRConfig($$parsedSource as Partial<OCRConfig>);
+    }
+}
+
+/**
  * SearchDefaults holds the hybrid search parameters surfaced in Settings.
  */
 export class SearchDefaults {
@@ -291,4 +339,5 @@ const $$createType1 = $Create.Map($Create.Any, $$createType0);
 const $$createType2 = SearchDefaults.createFrom;
 const $$createType3 = GUIConfig.createFrom;
 const $$createType4 = MCPConfig.createFrom;
-const $$createType5 = MascotConfig.createFrom;
+const $$createType5 = OCRConfig.createFrom;
+const $$createType6 = MascotConfig.createFrom;

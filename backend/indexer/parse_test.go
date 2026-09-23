@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"archive/zip"
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -54,7 +55,7 @@ func TestParseAndChunkNewFormats(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			chunks := parseAndChunk(tc.path, tc.sourceType, cfg)
+			chunks := parseAndChunk(context.Background(), tc.path, tc.sourceType, cfg, nil)
 			if len(chunks) == 0 {
 				t.Fatal("expected chunks, got none")
 			}
@@ -78,7 +79,7 @@ func TestParseAndChunkXLSX(t *testing.T) {
 	}
 	_ = f.Close()
 
-	chunks := parseAndChunk(p, "xlsx", parseCfg())
+	chunks := parseAndChunk(context.Background(), p, "xlsx", parseCfg(), nil)
 	if len(chunks) == 0 {
 		t.Fatal("expected xlsx chunks, got none")
 	}
@@ -122,7 +123,7 @@ func TestParseAndChunkPPTX(t *testing.T) {
 	}
 	_ = w.Close()
 
-	chunks := parseAndChunk(p, "pptx", parseCfg())
+	chunks := parseAndChunk(context.Background(), p, "pptx", parseCfg(), nil)
 	if len(chunks) == 0 {
 		t.Fatal("expected pptx chunks, got none")
 	}
@@ -137,7 +138,7 @@ func TestParseAndChunkPPTX(t *testing.T) {
 func TestParseAndChunkNotebook(t *testing.T) {
 	p := writeParseFixture(t, "t.ipynb",
 		`{"cells":[{"cell_type":"markdown","source":["# Notes\n"]},{"cell_type":"code","source":["print('hello')"]}]}`)
-	chunks := parseAndChunk(p, "ipynb", parseCfg())
+	chunks := parseAndChunk(context.Background(), p, "ipynb", parseCfg(), nil)
 	if len(chunks) == 0 {
 		t.Fatal("expected notebook chunks, got none")
 	}

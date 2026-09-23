@@ -14,6 +14,7 @@ import (
 	"vectile/backend/db"
 	"vectile/backend/embeddings"
 	"vectile/backend/mcp"
+	"vectile/backend/ocr"
 	"vectile/backend/parser"
 	"vectile/backend/services"
 	"vectile/backend/startup"
@@ -83,6 +84,7 @@ func main() {
 			application.NewService(services.NewSearchService(core)),
 			application.NewService(services.NewIndexService(core)),
 			application.NewService(services.NewModelService(core)),
+			application.NewService(services.NewOCRService(core)),
 			application.NewService(mcpSvc),
 			application.NewService(notifier),
 		},
@@ -133,6 +135,10 @@ func main() {
 	if err := db.Open(appdata.DBPath()); err != nil {
 		log.Fatalf("db open: %v", err)
 	}
+
+	// Drop leftovers from an install interrupted by a crash, so a half-written
+	// plugin tree can never be mistaken for a working one.
+	ocr.Sweep()
 
 	// Reconcile the models folder and load the active model (or the default)
 	// with its per-model settings, rebuilding the vector tables if the

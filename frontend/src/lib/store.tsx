@@ -7,6 +7,7 @@ import type {
   CacheStats,
   CatalogModel,
   Collection,
+  IndexAllDone,
   IndexCancelled,
   IndexComplete,
   IndexFailed,
@@ -19,6 +20,9 @@ import type {
   ModelDownloadState,
   ModelInfo,
   ModelState,
+  OCRInstallError,
+  OCRInstallProgress,
+  OCRState,
   SearchFilters,
   SearchResult,
   Status,
@@ -29,6 +33,8 @@ export interface Toast {
   id: number;
   message: string;
   tone: "neutral" | "success" | "danger";
+  /** Optional button, for a toast that offers the fix as well as the problem. */
+  action?: { label: string; run: () => void };
 }
 
 const DEFAULT_TOP_K = 12;
@@ -110,6 +116,9 @@ export function createAppStore() {
   const [modelDialogOpen, setModelDialogOpen] = createSignal(false);
   const [modelDialogDismissed, setModelDialogDismissed] = createSignal(false);
 
+  const [ocrState, setOCRState] = createSignal<OCRState | null>(null);
+  const [ocrSetupOpen, setOCRSetupOpen] = createSignal(false);
+
   const [mcpStatus, setMCPStatus] = createSignal<MCPStatus | null>(null);
   const refreshMCP = async () => {
     try {
@@ -171,10 +180,10 @@ export function createAppStore() {
   const [toasts, setToasts] = createSignal<Toast[]>([]);
   let toastSeq = 0;
 
-  const pushToast = (message: string, tone: Toast["tone"] = "neutral") => {
+  const pushToast = (message: string, tone: Toast["tone"] = "neutral", action?: Toast["action"]) => {
     const id = ++toastSeq;
-    setToasts((t) => [...t, { id, message, tone }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3600);
+    setToasts((t) => [...t, { id, message, tone, action }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), action ? 12000 : 3600);
   };
   const dismissToast = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
 
@@ -382,6 +391,7 @@ export function createAppStore() {
   const closeModelDialog = () => {
     setModelDialogOpen(false);
     setModelDialogDismissed(true);
+    maybePromptOCR();
   };
 
   const uninstallCatalogFile = async (file: string) => {
@@ -397,6 +407,66 @@ export function createAppStore() {
     } catch {
       /* backend not ready yet */
     }
+  };
+
+  const loadOCRState = async () => {
+    try {
+      setOCRState(await api.getOCRState());
+    } catch {
+    }
+  };
+
+  const installOCRPlugin = async () => {
+    try {
+      const started = await api.installOCR();
+      if (!started) pushToast("An OCR install is already running", "neutral");
+    } catch (err) {
+      pushToast(`OCR install failed: ${err}`, "danger");
+    }
+  };
+
+  const cancelOCRPluginInstall = async () => {
+    try {
+      await api.cancelOCRInstall();
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const removeOCRPlugin = async () => {
+    try {
+      await api.removeOCR();
+      await loadOCRState();
+      pushToast("OCR removed", "success");
+    } catch (err) {
+      pushToast(`Could not remove OCR: ${err}`, "danger");
+    }
+  };
+
+  // The first-run OCR prompt is remembered, unlike the model dialog: the
+  // plugin is optional, so asking twice would be nagging.
+  const OCR_PROMPT_KEY = "vectile.ocr-prompt-seen";
+  const maybePromptOCR = () => {
+    if (localStorage.getItem(OCR_PROMPT_KEY)) return;
+    const st = ocrState();
+    if (!st || !st.supported || st.installed) return;
+    setOCRSetupOpen(true);
+  };
+  const closeOCRSetup = () => {
+    setOCRSetupOpen(false);
+    localStorage.setItem(OCR_PROMPT_KEY, "1");
+  };
+
+  // offerOCR tells the user about pages an index run could not read, and only
+  // when the plugin is missing: with it installed there is nothing to offer.
+  const offerOCR = (noTextPages: number) => {
+    const st = ocrState();
+    if (noTextPages <= 0 || !st || !st.supported || st.installed) return;
+    const what = noTextPages === 1 ? "1 page had" : `${noTextPages} pages had`;
+    pushToast(`${what} no readable text, which usually means scans.`, "neutral", {
+      label: "Set up OCR",
+      run: () => openSettings("ocr"),
+    });
   };
 
 
@@ -570,12 +640,14 @@ export function createAppStore() {
     void loadCacheStats();
     if (e.errors > 0) pushToast(`${e.collection}: ${e.errors} error(s)`, "danger");
     else pushToast(`Indexed ${e.collection} · ${e.indexed} new`, "success");
+    if (!indexAllActive()) offerOCR(e.pdfNoTextPages ?? 0);
   });
-  const offAllDone = Events.On("indexing:all-done", () => {
+  const offAllDone = Events.On("indexing:all-done", (ev) => {
     setIndexAllActive(false);
     setIndexing(false);
     bumpLibraryEpoch();
     void loadCacheStats();
+    offerOCR((ev.data as IndexAllDone | null)?.pdfNoTextPages ?? 0);
   });
   const offCancelled = Events.On("indexing:cancelled", (ev) => {
     const e = ev.data as IndexCancelled;
@@ -630,6 +702,7 @@ export function createAppStore() {
     void refresh();
     setDownloadState(null);
     setModelDialogOpen(false);
+    maybePromptOCR();
   });
   const offDlFailed = Events.On("model:download-failed", (ev) => {
     const e = ev.data as ModelDownloadError;
@@ -639,6 +712,27 @@ export function createAppStore() {
   const offDlCancelled = Events.On("model:download-cancelled", () => {
     pushToast("Download cancelled", "neutral");
     setDownloadState(null);
+  });
+
+  const offOcrProgress = Events.On("ocr:install-progress", (ev) => {
+    const d = ev.data as OCRInstallProgress;
+    setOCRState((s) =>
+      s ? { ...s, installing: true, downloaded: d.downloaded, total: d.total, percent: d.percent, speed: d.speed } : s,
+    );
+  });
+  const offOcrComplete = Events.On("ocr:install-complete", () => {
+    void loadOCRState();
+    setOCRSetupOpen(false);
+    pushToast("OCR installed. Re-index to read your scanned PDFs.", "success");
+  });
+  const offOcrFailed = Events.On("ocr:install-failed", (ev) => {
+    const e = ev.data as OCRInstallError;
+    void loadOCRState();
+    pushToast(`OCR install failed: ${e.message}`, "danger");
+  });
+  const offOcrCancelled = Events.On("ocr:install-cancelled", () => {
+    void loadOCRState();
+    pushToast("OCR install cancelled", "neutral");
   });
 
   const hydrateIndexing = async () => {
@@ -670,7 +764,9 @@ export function createAppStore() {
     void loadCacheStats();
     void (async () => {
       await loadModels();
+      await loadOCRState();
       if (models().length === 0 && !modelDialogDismissed()) setModelDialogOpen(true);
+      else maybePromptOCR();
     })();
   });
   onCleanup(() => {
@@ -687,6 +783,10 @@ export function createAppStore() {
     offDlComplete();
     offDlFailed();
     offDlCancelled();
+    offOcrProgress();
+    offOcrComplete();
+    offOcrFailed();
+    offOcrCancelled();
   });
 
   return {
@@ -709,6 +809,13 @@ export function createAppStore() {
     cancelDownload,
     importModelFile,
     uninstallCatalogFile,
+    ocrState,
+    loadOCRState,
+    installOCRPlugin,
+    cancelOCRPluginInstall,
+    removeOCRPlugin,
+    ocrSetupOpen,
+    closeOCRSetup,
     mcpStatus,
     refreshMCP,
     cacheStats,

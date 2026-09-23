@@ -221,3 +221,16 @@ export function CacheNavIcon(props: NavIconProps) {
     </NavSvg>
   );
 }
+
+/** OCR: a page whose lines resolve into readable text as the section opens. */
+export function OcrNavIcon(props: NavIconProps) {
+  return (
+    <NavSvg {...props} open={props.active}>
+      <path d="M6.5 3h8l4 4v14h-12z" />
+      <path d="M14.5 3v4h4" />
+      <path class="ms" style={{ "--tx": "1.6px" }} d="M9.5 12h5" />
+      <path class="ms" style={{ "--tx": "-1.6px" }} d="M9.5 15.5h5" />
+      <path class="ms" style={{ "--ty": "-1.6px" }} d="M9.5 8.5h5" />
+    </NavSvg>
+  );
+}

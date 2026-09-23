@@ -5,6 +5,7 @@ import { fetchLatestRelease, isDesktop, isNewer } from "../../lib/update";
 import { ToastStack } from "../ui/primitives";
 import { UpdateDialog } from "../ui/UpdateDialog";
 import { ModelDownloadDialog } from "../ui/ModelDownloadDialog";
+import { OcrSetupDialog } from "../ui/OcrSetupDialog";
 import { Sidebar } from "./Sidebar";
 import { StatusStrip } from "./StatusStrip";
 import { SearchView } from "../search/SearchView";
@@ -86,6 +87,14 @@ export function AppShell() {
         onCancel={() => store.cancelDownload()}
         onImport={() => store.importModelFile()}
         onDismiss={() => store.closeModelDialog()}
+      />
+
+      <OcrSetupDialog
+        open={store.ocrSetupOpen()}
+        state={store.ocrState()}
+        onInstall={() => void store.installOCRPlugin()}
+        onCancel={() => void store.cancelOCRPluginInstall()}
+        onDismiss={() => store.closeOCRSetup()}
       />
 
       <ToastStack toasts={store.toasts()} onDismiss={(id) => store.dismissToast(id)} />

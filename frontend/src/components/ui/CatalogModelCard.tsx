@@ -59,16 +59,7 @@ export function CatalogModelCard(props: {
       </div>
       <Show when={active()}>
         <div class="mt-2">
-          <DownloadProgressBar
-            progress={{
-              key: m().key,
-              downloaded: props.downloadState!.downloaded,
-              total: props.downloadState!.total,
-              percent: props.downloadState!.percent,
-              speed: props.downloadState!.speed,
-            }}
-            onCancel={props.onCancel}
-          />
+          <DownloadProgressBar progress={props.downloadState!} onCancel={props.onCancel} />
         </div>
       </Show>
     </div>

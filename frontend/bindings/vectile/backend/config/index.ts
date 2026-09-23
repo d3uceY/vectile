@@ -6,5 +6,6 @@ export {
     GUIConfig,
     MCPConfig,
     MascotConfig,
+    OCRConfig,
     SearchDefaults
 } from "./models.js";

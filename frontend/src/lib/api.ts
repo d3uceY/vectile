@@ -7,6 +7,7 @@ import * as AppService from "../../bindings/vectile/backend/services/appservice"
 import * as IndexService from "../../bindings/vectile/backend/services/indexservice";
 import * as MCPService from "../../bindings/vectile/backend/mcp/mcpservice";
 import * as ModelService from "../../bindings/vectile/backend/services/modelservice";
+import * as OCRService from "../../bindings/vectile/backend/services/ocrservice";
 import * as SearchService from "../../bindings/vectile/backend/services/searchservice";
 import type {
   AppConfig,
@@ -19,6 +20,7 @@ import type {
   MCPStatus,
   ModelDownloadState,
   ModelInfo,
+  OCRState,
   SearchFilters,
   SearchResponse,
   SetActiveResult,
@@ -221,6 +223,26 @@ export async function cancelModelDownload(): Promise<boolean> {
 /** Snapshot of the active download so a reloading frontend can rebuild the bar. */
 export async function getDownloadState(): Promise<ModelDownloadState> {
   return ModelService.GetDownloadState() as unknown as ModelDownloadState;
+}
+
+/** The OCR plugin as it stands: installed, version, size, download URL. */
+export async function getOCRState(): Promise<OCRState> {
+  return OCRService.GetOCRState() as unknown as OCRState;
+}
+
+/** Starts the OCR plugin download; true when it started. */
+export async function installOCR(): Promise<boolean> {
+  return OCRService.InstallOCR() as unknown as boolean;
+}
+
+/** Cancels the in-flight OCR download, if any. */
+export async function cancelOCRInstall(): Promise<boolean> {
+  return OCRService.CancelOCRInstall() as unknown as boolean;
+}
+
+/** Deletes the installed OCR bundle. */
+export async function removeOCR(): Promise<void> {
+  await OCRService.RemoveOCR();
 }
 
 /**
