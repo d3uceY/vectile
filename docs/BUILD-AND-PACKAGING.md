@@ -103,9 +103,17 @@ task dev         # run in development mode
 - **Package:** `task windows:package` builds an NSIS installer. The 5 MinGW DLLs in
   `build/windows/runtime/` are installed next to the exe and included in the installer by
   `project.nsi`.
-- **Runtime:** ship `vectile-windows-amd64.exe` + the 5 MinGW DLLs + the `.gguf` model (the user
+- **Runtime:** ship the exe with the 5 MinGW DLLs beside it (the release publishes them as
+  `vectile-windows-amd64-portable.zip`), plus the `.gguf` model (the user
   places the model in `<UserConfigDir>/vectile/models/`). Missing `libdl.dll` causes a silent
   `0xC0000135` exit at launch.
+- **CPU floor:** `scripts/build-llamago-archives-windows.ps1` takes `-Baseline sse2|sse42|avx2`
+  (default `avx2`, Haswell 2013+) and compiles out everything above it;
+  `scripts/check-llamago-archives-portable.ps1` enforces it in CI. Measured on an i7-13650HX,
+  batch of 8: `avx2` 87 passages/sec vs `sse2` 46 on bge-small Q8_0, but 12 vs **0.7** on bge-m3
+  Q4_K_M. K-quant models have a fast path only for AVX2, so a portable `sse2` build costs ~17x on
+  three of the four catalog models; that is why `avx2` is the default and `sse2` is a deliberate
+  legacy choice (pair it with the recommended Q8_0 model, which stays usable).
 
 ### Linux (amd64)
 

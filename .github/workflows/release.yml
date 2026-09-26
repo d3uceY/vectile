@@ -109,6 +109,19 @@ jobs:
           Add-Content -Path $env:GITHUB_ENV -Value "CXX=$fwd/g++.exe"
           Write-Host "Using $ver at $mingwBin (CC/CXX pinned)"
 
+      - name: Verify llama.cpp archives are CPU-portable
+        shell: pwsh
+        run: |
+          # third_party/llama-go/windows/amd64 is committed and linked into every
+          # release, so it decides which CPUs the shipped app runs on. Built with
+          # GGML_NATIVE at its default ON, it records AVX-VNNI (vpdpbusd) kernels,
+          # which fault with STATUS_ILLEGAL_INSTRUCTION on any CPU older than
+          # Alder Lake (2021) and killed the app the instant an index run started
+          # embedding. The check enforces the avx2 baseline the build script
+          # defaults to; if it fails, rebuild with
+          # scripts/build-llamago-archives-windows.ps1.
+          & ./scripts/check-llamago-archives-portable.ps1
+
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
 
@@ -171,11 +184,54 @@ jobs:
           if not exist bin mkdir bin
           makensis -DARG_WAILS_AMD64_BINARY=..\..\bin\vectile-windows-amd64.exe build\windows\nsis\project.nsi
 
+      # Second Windows build for pre-2013 CPUs: same app, archives compiled for
+      # the SSE2 baseline so they run on any x86-64 CPU. Portable zip only, no
+      # installer, and deliberately NOT the default: K-quant models (3 of the 4
+      # catalog models) are about 17x slower without AVX2. See
+      # docs/BUILD-AND-PACKAGING.md.
+      - name: Build legacy SSE2 archives
+        shell: pwsh
+        run: |
+          ./scripts/build-llamago-archives-windows.ps1 -Baseline sse2
+
+      - name: Build legacy SSE2 binary
+        env:
+          CGO_ENABLED: "1"
+          GOOS: windows
+          GOARCH: amd64
+          LIBRARY_PATH: ${{ github.workspace }}/third_party/llama-go/windows/amd64
+          C_INCLUDE_PATH: ${{ github.workspace }}/third_party/llama-go
+        shell: bash
+        run: |
+          # -buildid is load-bearing, not cosmetic. Go's build cache keys a cgo
+          # link on the CGO_* flags and the package hashes, not on the contents of
+          # the libs it resolves via -L, so with identical ldflags this step would
+          # reuse the AVX2 link and ship the wrong binary twice. A different
+          # -buildid forces a real re-link (verified locally).
+          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -buildid=vectile-legacy-sse2 -X main.Version=v${{ needs.validate-tag.outputs.version }}" -o build/bin/vectile-windows-amd64-legacy.exe
+
       - name: Collect artifacts
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist
-          Copy-Item build\bin\vectile-windows-amd64.exe dist\vectile-windows-amd64.exe
+          # The portable build ships as a ZIP, not a bare exe: the binary links the
+          # MinGW runtime (libgomp-1.dll and friends) and cannot start without those
+          # DLLs sitting beside it, so a lone exe download did nothing on a PC that
+          # had never seen MinGW.
+          $stage = Join-Path $env:TEMP "vectile-portable"
+          Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item build\bin\vectile-windows-amd64.exe $stage
+          Copy-Item build\windows\runtime\*.dll $stage
+          Compress-Archive -Path (Join-Path $stage '*') -DestinationPath dist\vectile-windows-amd64-portable.zip -Force
+          # Legacy (SSE2) build for PCs older than about 2013, zipped with its DLLs
+          # for the same reason as the main portable build.
+          $legacy = Join-Path $env:TEMP "vectile-legacy"
+          Remove-Item $legacy -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $legacy | Out-Null
+          Copy-Item build\bin\vectile-windows-amd64-legacy.exe $legacy
+          Copy-Item build\windows\runtime\*.dll $legacy
+          Compress-Archive -Path (Join-Path $legacy '*') -DestinationPath dist\vectile-windows-amd64-legacy.zip -Force
           $installer = Get-ChildItem bin\*installer*.exe -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $installer) { throw "Windows installer not found in bin" }
           Copy-Item $installer.FullName dist\vectile-windows-amd64-installer.exe
@@ -514,7 +570,8 @@ jobs:
             echo '| Platform | Link | Note |'
             echo '|---|---|---|'
             echo "| Windows (installer) | [vectile-windows-amd64-installer.exe](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-installer.exe) | ⚠️ SmartScreen will block it - see First-Run Notes below |"
-            echo "| Windows (portable)  | [vectile-windows-amd64.exe](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64.exe) | |"
+            echo "| Windows (portable)  | [vectile-windows-amd64-portable.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-portable.zip) | unzip, then run vectile-windows-amd64.exe |"
+            echo "| Windows (older PCs) | [vectile-windows-amd64-legacy.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-legacy.zip) | For PCs from before ~2013 only - read the Older PCs note below |"
             echo "| Linux (AppImage)    | [vectile-linux-amd64.AppImage](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-linux-amd64.AppImage) | chmod +x, then run |"
             echo "| Linux (.deb)        | [vectile-linux-amd64.deb](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-linux-amd64.deb) | sudo apt install ./vectile-linux-amd64.deb |"
             echo "| macOS (universal)   | [vectile-macos-universal.dmg](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-macos-universal.dmg) | |"
@@ -529,6 +586,16 @@ jobs:
             echo '- **Windows:** SmartScreen -> **More info** -> **Run anyway** (or unblock the `.exe` in Properties).'
             echo '- **macOS:** right-click the app -> **Open** (or `xattr -d com.apple.quarantine` on the `.app`).'
             echo '- **Linux:** the AppImage needs `chmod +x`; the `.deb` pulls GTK4/WebKitGTK 6.0 + `libgomp1` automatically.'
+            echo ''
+            echo '## Older PCs'
+            echo ''
+            echo 'The normal Windows builds need a CPU with AVX2 (Intel Haswell, 2013+, or AMD Excavator, 2015+).'
+            echo 'On anything older use `vectile-windows-amd64-legacy.zip`, which runs on any 64-bit CPU.'
+            echo ''
+            echo 'It is slower, and mostly on the quantized models: BGE-M3, BGE Small Q4_K_M and all-MiniLM'
+            echo 'Q4_K_M are roughly **17x slower**, because they are K-quant models that need AVX2 to be fast.'
+            echo 'The recommended **BGE Small EN v1.5 Q8_0** is only about half speed, so pick that one in'
+            echo 'Settings on an old machine and expect a slow first index.'
             echo ''
           } > commit_log.md
 
@@ -589,7 +656,8 @@ jobs:
       - name: Verify release artifacts
         run: |
           test -f artifacts/vectile-windows-amd64-installer.exe
-          test -f artifacts/vectile-windows-amd64.exe
+          test -f artifacts/vectile-windows-amd64-portable.zip
+          test -f artifacts/vectile-windows-amd64-legacy.zip
           test -f artifacts/vectile-linux-amd64.AppImage
           test -f artifacts/vectile-linux-amd64.deb
           test -f artifacts/vectile-macos-universal.dmg
