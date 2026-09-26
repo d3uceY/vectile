@@ -45,7 +45,8 @@ task docs:build  # build the static site into website/build
 > Windows 10/11 · Linux (AppImage + deb) · macOS (universal arm64 + amd64) · **app is not code-signed, [see first-run notes below](#first-run-notes)**
 
 On a Windows PC from before about 2013 the normal builds will not start (they need AVX2). Use the
-[legacy build](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-legacy.zip)
+[legacy installer](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-legacy-installer.exe)
+(or the [legacy portable zip](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-legacy.zip))
 there, and pick the **BGE Small EN v1.5 Q8_0** model in Settings: the quantized models are much slower
 without AVX2.
 

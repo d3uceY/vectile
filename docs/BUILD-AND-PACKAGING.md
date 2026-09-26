@@ -113,7 +113,11 @@ task dev         # run in development mode
   batch of 8: `avx2` 87 passages/sec vs `sse2` 46 on bge-small Q8_0, but 12 vs **0.7** on bge-m3
   Q4_K_M. K-quant models have a fast path only for AVX2, so a portable `sse2` build costs ~17x on
   three of the four catalog models; that is why `avx2` is the default and `sse2` is a deliberate
-  legacy choice (pair it with the recommended Q8_0 model, which stays usable).
+  legacy choice (pair it with the recommended Q8_0 model, which stays usable). The release ships both
+  variants: the normal installer + portable zip, and `vectile-windows-amd64-legacy-installer.exe` +
+  `vectile-windows-amd64-legacy.zip`. The legacy installer comes from the same `project.nsi` with
+  `-DOUT_FILE=...`, so both can be built in one job; it keeps the same product identity and install
+  path, so installing it over the normal build is a clean swap.
 
 ### Linux (amd64)
 

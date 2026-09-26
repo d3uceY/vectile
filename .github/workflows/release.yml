@@ -210,6 +210,14 @@ jobs:
           # -buildid forces a real re-link (verified locally).
           go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -buildid=vectile-legacy-sse2 -X main.Version=v${{ needs.validate-tag.outputs.version }}" -o build/bin/vectile-windows-amd64-legacy.exe
 
+      - name: Build legacy NSIS installer
+        shell: cmd
+        run: |
+          # Same .nsi and same product identity, so installing this over the normal
+          # build is a clean in-place swap rather than a second app. -DOUT_FILE
+          # stops it clobbering the installer from the step above.
+          makensis -DARG_WAILS_AMD64_BINARY=..\..\bin\vectile-windows-amd64-legacy.exe -DOUT_FILE=..\..\..\bin\vectile-amd64-legacy-installer.exe build\windows\nsis\project.nsi
+
       - name: Collect artifacts
         shell: pwsh
         run: |
@@ -232,9 +240,12 @@ jobs:
           Copy-Item build\bin\vectile-windows-amd64-legacy.exe $legacy
           Copy-Item build\windows\runtime\*.dll $legacy
           Compress-Archive -Path (Join-Path $legacy '*') -DestinationPath dist\vectile-windows-amd64-legacy.zip -Force
-          $installer = Get-ChildItem bin\*installer*.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          $installer = Get-ChildItem bin\*installer*.exe -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch 'legacy' } | Select-Object -First 1
           if (-not $installer) { throw "Windows installer not found in bin" }
           Copy-Item $installer.FullName dist\vectile-windows-amd64-installer.exe
+          $legacyInstaller = Get-ChildItem bin\*installer*.exe -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'legacy' } | Select-Object -First 1
+          if (-not $legacyInstaller) { throw "Windows legacy installer not found in bin" }
+          Copy-Item $legacyInstaller.FullName dist\vectile-windows-amd64-legacy-installer.exe
 
       - uses: actions/upload-artifact@v4
         with:
@@ -571,7 +582,8 @@ jobs:
             echo '|---|---|---|'
             echo "| Windows (installer) | [vectile-windows-amd64-installer.exe](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-installer.exe) | ⚠️ SmartScreen will block it - see First-Run Notes below |"
             echo "| Windows (portable)  | [vectile-windows-amd64-portable.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-portable.zip) | unzip, then run vectile-windows-amd64.exe |"
-            echo "| Windows (older PCs) | [vectile-windows-amd64-legacy.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-legacy.zip) | For PCs from before ~2013 only - read the Older PCs note below |"
+            echo "| Windows (older PCs) | [vectile-windows-amd64-legacy-installer.exe](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-legacy-installer.exe) | For PCs from before ~2013 only - read the Older PCs note below |"
+            echo "| Windows (older PCs, portable) | [vectile-windows-amd64-legacy.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-legacy.zip) | same build, no install step |"
             echo "| Linux (AppImage)    | [vectile-linux-amd64.AppImage](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-linux-amd64.AppImage) | chmod +x, then run |"
             echo "| Linux (.deb)        | [vectile-linux-amd64.deb](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-linux-amd64.deb) | sudo apt install ./vectile-linux-amd64.deb |"
             echo "| macOS (universal)   | [vectile-macos-universal.dmg](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-macos-universal.dmg) | |"
@@ -590,7 +602,8 @@ jobs:
             echo '## Older PCs'
             echo ''
             echo 'The normal Windows builds need a CPU with AVX2 (Intel Haswell, 2013+, or AMD Excavator, 2015+).'
-            echo 'On anything older use `vectile-windows-amd64-legacy.zip`, which runs on any 64-bit CPU.'
+            echo 'On anything older use the `legacy` installer or zip, which run on any 64-bit CPU. They are the'
+            echo 'same app, so installing one over the normal build just replaces it; do not install both.'
             echo ''
             echo 'It is slower, and mostly on the quantized models: BGE-M3, BGE Small Q4_K_M and all-MiniLM'
             echo 'Q4_K_M are roughly **17x slower**, because they are K-quant models that need AVX2 to be fast.'
@@ -658,6 +671,7 @@ jobs:
           test -f artifacts/vectile-windows-amd64-installer.exe
           test -f artifacts/vectile-windows-amd64-portable.zip
           test -f artifacts/vectile-windows-amd64-legacy.zip
+          test -f artifacts/vectile-windows-amd64-legacy-installer.exe
           test -f artifacts/vectile-linux-amd64.AppImage
           test -f artifacts/vectile-linux-amd64.deb
           test -f artifacts/vectile-macos-universal.dmg
