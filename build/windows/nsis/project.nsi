@@ -74,8 +74,12 @@ ManifestDPIAware true
 #!uninstfinalize 'signtool --file "%1"'
 #!finalize 'signtool --file "%1"'
 
+!ifndef OUT_FILE
+    !define OUT_FILE "..\..\..\bin\${INFO_PROJECTNAME}-${ARCH}-installer.exe"
+!endif
+
 Name "${INFO_PRODUCTNAME}"
-OutFile "..\..\..\bin\${INFO_PROJECTNAME}-${ARCH}-installer.exe" # Name of the installer's file.
+OutFile "${OUT_FILE}" # Name of the installer's file. Override with -DOUT_FILE=... to build a second variant (the SSE2 legacy installer) without clobbering the default one.
 !if "${WAILS_INSTALL_SCOPE}" == "user"
     InstallDir "$LOCALAPPDATA\Programs\${INFO_PRODUCTNAME}"
 !else

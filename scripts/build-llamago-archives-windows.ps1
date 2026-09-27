@@ -16,11 +16,40 @@
     made the app crash the moment an index run started on other people's PCs.
     Do NOT remove -DGGML_NATIVE=OFF.
 
-    With GGML_NATIVE=OFF llama.cpp explicitly enables SSE4.2/AVX/AVX2/FMA/F16C/
-    BMI2 (a Haswell-2013 floor) and never AVX-VNNI or AVX-512. The script
-    verifies the result with objdump and refuses to install a non-portable
-    archive. This matches the Linux/macOS archives built by
-    scripts/build-llamago-archives.sh.
+    With GGML_NATIVE=OFF llama.cpp never uses -march=native, so the archives are
+    not tied to the build machine. Which instructions they DO use is chosen by
+    -Baseline (see below); everything above it is compiled out. The script then
+    verifies the result with objdump and refuses to install an archive that needs
+    a newer CPU than asked for.
+
+.PARAMETER Baseline
+    Lowest CPU the archives must run on. Instructions above it are compiled out.
+
+      sse2  - every x86-64 CPU (2003+). Portable, but see the cliff below.
+      sse42 - Intel Nehalem (2008+) / AMD Bulldozer (2011+).
+      avx2  - Intel Haswell (2013+) / AMD Excavator (2015+). Default.
+
+    Measured on an i7-13650HX, batch of 8, n=128:
+
+      model                      avx2           sse2        penalty
+      bge-small-en-v1.5 Q8_0     87 passages/s   46         ~1.9x
+      bge-m3 Q4_K_M              12 passages/s    0.7       ~17x
+
+    Q8_0 barely notices, but K-quant models fall off a cliff. ggml's K-quant dot
+    products (Q4_K/Q6_K) have a fast path only for AVX2, so an SSE-only build
+    drops to generic code. Three of the four catalog models are K-quant (bge-m3
+    Q4_K_M, bge-small Q4_K_M, all-MiniLM Q4_K_M), and at 0.7 passages/sec bge-m3
+    would need hours to index a real library. So sse2 is NOT a free win for old
+    CPUs: it is a trade of pre-2013 compatibility for a large slowdown on most
+    models.
+
+    Default avx2. Go to sse2 deliberately, as a separate legacy build for a known
+    old machine, and point that machine at the recommended Q8_0 model, which
+    stays usable at ~46 passages/sec.
+
+    Keep this in step with -Baseline in check-llamago-archives-portable.ps1: CI
+    calls that script with its own default, so a mismatch fails the release
+    rather than shipping a build whose CPU floor is a surprise.
 
     MinGW GCC must be 16.1.0 (WinLibs UCRT/posix/seh): the libstdc++ ABI has to
     match the GCC 16.1.0 toolchain the release workflow pins with
@@ -50,6 +79,8 @@ param(
     [string]$WorkDir = '',
     [int]$Jobs = 0,
     [string]$InstallDir = '',
+    [ValidateSet('sse2', 'sse42', 'avx2')]
+    [string]$Baseline = 'avx2',
     [switch]$Keep
 )
 
@@ -106,6 +137,20 @@ function Resolve-MinGWBin {
 }
 
 $MinGWBin = Resolve-MinGWBin
+
+# CC/CXX win over whatever gcc is first on PATH. The release workflow pins the
+# choco MinGW 16.1.0 there on purpose: the runner also ships a preinstalled MinGW
+# with a different libstdc++ ABI, and archives built by one toolchain have to be
+# linked by the same one or the link fails on undefined std::__get_once_* symbols.
+$cmakeCC = 'gcc'
+$cmakeCXX = 'g++'
+if ($env:CC) {
+    $cmakeCC = $env:CC
+    $ccBin = Split-Path $env:CC -Parent
+    if ($ccBin -and (Test-Path $ccBin)) { $env:Path = "$ccBin;$env:Path" }
+    Write-Host "  CC pinned by the environment: $cmakeCC"
+}
+if ($env:CXX) { $cmakeCXX = $env:CXX }
 $env:Path = "$MinGWBin;$env:Path"
 
 foreach ($tool in 'gcc', 'g++', 'ar', 'cmake', 'git') {
@@ -129,9 +174,18 @@ $Build = Join-Path $WorkDir 'build'
 
 try {
     # ---- 1. Clone llama-go (sources only; submodule comes after the ref is known)
+    # Retried: this pulls a repo whose submodule is large, and "RPC failed;
+    # curl 56 Recv failure: Connection was reset" has interrupted it twice.
     Step "Cloning llama-go into $Clone"
-    git clone https://github.com/tcpipuk/llama-go $Clone
-    if ($LASTEXITCODE -ne 0) { Fail 'git clone failed.' }
+    $cloned = $false
+    foreach ($attempt in 1..3) {
+        if (Test-Path $Clone) { Remove-Item $Clone -Recurse -Force -ErrorAction SilentlyContinue }
+        Invoke-Lenient { git clone https://github.com/tcpipuk/llama-go $Clone }
+        if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $Clone 'go.mod'))) { $cloned = $true; break }
+        Write-Warning "clone attempt $attempt failed; retrying"
+        Start-Sleep -Seconds 5
+    }
+    if (-not $cloned) { Fail 'git clone of llama-go failed after 3 attempts.' }
 
     # ---- 2. Pick the llama-go ref that matches the vendored bindings ---------
     # cgo compiles the Go bindings against the VENDORED llama.cpp headers on
@@ -166,11 +220,14 @@ try {
     }
 
     function Sync-Submodule {
-        Invoke-Lenient { git -C $Clone submodule update --init --recursive 2>&1 | Out-Null }
-        if ($LASTEXITCODE -ne 0) { Fail 'llama.cpp submodule update failed.' }
-        if (-not (Test-Path (Join-Path $Clone 'llama.cpp\CMakeLists.txt'))) {
-            Fail 'llama.cpp sources are missing after the submodule update.'
+        # Retried for the same reason as the clone: this is a second network fetch.
+        foreach ($attempt in 1..3) {
+            Invoke-Lenient { git -C $Clone submodule update --init --recursive 2>&1 | Out-Null }
+            if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $Clone 'llama.cpp\CMakeLists.txt'))) { return }
+            Write-Warning "llama.cpp submodule update attempt $attempt failed; retrying"
+            Start-Sleep -Seconds 5
         }
+        Fail 'llama.cpp submodule update failed after 3 attempts.'
     }
 
     # Candidates: HEAD, then every llama-go commit that moved the llama.cpp
@@ -229,27 +286,53 @@ endif()
     }
 
     # ---- 5. Configure + build ------------------------------------------------
-    Step "Configuring with CMake (Ninja + MinGW GCC $gccVersion)"
+    Step "Configuring with CMake (Ninja + MinGW GCC $gccVersion, baseline $Baseline)"
     New-Item -ItemType Directory -Force -Path $Build | Out-Null
-    # -DGGML_NATIVE=OFF is the portability switch (no -march=native, no
-    # AVX-VNNI). The AVX512*/AVX_VNNI options are already OFF by default
-    # upstream; they are passed explicitly so a future default flip cannot
-    # silently reintroduce the trap.
-    & cmake -G Ninja -S (Join-Path $Clone 'llama.cpp') -B $Build `
-        -DBUILD_SHARED_LIBS=OFF -DLLAMA_CURL=OFF -DCMAKE_BUILD_TYPE=Release `
-        -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ `
-        -DGGML_NATIVE=OFF `
-        -DGGML_AVX_VNNI=OFF -DGGML_AVX512=OFF -DGGML_AVX512_VBMI=OFF `
-        -DGGML_AVX512_VNNI=OFF -DGGML_AVX512_BF16=OFF
+
+    # ---- 5a. CPU baseline ----------------------------------------------------
+    # Everything above the baseline is compiled out by explicit option, never by
+    # -march=native: GGML_NATIVE defaults to ON and is what recorded AVX-VNNI on
+    # an Alder Lake build machine, which then faulted on every older CPU. The
+    # AVX_VNNI/AVX512 options are already OFF upstream but are passed anyway so a
+    # future default flip cannot silently reintroduce the trap.
+    $isa = [ordered]@{
+        GGML_SSE42 = ($Baseline -ne 'sse2')
+        GGML_AVX   = ($Baseline -eq 'avx2')
+        GGML_AVX2  = ($Baseline -eq 'avx2')
+        GGML_FMA   = ($Baseline -eq 'avx2')
+        GGML_F16C  = ($Baseline -eq 'avx2')
+        GGML_BMI2  = ($Baseline -eq 'avx2')
+    }
+    $alwaysOff = @(
+        'GGML_NATIVE', 'GGML_AVX_VNNI', 'GGML_AVX512', 'GGML_AVX512_VBMI',
+        'GGML_AVX512_VNNI', 'GGML_AVX512_BF16'
+    )
+
+    $cmakeArgs = @(
+        '-G', 'Ninja', '-S', (Join-Path $Clone 'llama.cpp'), '-B', $Build,
+        '-DBUILD_SHARED_LIBS=OFF', '-DLLAMA_CURL=OFF', '-DCMAKE_BUILD_TYPE=Release',
+        "-DCMAKE_C_COMPILER=$cmakeCC", "-DCMAKE_CXX_COMPILER=$cmakeCXX"
+    )
+    foreach ($k in $alwaysOff) { $cmakeArgs += "-D$($k)=OFF" }
+    foreach ($k in $isa.Keys) { $cmakeArgs += "-D$($k)=$(if ($isa[$k]) { 'ON' } else { 'OFF' })" }
+
+    & cmake @cmakeArgs
     if ($LASTEXITCODE -ne 0) { Fail 'cmake configure failed.' }
 
-    # Belt and braces: assert the configure actually took.
+    # Assert the configure actually took. A silent flip back to a higher ISA is
+    # exactly how a CPU-specific binary shipped once before.
     $cache = Join-Path $Build 'CMakeCache.txt'
-    if (-not (Select-String -Path $cache -Pattern 'GGML_NATIVE:BOOL=OFF' -Quiet)) {
-        Fail 'GGML_NATIVE is not OFF in the CMake cache; -march=native would make these archives CPU-specific.'
-    }
-    foreach ($key in 'GGML_AVX_VNNI:BOOL=OFF', 'GGML_AVX512:BOOL=OFF', 'GGML_AVX512_VNNI:BOOL=OFF') {
-        if ((Select-String -Path $cache -Pattern ([regex]::Escape($key)) -Quiet)) { Write-Host "  confirmed $key" }
+    $wanted = @{ GGML_NATIVE = 'OFF' }
+    foreach ($k in $alwaysOff) { $wanted[$k] = 'OFF' }
+    foreach ($k in $isa.Keys) { $wanted[$k] = $(if ($isa[$k]) { 'ON' } else { 'OFF' }) }
+    foreach ($k in $wanted.Keys) {
+        $entry = "$($k):BOOL=$($wanted[$k])"
+        if (Select-String -Path $cache -Pattern ([regex]::Escape($entry)) -Quiet) {
+            Write-Host "  confirmed $entry"
+        }
+        else {
+            Fail "CMake cache does not contain $entry; refusing to build an archive whose CPU baseline is not what was asked for."
+        }
     }
 
     Step "Building ggml llama llama-common (-j $Jobs, a few minutes)"
@@ -257,23 +340,12 @@ endif()
     if ($LASTEXITCODE -ne 0) { Fail 'cmake build failed.' }
 
     # ---- 6. Compile wrapper.cpp -> libbinding.a ------------------------------
-    # CRITICAL: libbinding.a has to be compiled against the SAME llama.cpp
-    # headers as the libraries CMake just built. wrapper.cpp fills in
-    # llama_model_params and hands it to llama_model_load_from_file, so if the
-    # two sides disagree on that struct's layout llama.cpp reads garbage and the
-    # process dies inside model load (0xc0000005). The vendored
-    # third_party/llama-go/llama.cpp tree is a headers-only snapshot and may be
-    # older than the clone, so compile the clone's wrapper.cpp out of the clone's
-    # OWN tree. That is safe for the Go side because the Go bindings only ever
-    # touch the llama_wrapper_* API in wrapper.h, which contains no llama.cpp
-    # types and is ABI-guarded against the vendored copy in step 2.
+    # Compile the VENDORED wrapper.cpp (the implementation of record for this
+    # app's bindings, patched relative to upstream). Its include dirs come from the
+    # clone because that is where the llama.cpp sources live, and step 2 proved the
+    # clone's llama.h/ggml.h are identical to the vendored copies at the matched
+    # ref, so both sides agree on llama_model_params.
     Step 'Compiling wrapper.cpp and assembling libbinding.a'
-    # Compile the VENDORED wrapper.cpp. It is the implementation of record for
-    # this app's Go bindings (and is patched relative to upstream); at the matched
-    # ref its wrapper.h and the clone's are identical, so it satisfies the same
-    # contract. The include dirs come from the clone because that is where the
-    # llama.cpp sources live, and at the matched ref llama.h/ggml.h are identical
-    # to the vendored copies anyway.
     if (-not (Test-AbiMatches $Clone)) {
         Fail "ABI drift: the clone at '$Ref' no longer matches the vendored headers."
     }
@@ -284,7 +356,7 @@ endif()
         "-I$Clone\llama.cpp\vendor", "-I$Clone\common"
     )
     $wrapperObj = Join-Path $Build 'wrapper.o'
-    & g++ @incs -O3 -DNDEBUG -std=c++17 -fPIC -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 `
+    & $cmakeCXX @incs -O3 -DNDEBUG -std=c++17 -fPIC -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 `
         -c (Join-Path $Clone 'wrapper.cpp') -o $wrapperObj
     if ($LASTEXITCODE -ne 0) { Fail 'wrapper.cpp compile failed.' }
     $binding = Join-Path $Build 'libbinding.a'
@@ -324,48 +396,12 @@ endif()
 
     # ---- 8. Portability gate -------------------------------------------------
     # Refuse to install anything that needs a CPU newer than the AVX2 baseline.
-    Step 'Verifying CPU portability (no AVX-VNNI, no AVX-512)'
-    $objdump = (Get-Command objdump.exe -ErrorAction SilentlyContinue).Source
-    if (-not $objdump -and (Test-Path (Join-Path $MinGWBin 'objdump.exe'))) { $objdump = Join-Path $MinGWBin 'objdump.exe' }
-    if (-not $objdump) { Fail 'objdump.exe not found; cannot verify archive portability.' }
-
-    # vpdpbusd = AVX-VNNI (Alder Lake 2021+). %zmm / {k1} = AVX-512.
-    $offenders = @()
-    $cpuVerified = $false
-    foreach ($f in Get-ChildItem $staging -Filter *.a) {
-        $dis = Join-Path $WorkDir ('disasm_' + $f.BaseName + '.txt')
-        Invoke-Lenient { & $objdump -d $f.FullName 2>&1 | Out-File -FilePath $dis -Encoding ascii }
-        if ($LASTEXITCODE -ne 0) {
-            Fail "objdump could not read $($f.Name) (exit $LASTEXITCODE); the portability check cannot be trusted."
-        }
-
-        # A vacuous pass (objdump silently produced nothing) would be worse than
-        # no check at all, so require real disassembly from anything non-trivial.
-        $instr = (Select-String -Path $dis -Pattern '^\s*[0-9a-f]+:\s' | Measure-Object).Count
-        if ($instr -eq 0 -and $f.Length -gt 100KB) {
-            Fail "objdump found no instructions in $($f.Name); the portability check cannot be trusted."
-        }
-
-        $bad = Select-String -Path $dis -Pattern 'vpdpbusd', '%zmm', '\{k1\}' |
-            Select-Object -First 3 -ExpandProperty Line
-        if ($bad) { $offenders += "$($f.Name): $($bad -join ' | ')" }
-
-        # Anchor: ggml-cpu is where the kernels live. AVX2 must be present (it is
-        # the intended ceiling), which also proves the scan is reading the code.
-        if ($f.Name -eq 'libggml-cpu.a') {
-            $ymm = (Select-String -Path $dis -Pattern '%ymm' -SimpleMatch | Measure-Object).Count
-            if ($ymm -eq 0) {
-                Fail 'libggml-cpu.a contains no AVX2 code, so the disassembly scan is not reading the kernels.'
-            }
-            Write-Host ("  libggml-cpu.a: {0:N0} instruction lines, {1:N0} AVX2 (ymm) uses" -f $instr, $ymm)
-            $cpuVerified = $true
-        }
-    }
-    if (-not $cpuVerified) { Fail 'libggml-cpu.a was not staged; nothing was verified.' }
-    if ($offenders.Count -gt 0) {
-        Fail "Archive(s) contain non-portable instructions - GGML_NATIVE was not disabled:`n  $($offenders -join "`n  ")"
-    }
-    Write-Host '  OK: AVX2 ceiling, no AVX-VNNI, no AVX-512.'
+    # The same script runs in CI, so the committed archives cannot regress.
+    Step "Verifying CPU portability (baseline $Baseline)"
+    $portability = Join-Path $PSScriptRoot 'check-llamago-archives-portable.ps1'
+    if (-not (Test-Path $portability)) { Fail "Portability check not found at $portability" }
+    # A failing check throws, which aborts the build before anything is installed.
+    & $portability -ArchiveDir $staging -Baseline $Baseline
 
     # ---- 9. Install ----------------------------------------------------------
     Step "Installing archives into $InstallDir"
