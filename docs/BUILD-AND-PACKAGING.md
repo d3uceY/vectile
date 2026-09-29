@@ -117,7 +117,8 @@ task dev         # run in development mode
   variants: the normal installer + portable zip, and `vectile-windows-amd64-legacy-installer.exe` +
   `vectile-windows-amd64-legacy.zip`. The legacy installer comes from the same `project.nsi` with
   `-DOUT_FILE=...`, so both can be built in one job; it keeps the same product identity and install
-  path, so installing it over the normal build is a clean swap.
+  path, so installing it over the normal build is a clean swap. Background on the instruction sets
+  themselves: [`dev-docs/cpu-compatibility.md`](../dev-docs/cpu-compatibility.md).
 
 ### Linux (amd64)
 

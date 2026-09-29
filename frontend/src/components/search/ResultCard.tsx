@@ -22,7 +22,7 @@ function Highlighted(props: { text: string; terms: string[] }) {
       <For each={parts()}>
         {(p) =>
           p.hit ? (
-            <mark class="rounded-sm bg-highlighter px-px text-paper">{p.text}</mark>
+            <mark class="rounded-sm bg-highlighter px-px text-ink">{p.text}</mark>
           ) : (
             <>{p.text}</>
           )
@@ -104,7 +104,7 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
             <span class="ml-auto flex items-center gap-1.5">
               <button
                 type="button"
-                class="inline-flex h-8 items-center gap-1.5 rounded-control border border-line-strong bg-paper px-2.5 text-[12.5px] font-medium text-ink-soft transition-colors duration-150 ease-snappy hover:border-indigo/50 hover:text-ink"
+                class="inline-flex h-8 items-center gap-1.5 rounded-control border border-line-control bg-paper px-2.5 text-[12.5px] font-medium text-ink-soft transition-colors duration-150 ease-snappy hover:border-indigo/50 hover:text-ink"
                 onClick={() => void onOpen()}
               >
                 <FolderOpenIcon size={14} class="text-indigo" />
@@ -112,7 +112,7 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
               </button>
               <button
                 type="button"
-                class="flex h-8 w-8 items-center justify-center rounded-control border border-line-strong bg-paper text-muted transition-colors duration-150 ease-snappy hover:border-indigo/50 hover:text-ink"
+                class="flex h-8 w-8 items-center justify-center rounded-control border border-line-control bg-paper text-muted transition-colors duration-150 ease-snappy hover:border-indigo/50 hover:text-ink"
                 onClick={() => void onReveal()}
                 aria-label="Reveal in folder"
                 title="Reveal in folder"

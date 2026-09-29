@@ -11,6 +11,7 @@ This guide covers how the repo is organized, how to build and test, and what a g
 - [DESIGN.md](DESIGN.md) — architecture notes
 - [dev-docs/app-flow.md](dev-docs/app-flow.md) — how the app flows end to end
 - [dev-docs/backend-notes.md](dev-docs/backend-notes.md) — backend conventions and platform gotchas
+- [dev-docs/cpu-compatibility.md](dev-docs/cpu-compatibility.md) — CPU instruction sets, which ones the binaries need, and why that can crash an older PC
 
 ## Development environment
 

@@ -35,7 +35,7 @@ export function CatalogModelCard(props: {
             {m().dimensions} dims · {fmtBytes(m().sizeBytes)} · {m().quantization}
             {m().language ? ` · ${m().language}` : ""}
           </p>
-          <p class="mt-0.5 text-[12.5px] text-faint">{m().description}</p>
+          <p class="mt-0.5 text-[12.5px] text-muted">{m().description}</p>
         </div>
         <Show when={!active()}>
           <Show

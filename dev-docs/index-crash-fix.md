@@ -2,6 +2,10 @@
 
 **Date:** 2026-09-09
 
+> Background on the instruction sets named below (what SSE2, AVX, AVX2 and
+> AVX-VNNI are, and which CPUs have them) is in
+> [`cpu-compatibility.md`](cpu-compatibility.md).
+
 ## Symptom
 
 On some Windows PCs, starting an index run ("Index collection" / "Index all")
