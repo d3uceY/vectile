@@ -79,6 +79,13 @@ so a hit reads like a citation rather than a file path.
 
 ## Keeping things out
 
-Two exclusion lists, both in Settings. **Excluded folders** applies to one Obsidian vault, by
-folder name. **Project exclude folders** applies everywhere; it starts with `node_modules`, and
-you can add build output, `.venv`, or anything else you never want searched.
+Four skip lists, one per source type, all in [Settings](/docs/settings) under Sources. An entry is
+a folder or file name, matched whole at any depth, so `node_modules` drops every copy in a tree
+and `CHANGELOG.md` drops every file with that name further down.
+
+**Project folders** starts with `node_modules`. **Code repositories** adds to a built-in list of
+build output and lock files, and applies to the file tree only, not to commit history. **Obsidian
+vaults** is the place for an attachments folder or `.trash`. **Calibre libraries** matches the
+folder a book sits in, which is its author and title, so one entry drops a whole author.
+
+Nothing here moves or deletes anything on disk.

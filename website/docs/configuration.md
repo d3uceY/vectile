@@ -27,8 +27,10 @@ its allowed range is pulled back to the nearest one.
 | `chunk_size_tokens` | int | `500` | Chunk size in words. 50 to 1500. |
 | `chunk_overlap_tokens` | int | `50` | Words shared between neighbouring chunks. 0 to chunk size minus 1. |
 | `obsidian_vaults` | string[] | `[]` | Vault folders to index. |
-| `obsidian_exclude_folders` | string[] | `[]` | Folder names to skip inside vaults. |
-| `project_exclude_folders` | string[] | `["node_modules"]` | Folder names skipped anywhere inside project folders. |
+| `obsidian_exclude_folders` | string[] | `[]` | Folder or file names to skip inside vaults. |
+| `project_exclude_folders` | string[] | `["node_modules"]` | Folder or file names skipped anywhere inside project folders. |
+| `repository_exclude_folders` | string[] | `[]` | Folder or file names skipped anywhere inside repositories. |
+| `calibre_exclude_folders` | string[] | `[]` | Folder or file names skipped inside Calibre libraries. |
 | `calibre_libraries` | string[] | `[]` | Calibre library folders. |
 | `repositories` | map | `{}` | Collection name to a repo path, or to a folder to scan for repos. |
 | `projects` | map | `{}` | Collection name to a list of document paths. |
@@ -86,6 +88,8 @@ See [Scanned PDFs](/docs/ocr).
   "obsidian_vaults": ["D:\\notes"],
   "obsidian_exclude_folders": [".trash", "attachments"],
   "project_exclude_folders": ["node_modules", "dist", ".venv"],
+  "repository_exclude_folders": ["testdata", "go.sum"],
+  "calibre_exclude_folders": ["Samples"],
   "calibre_libraries": ["D:\\Calibre Library"],
   "repositories": {
     "vectile": ["D:\\code\\vectile"],

@@ -7,6 +7,10 @@ import { Create as $Create } from "@wailsio/runtime";
 
 /**
  * Config is the full application configuration.
+ * 
+ * The four *_exclude_folders lists are per-source skip lists. An entry is a
+ * folder or file name, matched whole (not as a substring or glob) at any depth
+ * below the source paths of that kind. See indexer.excludedNames for the walk.
  */
 export class Config {
     "embedding_model": string;
@@ -17,6 +21,8 @@ export class Config {
     "obsidian_vaults": string[];
     "obsidian_exclude_folders": string[];
     "project_exclude_folders": string[];
+    "repository_exclude_folders": string[];
+    "calibre_exclude_folders": string[];
     "calibre_libraries": string[];
     "repositories": { [_ in string]?: string[] };
     "projects": { [_ in string]?: string[] };
@@ -54,6 +60,12 @@ export class Config {
         }
         if (!("project_exclude_folders" in $$source)) {
             this["project_exclude_folders"] = [];
+        }
+        if (!("repository_exclude_folders" in $$source)) {
+            this["repository_exclude_folders"] = [];
+        }
+        if (!("calibre_exclude_folders" in $$source)) {
+            this["calibre_exclude_folders"] = [];
         }
         if (!("calibre_libraries" in $$source)) {
             this["calibre_libraries"] = [];
@@ -100,14 +112,16 @@ export class Config {
         const $$createField6_0 = $$createType0;
         const $$createField7_0 = $$createType0;
         const $$createField8_0 = $$createType0;
-        const $$createField9_0 = $$createType1;
-        const $$createField10_0 = $$createType1;
-        const $$createField11_0 = $$createType0;
-        const $$createField14_0 = $$createType0;
-        const $$createField15_0 = $$createType2;
-        const $$createField16_0 = $$createType3;
-        const $$createField17_0 = $$createType4;
-        const $$createField18_0 = $$createType5;
+        const $$createField9_0 = $$createType0;
+        const $$createField10_0 = $$createType0;
+        const $$createField11_0 = $$createType1;
+        const $$createField12_0 = $$createType1;
+        const $$createField13_0 = $$createType0;
+        const $$createField16_0 = $$createType0;
+        const $$createField17_0 = $$createType2;
+        const $$createField18_0 = $$createType3;
+        const $$createField19_0 = $$createType4;
+        const $$createField20_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("obsidian_vaults" in $$parsedSource) {
             $$parsedSource["obsidian_vaults"] = $$createField5_0($$parsedSource["obsidian_vaults"]);
@@ -118,32 +132,38 @@ export class Config {
         if ("project_exclude_folders" in $$parsedSource) {
             $$parsedSource["project_exclude_folders"] = $$createField7_0($$parsedSource["project_exclude_folders"]);
         }
+        if ("repository_exclude_folders" in $$parsedSource) {
+            $$parsedSource["repository_exclude_folders"] = $$createField8_0($$parsedSource["repository_exclude_folders"]);
+        }
+        if ("calibre_exclude_folders" in $$parsedSource) {
+            $$parsedSource["calibre_exclude_folders"] = $$createField9_0($$parsedSource["calibre_exclude_folders"]);
+        }
         if ("calibre_libraries" in $$parsedSource) {
-            $$parsedSource["calibre_libraries"] = $$createField8_0($$parsedSource["calibre_libraries"]);
+            $$parsedSource["calibre_libraries"] = $$createField10_0($$parsedSource["calibre_libraries"]);
         }
         if ("repositories" in $$parsedSource) {
-            $$parsedSource["repositories"] = $$createField9_0($$parsedSource["repositories"]);
+            $$parsedSource["repositories"] = $$createField11_0($$parsedSource["repositories"]);
         }
         if ("projects" in $$parsedSource) {
-            $$parsedSource["projects"] = $$createField10_0($$parsedSource["projects"]);
+            $$parsedSource["projects"] = $$createField12_0($$parsedSource["projects"]);
         }
         if ("disabled_collections" in $$parsedSource) {
-            $$parsedSource["disabled_collections"] = $$createField11_0($$parsedSource["disabled_collections"]);
+            $$parsedSource["disabled_collections"] = $$createField13_0($$parsedSource["disabled_collections"]);
         }
         if ("git_commit_subject_blacklist" in $$parsedSource) {
-            $$parsedSource["git_commit_subject_blacklist"] = $$createField14_0($$parsedSource["git_commit_subject_blacklist"]);
+            $$parsedSource["git_commit_subject_blacklist"] = $$createField16_0($$parsedSource["git_commit_subject_blacklist"]);
         }
         if ("search_defaults" in $$parsedSource) {
-            $$parsedSource["search_defaults"] = $$createField15_0($$parsedSource["search_defaults"]);
+            $$parsedSource["search_defaults"] = $$createField17_0($$parsedSource["search_defaults"]);
         }
         if ("gui" in $$parsedSource) {
-            $$parsedSource["gui"] = $$createField16_0($$parsedSource["gui"]);
+            $$parsedSource["gui"] = $$createField18_0($$parsedSource["gui"]);
         }
         if ("mcp" in $$parsedSource) {
-            $$parsedSource["mcp"] = $$createField17_0($$parsedSource["mcp"]);
+            $$parsedSource["mcp"] = $$createField19_0($$parsedSource["mcp"]);
         }
         if ("ocr" in $$parsedSource) {
-            $$parsedSource["ocr"] = $$createField18_0($$parsedSource["ocr"]);
+            $$parsedSource["ocr"] = $$createField20_0($$parsedSource["ocr"]);
         }
         return new Config($$parsedSource as Partial<Config>);
     }

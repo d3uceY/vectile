@@ -58,7 +58,8 @@ type OCRConfig struct {
 	Languages []string `json:"languages"`
 }
 
-// Config is the full application configuration.
+// Config is the full application configuration. The *_exclude_folders lists
+// hold folder or file names, matched whole at any depth; see indexer.excludedNames.
 type Config struct {
 	EmbeddingModel            string              `json:"embedding_model"`
 	ActiveModel               string              `json:"active_model"`
@@ -68,6 +69,8 @@ type Config struct {
 	ObsidianVaults            []string            `json:"obsidian_vaults"`
 	ObsidianExcludeFolders    []string            `json:"obsidian_exclude_folders"`
 	ProjectExcludeFolders     []string            `json:"project_exclude_folders"`
+	RepositoryExcludeFolders  []string            `json:"repository_exclude_folders"`
+	CalibreExcludeFolders     []string            `json:"calibre_exclude_folders"`
 	CalibreLibraries          []string            `json:"calibre_libraries"`
 	Repositories              map[string][]string `json:"repositories"`
 	Projects                  map[string][]string `json:"projects"`
@@ -212,6 +215,8 @@ func Save(cfg *Config, path string) error {
 	existing["obsidian_vaults"] = cfg.ObsidianVaults
 	existing["obsidian_exclude_folders"] = cfg.ObsidianExcludeFolders
 	existing["project_exclude_folders"] = cfg.ProjectExcludeFolders
+	existing["repository_exclude_folders"] = cfg.RepositoryExcludeFolders
+	existing["calibre_exclude_folders"] = cfg.CalibreExcludeFolders
 	existing["calibre_libraries"] = cfg.CalibreLibraries
 	existing["repositories"] = cfg.Repositories
 	existing["projects"] = cfg.Projects
@@ -250,6 +255,8 @@ func defaults() *Config {
 		ObsidianVaults:            []string{},
 		ObsidianExcludeFolders:    []string{},
 		ProjectExcludeFolders:     []string{"node_modules"},
+		RepositoryExcludeFolders:  []string{},
+		CalibreExcludeFolders:     []string{},
 		CalibreLibraries:          []string{},
 		Repositories:              map[string][]string{},
 		Projects:                  map[string][]string{DefaultProjectCollection: {}},
