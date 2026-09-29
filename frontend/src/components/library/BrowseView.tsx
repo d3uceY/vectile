@@ -192,8 +192,8 @@ export function BrowseView() {
     if (!t) return null;
     return t.kind === "library" ? (
       <span>
-        Removes all {t.chunks.toLocaleString()} chunks in {t.name} and its sources, and removes it
-        from Settings. Files on disk are untouched.
+        Removes all {t.chunks.toLocaleString()} chunks in {t.name}. The sources stay configured, so
+        re-indexing brings it back. Files on disk are untouched.
       </span>
     ) : (
       <span>

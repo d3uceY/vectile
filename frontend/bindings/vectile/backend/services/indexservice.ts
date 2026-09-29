@@ -38,13 +38,11 @@ export function CancelIndexing(): $CancellablePromise<boolean> {
 }
 
 /**
- * DeleteCollection removes a collection and everything cascading from it:
- * its sources, documents (FTS cleared via the delete trigger), float + binary
- * embeddings, and the collection row. It also removes the collection's config
- * entry — an obsidian/calibre collection owns all its vault/library paths, a
- * project/repo collection owns its whole group — so it does not silently
- * resurrect on the next index pass. Files on disk are never touched. Works
- * even when the collection was never indexed (config-only). Returns the
+ * DeleteCollection clears a collection's indexed data: its sources, documents
+ * (FTS cleared via the delete trigger), float + binary embeddings, and the
+ * collection row. The configured sources stay in Settings, so the collection
+ * still shows up on Index and a re-index rebuilds it. Files on disk are never
+ * touched. Works even when the collection was never indexed. Returns the
  * number of documents removed.
  */
 export function DeleteCollection(name: string): $CancellablePromise<number> {

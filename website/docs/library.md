@@ -52,11 +52,10 @@ touched.
 |---|---|---|
 | Delete a chunk | Browse: select, then **Delete** | Those chunks and the numbers stored for them |
 | Delete a source | Library: the button on a file row | That file's chunks |
-| Delete a collection | Library or Index | Every chunk in the collection |
+| Delete a collection | Library or Browse | Every chunk in the collection |
 
-Deleting a source leaves the path in Settings, so the next index run adds the file back. Deleting
-a collection removes its configuration too, so it does not come back on the next index or the next
-automatic run.
+All three leave your sources in Settings, so the next index run adds the files back. To keep a
+collection out for good, remove its source in Settings.
 
 Deleting is refused while an index run is in progress. Let the run finish, or cancel it first.
 

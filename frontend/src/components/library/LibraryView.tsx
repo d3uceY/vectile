@@ -65,7 +65,7 @@ export function LibraryView() {
     store.setExpandedCollection(open() === String(id) ? null : String(id));
 
   const [confirm, setConfirm] = createSignal<
-    | { kind: "collection"; id: number; name: string; type: string; chunks: number }
+    | { kind: "collection"; name: string; chunks: number }
     | { kind: "source"; id: number; name: string; path: string; chunks: number }
     | null
   >(null);
@@ -162,14 +162,12 @@ export function LibraryView() {
                           onClick={() =>
                             setConfirm({
                               kind: "collection",
-                              id: c.id,
                               name: c.name,
-                              type: c.type,
                               chunks: c.chunks,
                             })
                           }
                           aria-label={`Delete collection ${c.name}`}
-                          title={`Delete ${c.name} from the index and Settings`}
+                          title={`Clear ${c.name} from the index (sources stay in Settings)`}
                         >
                           <TrashIcon size={15} />
                         </button>
@@ -283,9 +281,8 @@ export function LibraryView() {
               <p>
                 Removes <span class="font-medium text-ink">“{t.name}”</span> and its{" "}
                 <span class="font-medium text-ink">{t.chunks.toLocaleString()} chunks</span> from
-                the index and from Settings
-                {t.type === "system" ? " (all its vault/library paths)." : " (the whole group)."}{" "}
-                Files on disk are untouched. Re-add the source in Settings to index it again.
+                the index. The sources stay configured in Settings, so re-indexing brings it back.
+                Files on disk are untouched.
               </p>
             );
           }

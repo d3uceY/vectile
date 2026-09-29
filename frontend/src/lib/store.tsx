@@ -601,12 +601,12 @@ export function createAppStore() {
     try {
       const removed = await api.deleteCollection(name);
       pushToast(
-        `Deleted ${label} · ${removed.toLocaleString()} chunk${removed === 1 ? "" : "s"} removed`,
+        `Cleared ${label} · ${removed.toLocaleString()} chunk${removed === 1 ? "" : "s"} removed`,
         "success",
       );
+      // Only indexed data goes, so the config (and any unsaved Settings draft)
+      // is left exactly as it was.
       setExpandedCollection(null);
-      await loadConfig();
-      discardSettingsDraft();
       void refresh();
       bumpLibraryEpoch();
       return true;

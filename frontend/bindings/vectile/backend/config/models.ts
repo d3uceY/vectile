@@ -6,11 +6,8 @@
 import { Create as $Create } from "@wailsio/runtime";
 
 /**
- * Config is the full application configuration.
- * 
- * The four *_exclude_folders lists are per-source skip lists. An entry is a
- * folder or file name, matched whole (not as a substring or glob) at any depth
- * below the source paths of that kind. See indexer.excludedNames for the walk.
+ * Config is the full application configuration. The *_exclude_folders lists
+ * hold folder or file names, matched whole at any depth; see indexer.excludedNames.
  */
 export class Config {
     "embedding_model": string;

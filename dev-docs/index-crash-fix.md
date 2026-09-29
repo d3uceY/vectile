@@ -84,12 +84,11 @@ func (c *Config) IsCollectionEnabled(name string) bool {
 
 ### Copy-on-write for config maps (`backend/services/index.go`)
 
-`AddSourcePath`, `RemoveSourcePath`, and `DeleteCollection` no longer mutate
-the shared `Projects` / `Repositories` maps. They build a shallow copy, apply
-the change to the copy, and reassign the field:
+`AddSourcePath` and `RemoveSourcePath` no longer mutate the shared `Projects`
+/ `Repositories` maps. They build a shallow copy, apply the change to the
+copy, and reassign the field:
 
 - `setMapSlice(m, key, val)` — returns a copy of `m` with one key replaced.
-- `withoutMapKey(m, key)` — returns a copy of `m` with one key dropped.
 
 The slice values are also cloned before `append`/`removeStr` so the backing
 array is never shared with the index goroutine. `persistConfig` no longer

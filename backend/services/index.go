@@ -217,54 +217,27 @@ func (s *IndexService) DeleteDocuments(docIDs []int64) (int64, error) {
 	return db.DeleteDocumentsData(db.DB, docIDs)
 }
 
-// DeleteCollection removes a collection and everything cascading from it:
-// its sources, documents (FTS cleared via the delete trigger), float + binary
-// embeddings, and the collection row. It also removes the collection's config
-// entry — an obsidian/calibre collection owns all its vault/library paths, a
-// project/repo collection owns its whole group — so it does not silently
-// resurrect on the next index pass. Files on disk are never touched. Works
-// even when the collection was never indexed (config-only). Returns the
+// DeleteCollection clears a collection's indexed data: its sources, documents
+// (FTS cleared via the delete trigger), float + binary embeddings, and the
+// collection row. The configured sources stay in Settings, so the collection
+// still shows up on Index and a re-index rebuilds it. Files on disk are never
+// touched. Works even when the collection was never indexed. Returns the
 // number of documents removed.
 func (s *IndexService) DeleteCollection(name string) (int64, error) {
 	if s.IsIndexing() {
 		return 0, fmt.Errorf("cannot delete while an index run is in progress")
 	}
 
-	// Remove indexed data first (if any), so a failed delete leaves config
-	// untouched and the collection still visible.
-	var deleted int64
 	var id int64
 	err := db.DB.QueryRow("SELECT id FROM collections WHERE name = ?", name).Scan(&id)
 	switch {
 	case err == nil:
-		n, derr := db.DeleteCollectionData(db.DB, id)
-		if derr != nil {
-			return 0, derr
-		}
-		deleted = n
+		return db.DeleteCollectionData(db.DB, id)
 	case err == sql.ErrNoRows:
-		// Never indexed — nothing to delete from the DB, just config below.
+		return 0, nil // never indexed: nothing stored, and the sources stay
 	default:
 		return 0, err
 	}
-
-	// Drop the config entry so the collection doesn't come back on the next
-	// index/auto-reindex pass.
-	cfg := s.core.Cfg
-	switch name {
-	case "obsidian":
-		cfg.ObsidianVaults = nil
-	case "calibre":
-		cfg.CalibreLibraries = nil
-	default:
-		cfg.Projects = withoutMapKey(cfg.Projects, name)
-		cfg.Repositories = withoutMapKey(cfg.Repositories, name)
-	}
-	cfg.DisabledCollections = removeStr(cfg.DisabledCollections, name)
-	if err := s.persistConfig(); err != nil {
-		return 0, err
-	}
-	return deleted, nil
 }
 
 // IsIndexing reports whether an index run is in progress.
@@ -548,21 +521,5 @@ func setMapSlice(m map[string][]string, key string, val []string) map[string][]s
 		out[k] = v
 	}
 	out[key] = val
-	return out
-}
-
-// withoutMapKey returns a shallow copy of m with key removed (or m itself when
-// the key is absent), again so a config map is never mutated while the index
-// goroutine may be reading it.
-func withoutMapKey(m map[string][]string, key string) map[string][]string {
-	if _, ok := m[key]; !ok {
-		return m
-	}
-	out := make(map[string][]string, len(m))
-	for k, v := range m {
-		if k != key {
-			out[k] = v
-		}
-	}
 	return out
 }

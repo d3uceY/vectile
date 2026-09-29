@@ -600,13 +600,8 @@ export async function stub(request) {
       documents = documents.filter((d) => d.collectionId !== coll.id);
       sources = sources.filter((s) => s.collectionId !== coll.id);
       collections.splice(idx, 1);
-      // Mirror the backend: drop the config entry too so it doesn't come back.
-      if (name === "obsidian") config.obsidian_vaults = [];
-      else if (name === "calibre") config.calibre_libraries = [];
-      else {
-        delete config.projects[name];
-        delete config.repositories[name];
-      }
+      // Mirror the backend: the config entries stay, so the collection still
+      // shows on Index and a re-index rebuilds it.
       return { body: removed };
     }
     default:
