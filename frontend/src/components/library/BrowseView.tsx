@@ -407,7 +407,7 @@ function SourceHeader(props: { path: string; sourceType: string }) {
       <FolderIcon size={14} class="shrink-0 text-faint" />
       <span class="shrink-0 text-[12.5px] font-medium text-ink">{baseName(props.path)}</span>
       <span class="data min-w-0 flex-1 truncate text-muted">{props.path}</span>
-      <span class="data shrink-0 text-faint">{props.sourceType}</span>
+      <span class="data shrink-0 text-muted">{props.sourceType}</span>
     </div>
   );
 }
@@ -439,7 +439,7 @@ function ChunkRow(props: {
         class={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors duration-100 ease-snappy ${
           props.checked
             ? "border-indigo bg-indigo text-white"
-            : "border-line-strong bg-paper text-transparent hover:border-indigo/60"
+            : "border-line-control bg-paper text-transparent hover:border-indigo/60"
         }`}
       >
         <CheckIcon size={11} strokeWidth={2.5} />
