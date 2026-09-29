@@ -118,7 +118,7 @@ function NumField(props: {
         max={props.max}
         step={props.step}
         onInput={(e) => props.onChange(Number(e.currentTarget.value))}
-        class="h-8 w-24 rounded-control border border-line-strong bg-surface px-2 text-right text-[13px] outline-none transition-colors focus:border-leaf"
+        class="h-8 w-24 rounded-control border border-line-control bg-surface px-2 text-right text-[13px] outline-none transition-colors focus:border-leaf"
       />
     </div>
   );
@@ -228,7 +228,7 @@ function PathList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder={props.placeholder ?? "/absolute/path"}
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()} aria-label="Browse for folder">
@@ -274,7 +274,7 @@ function ChipList(props: {
         <ul class="flex flex-wrap gap-1.5">
           <For each={props.values}>
             {(v) => (
-              <li class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-line-strong bg-surface px-2.5 py-1">
+              <li class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-line-control bg-surface px-2.5 py-1">
                 <span class="min-w-0 truncate font-mono text-[12px] text-ink-soft" title={v}>
                   {v}
                 </span>
@@ -298,7 +298,7 @@ function ChipList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="folder name, e.g. .trash"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()}>
@@ -379,7 +379,7 @@ function GroupItem(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="/absolute/path"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()}>
@@ -443,7 +443,7 @@ function GroupList(props: {
             if (e.key === "Enter") addGroup();
           }}
           placeholder="collection name, e.g. client-work"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-strong bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
         />
         <Button size="sm" onClick={addGroup}>
           New collection
@@ -523,7 +523,7 @@ function SourceTabs(props: {
     <div
       role="tablist"
       aria-label="Source type"
-      class="grid grid-cols-1 gap-1 rounded-control border border-line-strong bg-surface p-1 min-[430px]:grid-cols-2"
+      class="grid grid-cols-1 gap-1 rounded-control border border-line-control bg-surface p-1 min-[430px]:grid-cols-2"
     >
       <For each={SOURCE_KINDS}>
         {(k, i) => {
@@ -547,7 +547,7 @@ function SourceTabs(props: {
               <span class="min-w-0 flex-1 truncate text-left">{k.label}</span>
               <span
                 class={`data shrink-0 rounded-full px-1.5 py-0.5 text-[11px] tabular-nums ${
-                  active() ? "bg-white/25 text-white" : "bg-paper text-muted"
+                  active() ? "bg-surface text-ink" : "bg-paper text-muted"
                 }`}
               >
                 {props.counts[k.id]}
@@ -751,7 +751,7 @@ function ClientSetup(props: { client: MCPClient; url: string }) {
           <p class="mt-0.5 text-[12.5px] leading-4 text-muted">{props.client.where}</p>
         </div>
         <button
-          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-strong px-2 py-1.5 text-[12px] text-ink-soft outline-offset-2 transition-colors hover:border-leaf hover:text-leaf-deep focus-visible:outline-2 focus-visible:outline-leaf-deep"
+          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-control px-2 py-1.5 text-[12px] text-ink-soft outline-offset-2 transition-colors hover:border-leaf hover:text-leaf-deep focus-visible:outline-2 focus-visible:outline-leaf-deep"
           onClick={() => void copy()}
           aria-label={`Copy setup for ${props.client.label}`}
           title="Copy"
@@ -1269,7 +1269,7 @@ export function SettingsView() {
                     onClick={() => setSection(it.key)}
                     aria-current={active() ? "page" : undefined}
                     class={`group flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12.5px] font-medium transition-colors ${
-                      active() ? "border-indigo bg-indigo text-white" : "border-line-strong bg-paper text-ink-soft"
+                      active() ? "border-indigo bg-indigo text-white" : "border-line-control bg-paper text-ink-soft"
                     }`}
                   >
                     <span
@@ -1349,7 +1349,7 @@ export function SettingsView() {
                       <div class="flex flex-wrap items-center gap-3">
                         <StatusPill state={store.modelState()} name={store.modelName()} />
                       </div>
-                      <div class="data truncate text-faint" title={store.status()?.modelPath ?? ""}>
+                      <div class="data truncate text-muted" title={store.status()?.modelPath ?? ""}>
                         {store.status()?.modelPath ?? "…"}
                       </div>
                     </div>
