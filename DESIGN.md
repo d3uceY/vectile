@@ -17,19 +17,31 @@ Warm-neutral ground (`--color-paper: #f6f4ef`); no background texture.
 | Token | Value | Role |
 |---|---|---|
 | `paper` | `#f6f4ef` | warm bone ground |
+| `paper-warm` | `#f0ece3` | cardstock plates |
 | `surface` | `#ffffff` | white cards, `.sheet` |
-| `surface-2` | `#f1efe9` | hovers, light fills |
-| `ink` | `#24272c` | primary text |
-| `ink-soft` | `#3f454d` | secondary |
-| `muted` | `#5e656c` | supporting text |
-| `faint` | `#767d85` | data labels |
-| `line` / `line-strong` | `#e6e2da` / `#cfcac0` | hairline borders |
+| `surface-2` | `#f2efe9` | hovers, light fills |
+| `sidebar` | `#f0ede7` | neutral column |
+| `ink` | `#292721` | primary text (13.6:1 on paper) |
+| `ink-soft` | `#48443c` | secondary (8.8:1 on paper) |
+| `muted` | `#68645b` | supporting text (5.4:1 on paper, 4.6:1 worst case) |
+| `faint` | `#807c72` | icons and decoration only, never text (3.8:1 on paper) |
+| `line` | `#e6e2da` | decorative hairline: card edges, dividers, separators |
+| `line-strong` | `#cac5bb` | decorative reinforcement: section cards, dashed empty states |
+| `line-control` | `#8c877e` | control boundary: inputs, selects, switches, outline buttons (3:1+ on every plate) |
 | `leaf` / `leaf-deep` | `#1e8a4e` / `#15703e` | brand, primary buttons, active/selected, links, success |
-| `mint` / `mint-strong` | `#e4f3e9` / `#c8ecd6` | light green fills (active pills, selection) |
+| `mint` / `mint-strong` | `#e5f3e8` / `#caecd3` | light green fills (active pills, selection) |
 | `amber` / `amber-deep` | `#b45309` / `#92400e` | attention: unsaved, needs-reindex, recommended, write tools |
 | `amber-soft` | `#fbeeda` | attention fills |
-| `highlighter` | `#fff1a8` | keyword matches in snippets |
+| `highlighter` | `#fff1a8` | keyword matches in snippets (carries `ink`, 13.1:1) |
 | `danger` | `#c13b2f` | errors |
+
+**One warm hue holds the whole neutral family** (OKLCH hue 82-92: `ink` 92, `muted` 87, `faint` 89, `line-control` 82, every surface and border 85-89). The ramp is authored in OKLCH and only lightness moves between stops: `ink` L 0.27, `ink-soft` L 0.39, `muted` L 0.50, `faint` L 0.59, `line-control` L 0.63, `line-strong` L 0.82, `line` L 0.91, `paper` L 0.97. Chroma stays at 0.007-0.016, so the neutrals are warm greys rather than a second color, and the ordering survives grayscale. The mint fills hold the leaf hue (153), so the green family is one scale instead of two.
+
+Three rules that follow from the ramp:
+
+- **`faint` is not a text color.** A fourth text step light enough to read as "quieter than `muted`" cannot reach 4.5:1 on bone (the darkest plate pins it around 4.2:1). `muted` is the lightest text token; `faint` is for chevrons, remove buttons, folder and file icons, and dot fills, and clears 3:1 on every surface.
+- **`line-control` is the only border that carries meaning.** A field fill is white on a white desk, so the border is the whole boundary; `line` and `line-strong` are decoration and stay light. Focus rings are `leaf-deep` at 5.6:1 on paper.
+- **Publish measured numbers, not eyeballed ones.** Every pair above was gated with `retna contrast` at 4.5:1 for text and 3:1 for non-text (52 pairs, 0 failures).
 
 One dark-green accent (`leaf-deep`) is the interaction color: active nav, selection, links, and primary buttons all read green, so "you can act here" keeps a single consistent meaning. Warm amber is reserved for things that need attention. The `indigo*` token family is aliased to the green values for legacy class-name compatibility.
 
