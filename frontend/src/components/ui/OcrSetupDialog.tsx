@@ -25,7 +25,7 @@ export function OcrSetupDialog(props: {
         onClick={props.onDismiss}
       >
         <div class="sheet w-104 p-6 shadow-pop" onClick={(e) => e.stopPropagation()}>
-          <p class="data text-[11px] uppercase tracking-wide text-faint">Optional</p>
+          <p class="data text-[11px] uppercase tracking-wide text-muted">Optional</p>
           <h2 class="title mt-1 text-[20px] leading-tight text-ink">Read scanned PDFs</h2>
           <p class="mt-2 text-[13.5px] leading-6 text-ink-soft">
             Some PDFs are photos of pages instead of text. Nothing in them can be searched until it
