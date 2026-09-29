@@ -19,7 +19,7 @@ export function Button(props: ButtonProps) {
     variant === "primary"
       ? "bg-leaf-deep text-white hover:bg-leaf shadow-[0_1px_2px_rgb(21_112_62/0.3)]"
       : variant === "outline"
-        ? "border border-line-strong bg-paper text-ink-soft hover:border-indigo/50 hover:text-indigo-deep"
+        ? "border border-line-control bg-paper text-ink-soft hover:border-indigo/50 hover:text-indigo-deep"
         : variant === "ghost"
           ? "text-ink-soft hover:bg-indigo-soft hover:text-indigo-deep"
           : variant === "danger"
@@ -62,7 +62,7 @@ export function Chip(props: {
     tone === "mint"
       ? "bg-surface-2 text-muted"
       : tone === "leaf"
-        ? "bg-leaf text-white"
+        ? "bg-leaf-deep text-white"
         : tone === "code"
           ? "bg-paper text-muted font-mono"
           : tone === "amber"
@@ -247,7 +247,7 @@ export function Select(props: SelectProps) {
           ref={trigger}
           type="button"
           class={`inline-flex h-8 min-w-0 flex-1 items-center rounded-control border bg-surface pl-3 pr-8 text-left text-[13px] transition-colors duration-150 ease-snappy disabled:pointer-events-none disabled:opacity-45 ${
-            open() ? "border-leaf" : "border-line-strong hover:border-faint"
+            open() ? "border-leaf" : "border-line-control hover:border-faint"
           } ${selected() ? "text-ink" : "text-muted"}`}
           aria-label={props["aria-label"]}
           aria-haspopup="listbox"
@@ -322,7 +322,7 @@ export function Switch(props: {
       aria-label={props.label}
       onClick={() => props.onChange(!props.checked)}
       class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-150 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
-        props.checked ? "border-leaf bg-leaf" : "border-line-strong bg-surface"
+        props.checked ? "border-leaf bg-leaf" : "border-line-control bg-surface"
       }`}
     >
       <span
