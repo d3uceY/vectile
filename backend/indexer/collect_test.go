@@ -51,13 +51,13 @@ func TestCollectFilesSkipsExcludedDirs(t *testing.T) {
 		".git/config.md":                      "# git\n",
 	})
 
-	got := relFiles(t, root, collectFiles([]string{root}, false, excludedDirNames([]string{"node_modules"})))
+	got := relFiles(t, root, collectFiles([]string{root}, false, excludedNames([]string{"node_modules"})))
 	want := []string{"README.md", "dev-docs/notes.md", "references/other/README.md"}
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Fatalf("walk with node_modules excluded = %v, want %v", got, want)
 	}
 
-	got = relFiles(t, root, collectFiles([]string{root}, false, excludedDirNames([]string{"node_modules", "references"})))
+	got = relFiles(t, root, collectFiles([]string{root}, false, excludedNames([]string{"node_modules", "references"})))
 	want = []string{"README.md", "dev-docs/notes.md"}
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Fatalf("walk with node_modules+references excluded = %v, want %v", got, want)
@@ -65,10 +65,27 @@ func TestCollectFilesSkipsExcludedDirs(t *testing.T) {
 
 	// Excluding a nested name prunes only that directory; its parent is still
 	// walked, so files sitting directly in it are still collected.
-	got = relFiles(t, root, collectFiles([]string{root}, false, excludedDirNames([]string{"dep"})))
+	got = relFiles(t, root, collectFiles([]string{root}, false, excludedNames([]string{"dep"})))
 	want = []string{"README.md", "dev-docs/notes.md", "node_modules/loose.md", "references/other/README.md"}
 	if strings.Join(got, ",") != strings.Join(want, ",") {
 		t.Fatalf("walk with only dep excluded = %v, want %v", got, want)
+	}
+}
+
+// The same list drops single files by name, at any depth, without pruning the
+// folders they sit in.
+func TestCollectFilesSkipsExcludedFiles(t *testing.T) {
+	root := writeTree(t, map[string]string{
+		"README.md":             "# keep\n",
+		"CHANGELOG.md":          "# drop\n",
+		"dev-docs/CHANGELOG.md": "# drop\n",
+		"dev-docs/notes.md":     "# keep\n",
+	})
+
+	got := relFiles(t, root, collectFiles([]string{root}, false, excludedNames([]string{"CHANGELOG.md"})))
+	want := []string{"README.md", "dev-docs/notes.md"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Fatalf("walk with CHANGELOG.md excluded = %v, want %v", got, want)
 	}
 }
 
@@ -78,17 +95,17 @@ func TestCollectFilesWalksExplicitRootName(t *testing.T) {
 	root := writeTree(t, map[string]string{"node_modules/keep.md": "# keep\n"})
 	nm := filepath.Join(root, "node_modules")
 
-	got := relFiles(t, nm, collectFiles([]string{nm}, false, excludedDirNames([]string{"node_modules"})))
+	got := relFiles(t, nm, collectFiles([]string{nm}, false, excludedNames([]string{"node_modules"})))
 	if strings.Join(got, ",") != "keep.md" {
 		t.Fatalf("explicitly configured path was pruned: %v", got)
 	}
 }
 
-func TestExcludedDirNames(t *testing.T) {
-	if excludedDirNames(nil) != nil {
+func TestExcludedNames(t *testing.T) {
+	if excludedNames(nil) != nil {
 		t.Fatal("no names should yield a nil set")
 	}
-	set := excludedDirNames([]string{" node_modules ", "", "dist"})
+	set := excludedNames([]string{" node_modules ", "", "dist"})
 	if !set["node_modules"] || !set["dist"] || len(set) != 2 {
 		t.Fatalf("unexpected set: %v", set)
 	}

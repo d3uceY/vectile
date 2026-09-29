@@ -26,10 +26,7 @@ func IndexObsidian(ctx context.Context, conn *sql.DB, cfg *config.Config, force 
 		return failedResult(err)
 	}
 
-	excludeFolders := make(map[string]bool)
-	for _, f := range cfg.ObsidianExcludeFolders {
-		excludeFolders[f] = true
-	}
+	exclude := excludedNames(cfg.ObsidianExcludeFolders)
 
 	var allFiles []string
 	for _, vault := range cfg.ObsidianVaults {
@@ -40,7 +37,7 @@ func IndexObsidian(ctx context.Context, conn *sql.DB, cfg *config.Config, force 
 			continue
 		}
 		slog.Info("indexing Obsidian vault", "path", vault)
-		allFiles = append(allFiles, walkVault(vault, excludeFolders, cfg.SkipCloudPlaceholders)...)
+		allFiles = append(allFiles, walkVault(vault, exclude, cfg.SkipCloudPlaceholders)...)
 	}
 
 	result := &IndexResult{TotalFound: len(allFiles)}
@@ -52,7 +49,7 @@ func IndexObsidian(ctx context.Context, conn *sql.DB, cfg *config.Config, force 
 	return result
 }
 
-func walkVault(vaultPath string, excludeFolders map[string]bool, skipPlaceholders bool) []string {
+func walkVault(vaultPath string, exclude map[string]bool, skipPlaceholders bool) []string {
 	var results []string
 	filepath.Walk(vaultPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -60,12 +57,15 @@ func walkVault(vaultPath string, excludeFolders map[string]bool, skipPlaceholder
 		}
 		if info.IsDir() {
 			name := info.Name()
-			if obsidianSkipDirs[name] || excludeFolders[name] || strings.HasPrefix(name, ".") {
+			if obsidianSkipDirs[name] || exclude[name] || strings.HasPrefix(name, ".") {
 				return filepath.SkipDir
 			}
 			return nil
 		}
 		if strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+		if exclude[info.Name()] {
 			return nil
 		}
 		if parser.SourceTypeForPath(path) == "" {

@@ -137,10 +137,11 @@ func isHidden(path string) bool {
 	return false
 }
 
-// excludedDirNames turns a list of directory names into a lookup set. Names
-// are matched whole (not as substrings) and any depth, so "node_modules"
-// prunes every copy in a tree.
-func excludedDirNames(names []string) map[string]bool {
+// excludedNames turns a list of folder or file names into a lookup set. Names
+// are matched whole (not as substrings or globs) and at any depth, so
+// "node_modules" prunes every copy in a tree and "go.sum" drops every lock
+// file. Nil means nothing is excluded.
+func excludedNames(names []string) map[string]bool {
 	if len(names) == 0 {
 		return nil
 	}
@@ -153,11 +154,25 @@ func excludedDirNames(names []string) map[string]bool {
 	return set
 }
 
+// pathHasExcludedName reports whether any component of a slash-separated
+// relative path (a Calibre "Author/Title (id)") is on the skip list.
+func pathHasExcludedName(relPath string, exclude map[string]bool) bool {
+	if len(exclude) == 0 {
+		return false
+	}
+	for _, part := range strings.Split(filepath.ToSlash(relPath), "/") {
+		if exclude[part] {
+			return true
+		}
+	}
+	return false
+}
+
 // collectFiles walks directories recursively and collects files with supported
 // extensions. Cloud placeholders are skipped when skipPlaceholders is true, and
-// any directory named in excludeDirs is pruned whole. An explicitly configured
-// path is always walked, even if its own name is on the exclusion list.
-func collectFiles(paths []string, skipPlaceholders bool, excludeDirs map[string]bool) []string {
+// any directory or file named in exclude is skipped whole. An explicitly
+// configured path is always walked, even if its own name is on the skip list.
+func collectFiles(paths []string, skipPlaceholders bool, exclude map[string]bool) []string {
 	var files []string
 	for _, p := range paths {
 		info, err := os.Stat(p)
@@ -180,12 +195,15 @@ func collectFiles(paths []string, skipPlaceholders bool, excludeDirs map[string]
 				return nil
 			}
 			if fi.IsDir() {
-				if fp != p && excludeDirs[fi.Name()] {
+				if fp != p && exclude[fi.Name()] {
 					return filepath.SkipDir
 				}
 				return nil
 			}
 			if isHidden(fp) {
+				return nil
+			}
+			if exclude[fi.Name()] {
 				return nil
 			}
 			if parser.SourceTypeForPath(fp) == "" {
@@ -505,7 +523,7 @@ func IndexProject(ctx context.Context, conn *sql.DB, cfg *config.Config, collect
 		return failedResult(err)
 	}
 
-	files := collectFiles(paths, cfg.SkipCloudPlaceholders, excludedDirNames(cfg.ProjectExcludeFolders))
+	files := collectFiles(paths, cfg.SkipCloudPlaceholders, excludedNames(cfg.ProjectExcludeFolders))
 	result := &IndexResult{TotalFound: len(files)}
 	cleared := clearForRebuild(conn, collectionID, force)
 

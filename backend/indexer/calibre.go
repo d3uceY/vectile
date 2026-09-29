@@ -29,6 +29,7 @@ func IndexCalibre(ctx context.Context, conn *sql.DB, cfg *config.Config, force b
 	}
 
 	var allBooks []bookEntry
+	exclude := excludedNames(cfg.CalibreExcludeFolders)
 	for _, lib := range cfg.CalibreLibraries {
 		lib = expandPath(lib)
 		info, err := os.Stat(lib)
@@ -43,6 +44,11 @@ func IndexCalibre(ctx context.Context, conn *sql.DB, cfg *config.Config, force b
 			continue
 		}
 		for _, b := range books {
+			// A library path is "Author/Title (id)", so a skip-list entry
+			// drops a whole author, or one book's folder, by name.
+			if pathHasExcludedName(b.RelativePath, exclude) {
+				continue
+			}
 			allBooks = append(allBooks, bookEntry{libraryPath: lib, book: b})
 		}
 	}

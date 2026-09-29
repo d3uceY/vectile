@@ -8,8 +8,9 @@ const DEFAULT_COLLECTION = "My Library";
 
 /** One-time, three-step setup tour for a fresh (empty) library. Uses driver.js
     to walk Settings → Index → Search, each step's popover carrying the real
-    action. Starts only once an active model exists (so it never collides with
-    first-run model onboarding) and adds the chosen folder into the default
+    action. Starts only once an active model exists and every first-run dialog
+    has closed (the model dialog hands straight off to the OCR offer), so it
+    never covers onboarding. Adds the chosen folder into the default
     "My Library" collection. Any close, skip, or finish marks the tour as seen
     so it never runs again. Renders nothing. */
 export function SetupTour() {
@@ -24,6 +25,9 @@ export function SetupTour() {
       return;
     }
     if (!store.canIndex()) return; // wait for the first active model
+    // Read the dialog signals last so this effect stays live and re-runs when
+    // they close; the tour then starts on its own.
+    if (store.modelDialogOpen() || store.ocrSetupOpen()) return;
     started = true;
     start();
   });

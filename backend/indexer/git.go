@@ -133,8 +133,9 @@ func IndexGitRepo(ctx context.Context, conn *sql.DB, cfg *config.Config, repoPat
 	}
 
 	var indexable []string
+	exclude := excludedNames(cfg.RepositoryExcludeFolders)
 	for _, f := range filesToIndex {
-		if shouldIndexFile(f) {
+		if shouldIndexFile(f, exclude) {
 			indexable = append(indexable, f)
 		}
 	}
@@ -549,19 +550,21 @@ func getFileDiff(repoPath, commitSHA, filePath string) string {
 	return out
 }
 
-func shouldIndexFile(relPath string) bool {
-	if shouldExclude(relPath) {
+func shouldIndexFile(relPath string, exclude map[string]bool) bool {
+	if shouldExclude(relPath, exclude) {
 		return false
 	}
 	return parser.IsCodeFile(relPath)
 }
 
-func shouldExclude(relPath string) bool {
+// shouldExclude applies git's built-in skip lists (lock files, build output)
+// plus the user's repository skip list to one tracked path.
+func shouldExclude(relPath string, exclude map[string]bool) bool {
 	if excludePatterns[filepath.Base(relPath)] {
 		return true
 	}
 	for _, part := range strings.Split(relPath, "/") {
-		if excludeDirPatterns[part] {
+		if excludeDirPatterns[part] || exclude[part] {
 			return true
 		}
 	}

@@ -28,6 +28,10 @@ func TestDefaults(t *testing.T) {
 	if len(cfg.ProjectExcludeFolders) != 1 || cfg.ProjectExcludeFolders[0] != "node_modules" {
 		t.Fatalf("project folders should skip node_modules by default, got %v", cfg.ProjectExcludeFolders)
 	}
+	if len(cfg.RepositoryExcludeFolders) != 0 || len(cfg.CalibreExcludeFolders) != 0 || len(cfg.ObsidianExcludeFolders) != 0 {
+		t.Fatalf("skip lists should start empty, got %v / %v / %v",
+			cfg.ObsidianExcludeFolders, cfg.RepositoryExcludeFolders, cfg.CalibreExcludeFolders)
+	}
 	if !cfg.OCR.Enabled {
 		t.Fatal("OCR should default to on; it only runs for pages with no text")
 	}
@@ -46,6 +50,8 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	cfg.MCP.Enabled = true
 	cfg.MCP.Port = 40404
 	cfg.ProjectExcludeFolders = []string{"node_modules", "references"}
+	cfg.RepositoryExcludeFolders = []string{"testdata", "go.sum"}
+	cfg.CalibreExcludeFolders = []string{"Samples"}
 	cfg.OCR.Enabled = false
 	cfg.OCR.Languages = []string{"eng", "deu"}
 
@@ -71,6 +77,12 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	}
 	if len(got.ProjectExcludeFolders) != 2 || got.ProjectExcludeFolders[1] != "references" {
 		t.Fatalf("project exclude folders not round-tripped: %v", got.ProjectExcludeFolders)
+	}
+	if len(got.RepositoryExcludeFolders) != 2 || got.RepositoryExcludeFolders[1] != "go.sum" {
+		t.Fatalf("repository exclude folders not round-tripped: %v", got.RepositoryExcludeFolders)
+	}
+	if len(got.CalibreExcludeFolders) != 1 || got.CalibreExcludeFolders[0] != "Samples" {
+		t.Fatalf("calibre exclude folders not round-tripped: %v", got.CalibreExcludeFolders)
 	}
 	// Save whitelists keys explicitly, so a section missing from that list
 	// silently never persists. This is the check that catches it.

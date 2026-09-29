@@ -247,7 +247,6 @@ function ChipList(props: {
   values: string[];
   onAdd: (v: string) => void;
   onRemove: (v: string) => void;
-  title?: string;
   empty?: string;
 }) {
   const [input, setInput] = createSignal("");
@@ -259,16 +258,11 @@ function ChipList(props: {
     }
   };
 
-  const browse = async () => {
-    const dir = await pickFolder(props.title);
-    if (dir) props.onAdd(dir);
-  };
-
   return (
     <div class="flex flex-col gap-2">
       {props.values.length === 0 ? (
         <p class="text-[12.5px] leading-4 text-muted">
-          {props.empty ?? "None. Every folder inside a vault is indexed."}
+          {props.empty ?? "None."}
         </p>
       ) : (
         <ul class="flex flex-wrap gap-1.5">
@@ -297,13 +291,10 @@ function ChipList(props: {
           onKeyDown={(e) => {
             if (e.key === "Enter") addInput();
           }}
-          placeholder="folder name, e.g. .trash"
+          placeholder="name, e.g. .trash or CHANGELOG.md"
           class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
           spellcheck={false}
         />
-        <Button size="sm" variant="outline" onClick={() => void browse()}>
-          Browse
-        </Button>
         <Button size="sm" onClick={addInput}>
           Add
         </Button>
@@ -560,7 +551,8 @@ function SourceTabs(props: {
   );
 }
 
-/** Folder names kept out of the index, at any depth, under the type they belong to. */
+/** Folder and file names kept out of the index, at any depth, under the type
+    they belong to. */
 function ExcludeBlock(props: {
   values: string[];
   onAdd: (v: string) => void;
@@ -568,13 +560,12 @@ function ExcludeBlock(props: {
   hint: string;
   note: string;
   empty: string;
-  title: string;
 }) {
   return (
     <div class="mt-5 border-t border-line pt-4">
       <div class="flex items-center gap-2">
         <SlashIcon size={14} class="shrink-0 text-muted" />
-        <h5 class="text-[13px] font-semibold tracking-[-0.01em] text-ink-soft">Skip these folders</h5>
+        <h5 class="text-[13px] font-semibold tracking-[-0.01em] text-ink-soft">Skip folders or files</h5>
         <InfoTip text={props.hint} />
         <span class="data ml-auto shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] text-muted tabular-nums">
           {props.values.length}
@@ -586,7 +577,6 @@ function ExcludeBlock(props: {
           values={props.values}
           onAdd={props.onAdd}
           onRemove={props.onRemove}
-          title={props.title}
           empty={props.empty}
         />
       </div>
@@ -882,11 +872,22 @@ const NAV_GROUPS: {
 
 /* ---- the view ---- */
 
+/** The flat string-list keys in the config: what addPath/removePath touch. */
+type PathKey =
+  | "obsidian_vaults"
+  | "obsidian_exclude_folders"
+  | "project_exclude_folders"
+  | "repository_exclude_folders"
+  | "calibre_exclude_folders"
+  | "calibre_libraries";
+
 const cloneCfg = (c: AppConfig): AppConfig => ({
   ...c,
   obsidian_vaults: [...c.obsidian_vaults],
   obsidian_exclude_folders: [...c.obsidian_exclude_folders],
   project_exclude_folders: [...c.project_exclude_folders],
+  repository_exclude_folders: [...c.repository_exclude_folders],
+  calibre_exclude_folders: [...c.calibre_exclude_folders],
   calibre_libraries: [...c.calibre_libraries],
   repositories: Object.fromEntries(Object.entries(c.repositories).map(([k, v]) => [k, [...v]])),
   projects: Object.fromEntries(Object.entries(c.projects).map(([k, v]) => [k, [...v]])),
@@ -978,14 +979,10 @@ export function SettingsView() {
       return { ...d, [k]: clamp(n, b.min, b.max) };
     });
 
-  const addPath = (
-    k: "obsidian_vaults" | "obsidian_exclude_folders" | "project_exclude_folders" | "calibre_libraries",
-    v: string,
-  ) => store.setSettingsDraft((d) => (d ? { ...d, [k]: [...d[k], v] } : d));
-  const removePath = (
-    k: "obsidian_vaults" | "obsidian_exclude_folders" | "project_exclude_folders" | "calibre_libraries",
-    v: string,
-  ) => store.setSettingsDraft((d) => (d ? { ...d, [k]: d[k].filter((x) => x !== v) } : d));
+  const addPath = (k: PathKey, v: string) =>
+    store.setSettingsDraft((d) => (d ? { ...d, [k]: [...d[k], v] } : d));
+  const removePath = (k: PathKey, v: string) =>
+    store.setSettingsDraft((d) => (d ? { ...d, [k]: d[k].filter((x) => x !== v) } : d));
 
   const addGroupPath = (mapKey: "projects" | "repositories", name: string, v: string) =>
     store.setSettingsDraft((d) =>
@@ -1780,10 +1777,9 @@ export function SettingsView() {
                         values={draft()!.project_exclude_folders}
                         onAdd={(v) => addPath("project_exclude_folders", v)}
                         onRemove={(v) => removePath("project_exclude_folders", v)}
-                        hint="Folder names skipped anywhere inside a project folder, at any depth. node_modules is always skipped; add any other folder you never want in search results."
-                        note="Folder names skipped at any depth, inside every project collection."
+                        hint="Names skipped anywhere inside a project folder, at any depth. node_modules is always skipped; add any other folder or file you never want in search results."
+                        note="Names skipped at any depth, inside every project collection."
                         empty="None. Only node_modules is skipped."
-                        title="Name a folder to exclude"
                       />
                     </Show>
 
@@ -1803,6 +1799,14 @@ export function SettingsView() {
                           empty="No collections yet. Create one, then add its repositories."
                         />
                       </div>
+                      <ExcludeBlock
+                        values={draft()!.repository_exclude_folders}
+                        onAdd={(v) => addPath("repository_exclude_folders", v)}
+                        onRemove={(v) => removePath("repository_exclude_folders", v)}
+                        hint="Names skipped anywhere inside a repository, at any depth. Build output and lock files are already skipped. This filters the file tree only; commit history is still indexed in full."
+                        note="Names skipped at any depth, inside every repository."
+                        empty="None. Only the built-in list is skipped."
+                      />
                     </Show>
 
                     <Show when={sourceKind() === "obsidian"}>
@@ -1824,10 +1828,9 @@ export function SettingsView() {
                         values={draft()!.obsidian_exclude_folders}
                         onAdd={(v) => addPath("obsidian_exclude_folders", v)}
                         onRemove={(v) => removePath("obsidian_exclude_folders", v)}
-                        hint="Folders listed here are skipped when vaults are indexed. Handy for hiding attachments, templates, .trash, or anything else you don't want in search results."
-                        note="Folder names skipped at any depth, inside every vault."
+                        hint="Names listed here are skipped when vaults are indexed. Handy for hiding attachments, templates, .trash, or a stray file you don't want in search results."
+                        note="Names skipped at any depth, inside every vault."
                         empty="None. Every folder inside a vault is indexed."
-                        title="Choose a folder to exclude"
                       />
                     </Show>
 
@@ -1846,6 +1849,14 @@ export function SettingsView() {
                           empty="No libraries yet. Add a Calibre library to search its books."
                         />
                       </div>
+                      <ExcludeBlock
+                        values={draft()!.calibre_exclude_folders}
+                        onAdd={(v) => addPath("calibre_exclude_folders", v)}
+                        onRemove={(v) => removePath("calibre_exclude_folders", v)}
+                        hint="Names listed here are skipped when a library is read. A book's folder is its author and title, so one entry can drop a whole author or a single book folder."
+                        note="Names skipped at any depth, inside every library."
+                        empty="None. Every book in the library is indexed."
+                      />
                     </Show>
                   </div>
                 </Section>
