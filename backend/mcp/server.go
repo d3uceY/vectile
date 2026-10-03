@@ -1,8 +1,9 @@
 // Package mcp exposes vectile's local library to MCP (Model Context Protocol)
-// clients over a loopback SSE server. Claude Desktop, Claude Code, and any
-// other MCP client can search the library and inspect collections, and can
-// trigger indexing and pruning when the user has enabled allow-write. Write
-// tools are gated at call time by config.MCPConfig.AllowWrite.
+// clients over a loopback HTTP server, using either the Streamable HTTP or the
+// SSE transport. Claude Desktop, Claude Code, and any other MCP client can
+// search the library and inspect collections, and can trigger indexing and
+// pruning when the user has enabled allow-write. Write tools are gated at call
+// time by config.MCPConfig.AllowWrite.
 package mcp
 
 import (

@@ -38,13 +38,31 @@ type GUIConfig struct {
 	Mascot                     MascotConfig `json:"mascot"`
 }
 
+// MCP transports. Streamable HTTP is the default because clients probe it
+// first; SSE stays available for clients that only speak the older transport.
+const (
+	TransportStreamableHTTP = "streamable-http"
+	TransportSSE            = "sse"
+)
+
+// NormalizeTransport maps a configured value to a supported transport,
+// falling back to streamable HTTP for an empty or unrecognized one. Called at
+// every entry point so a hand-edited config.json can never reach the server.
+func NormalizeTransport(t string) string {
+	if t == TransportSSE {
+		return TransportSSE
+	}
+	return TransportStreamableHTTP
+}
+
 // MCPConfig holds the in-app MCP (Model Context Protocol) server settings.
 // The server binds to 127.0.0.1 only. Search tools are always available;
 // AllowWrite gates the write tools (index/prune) that can change the library.
 type MCPConfig struct {
-	Enabled    bool `json:"enabled"`
-	Port       int  `json:"port"`
-	AllowWrite bool `json:"allow_write"`
+	Enabled    bool   `json:"enabled"`
+	Port       int    `json:"port"`
+	AllowWrite bool   `json:"allow_write"`
+	Transport  string `json:"transport"`
 }
 
 // OCRConfig holds the OCR fallback settings. Only the switch and the language
@@ -281,8 +299,9 @@ func defaults() *Config {
 			},
 		},
 		MCP: MCPConfig{
-			Enabled: false,
-			Port:    31123,
+			Enabled:   false,
+			Port:      31123,
+			Transport: TransportStreamableHTTP,
 		},
 		// On by default: the fallback only runs for pages that produced no
 		// text at all, and it does nothing while no bundle is installed.

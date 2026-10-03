@@ -12,6 +12,7 @@ export class MCPStatus {
     "running": boolean;
     "port": number;
     "url": string;
+    "transport": string;
 
     /** Creates a new MCPStatus instance. */
     constructor($$source: Partial<MCPStatus> = {}) {
@@ -23,6 +24,9 @@ export class MCPStatus {
         }
         if (!("url" in $$source)) {
             this["url"] = "";
+        }
+        if (!("transport" in $$source)) {
+            this["transport"] = "";
         }
 
         Object.assign(this, $$source);

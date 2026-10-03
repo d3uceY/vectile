@@ -1,7 +1,7 @@
 import { createEffect, createSignal, createUniqueId, For, Show, type JSX } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import { importModel, pickFolder, pickModelFile } from "../../lib/api";
-import type { AppConfig, GUIConfig, MascotConfig, MCPConfig, ModelInfo, OCRConfig, SearchDefaults } from "../../lib/types";
+import type { AppConfig, GUIConfig, MascotConfig, MCPConfig, MCPTransport, ModelInfo, OCRConfig, SearchDefaults } from "../../lib/types";
 import { Button, ConfirmDialog, InfoTip, Select, StatusPill, Switch, Toggle, ViewHeading } from "../ui/primitives";
 import { CacheNavIcon, ChunkNavIcon, ConnectNavIcon, IndexNavIcon, ModelNavIcon, OcrNavIcon, SearchNavIcon, SourcesNavIcon } from "../ui/nav-icons";
 import {
@@ -622,11 +622,14 @@ type MCPClient = {
   title?: string;
   /** Where the setup goes, in plain words. */
   where: string;
-  /** The exact text to copy. */
-  payload: (url: string) => string;
+  /** The exact text to copy. Varies by transport where the client says so. */
+  payload: (url: string, transport: MCPTransport) => string;
   /** An extra step the client needs before it works. */
   then?: string;
 };
+
+/** The name those clients use for each transport in their own config. */
+const clientTransportName = (t: MCPTransport) => (t === "sse" ? "sse" : "http");
 
 const MCP_CLIENTS: MCPClient[] = [
   {
@@ -654,7 +657,8 @@ const MCP_CLIENTS: MCPClient[] = [
     label: "VS Code",
     title: "VS Code / GitHub Copilot",
     where: "Add this to .vscode/mcp.json for one workspace, or to your user mcp.json for every workspace.",
-    payload: (url) => `{\n  "servers": {\n    "vectile": {\n      "type": "sse",\n      "url": "${url}"\n    }\n  }\n}`,
+    payload: (url, t) =>
+      `{\n  "servers": {\n    "vectile": {\n      "type": "${clientTransportName(t)}",\n      "url": "${url}"\n    }\n  }\n}`,
     then: "In VS Code the wrapper key is servers, not mcpServers, and it needs the type field.",
   },
   {
@@ -667,15 +671,87 @@ const MCP_CLIENTS: MCPClient[] = [
     id: "claude-code",
     label: "Claude Code",
     where: "Run this in your terminal.",
-    payload: (url) => `claude mcp add vectile --transport sse ${url}`,
+    payload: (url, t) => `claude mcp add vectile --transport ${clientTransportName(t)} ${url}`,
   },
   {
     id: "other",
     label: "Other",
-    where: "Use this URL with any MCP client that supports SSE.",
+    where: "Use this URL with any MCP client that supports Streamable HTTP or SSE.",
     payload: (url) => url,
   },
 ];
+
+/**
+ * The two MCP transports. Streamable HTTP is what current clients probe first;
+ * SSE is kept for assistants that only speak the older one.
+ */
+const MCP_TRANSPORTS: { id: MCPTransport; label: string; path: string; desc: string }[] = [
+  {
+    id: "streamable-http",
+    label: "Streamable HTTP",
+    path: "/mcp",
+    desc: "The current MCP transport, and what most assistants expect. Recommended.",
+  },
+  {
+    id: "sse",
+    label: "SSE",
+    path: "/sse",
+    desc: "The older transport. Pick this only if your assistant cannot use Streamable HTTP.",
+  },
+];
+
+/** Transport picker. Arrow keys, Home, and End move between options, per the ARIA radio-group pattern. */
+function TransportTabs(props: { value: MCPTransport; onChange: (id: MCPTransport) => void }) {
+  let els: HTMLButtonElement[] = [];
+  const onKey = (e: KeyboardEvent, i: number) => {
+    const n = MCP_TRANSPORTS.length;
+    let next = -1;
+    if (e.key === "ArrowRight") next = (i + 1) % n;
+    else if (e.key === "ArrowLeft") next = (i - 1 + n) % n;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = n - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    props.onChange(MCP_TRANSPORTS[next].id);
+    els[next]?.focus();
+  };
+  return (
+    <div
+      role="radiogroup"
+      aria-label="MCP transport"
+      class="grid grid-cols-1 gap-1 rounded-control border border-line-control bg-surface p-1 min-[430px]:grid-cols-2"
+    >
+      <For each={MCP_TRANSPORTS}>
+        {(t, i) => {
+          const active = () => props.value === t.id;
+          return (
+            <button
+              ref={(el) => (els[i()] = el)}
+              type="button"
+              role="radio"
+              aria-checked={active()}
+              tabindex={active() ? 0 : -1}
+              onClick={() => props.onChange(t.id)}
+              onKeyDown={(e) => onKey(e, i())}
+              class={`flex min-w-0 items-center gap-2 rounded-[7px] px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
+                active() ? "bg-indigo text-white" : "text-ink-soft hover:bg-surface-2 hover:text-ink"
+              }`}
+            >
+              <span class="min-w-0 flex-1 truncate text-left">{t.label}</span>
+              <span
+                class={`data shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[11px] ${
+                  active() ? "bg-surface text-ink" : "bg-paper text-muted"
+                }`}
+              >
+                {t.path}
+              </span>
+            </button>
+          );
+        }}
+      </For>
+    </div>
+  );
+}
 
 /** Client picker. Arrow keys, Home and End move between tabs, per the ARIA tabs pattern. */
 function ClientTabs(props: { value: string; onChange: (id: string) => void }) {
@@ -724,9 +800,9 @@ function ClientTabs(props: { value: string; onChange: (id: string) => void }) {
 }
 
 /** The selected client's setup: what it is, where it goes, and the payload. */
-function ClientSetup(props: { client: MCPClient; url: string }) {
+function ClientSetup(props: { client: MCPClient; url: string; transport: MCPTransport }) {
   const [copied, setCopied] = createSignal(false);
-  const payload = () => props.client.payload(props.url);
+  const payload = () => props.client.payload(props.url, props.transport);
   const copy = async () => {
     if (await copyText(payload())) {
       setCopied(true);
@@ -937,7 +1013,8 @@ const sanitizeConfig = (cfg: AppConfig): AppConfig => {
     STATIC_BOUNDS.auto_reindex_interval_minutes.min,
     STATIC_BOUNDS.auto_reindex_interval_minutes.max,
   );
-  cfg.mcp = cfg.mcp ?? { enabled: false, port: 31123 };
+  cfg.mcp = cfg.mcp ?? { enabled: false, port: 31123, allow_write: false, transport: "streamable-http" };
+  cfg.mcp.transport = cfg.mcp.transport === "sse" ? "sse" : "streamable-http";
   cfg.mcp.port = clamp(cfg.mcp.port, STATIC_BOUNDS.mcp_port.min, STATIC_BOUNDS.mcp_port.max);
   cfg.gui.mascot = cfg.gui.mascot ?? { ...DEFAULT_MASCOT };
   return cfg;
@@ -1064,7 +1141,13 @@ export function SettingsView() {
 
   const running = () => store.mcpStatus()?.running ?? false;
   const mcpWriteAllowed = () => draft()?.mcp.allow_write ?? false;
-  const mcpUrl = () => `http://127.0.0.1:${draft()!.mcp.port}/sse`;
+  /** The draft's transport, and the path clients reach it on. */
+  const mcpTransport = (): MCPTransport => draft()!.mcp.transport;
+  const mcpPath = () => (mcpTransport() === "sse" ? "/sse" : "/mcp");
+  const mcpUrl = () => `http://127.0.0.1:${draft()!.mcp.port}${mcpPath()}`;
+  /** What the running server is actually speaking, which differs from the
+      draft while a transport change is still unsaved. */
+  const liveTransportLabel = () => (store.mcpStatus()?.transport === "sse" ? "SSE" : "Streamable HTTP");
 
   /* The plate answers for the draft as well as the saved server, so flipping the
      switch below it can never leave the plate stating the opposite. */
@@ -1097,6 +1180,11 @@ export function SettingsView() {
       draft's while nothing is running, so editing the port never hands out a URL
       that is not answering yet. */
   const mcpConnectUrl = () => (running() ? store.mcpStatus()?.url || mcpUrl() : mcpUrl());
+  /** The transport a client can actually reach, kept in step with
+      mcpConnectUrl so a copied snippet never names a transport the URL beside
+      it is not serving yet. */
+  const mcpConnectTransport = (): MCPTransport =>
+    running() ? (store.mcpStatus()?.transport ?? mcpTransport()) : mcpTransport();
   /** What the server would expose right now, so the size of the decision is visible. */
   const mcpScope = () => {
     const s = store.status();
@@ -1975,6 +2063,9 @@ export function SettingsView() {
                           {mcpStateLabel()}
                         </span>
                         <Show when={running()}>
+                          <span class="data shrink-0 text-[11px] text-muted">{liveTransportLabel()}</span>
+                        </Show>
+                        <Show when={running()}>
                           <button
                             class="ml-auto -mr-1 flex h-6 shrink-0 items-center gap-1 rounded-control px-1.5 text-[11.5px] text-muted outline-offset-2 transition-colors hover:bg-surface-2 hover:text-indigo focus-visible:outline-2 focus-visible:outline-leaf-deep"
                             onClick={() => void copyUrl()}
@@ -2006,11 +2097,24 @@ export function SettingsView() {
                         hint="Starts a local MCP server that AI assistants on this machine can connect to. Applies when you save settings. The server answers only on your machine."
                       />
                       <Show when={draft()!.mcp.enabled}>
+                        <div class="py-3.5">
+                          <p class="mb-2 flex items-center gap-1.5 text-[13.5px] text-ink-soft">
+                            Transport
+                            <InfoTip text="How AI clients talk to the server. Streamable HTTP is the current standard and what most assistants probe first; SSE is the older transport. Applies when you save." />
+                          </p>
+                          <TransportTabs
+                            value={mcpTransport()}
+                            onChange={(t) => setMCP({ transport: t })}
+                          />
+                          <p class="note mt-2 text-[12.5px] leading-4 text-muted">
+                            {MCP_TRANSPORTS.find((t) => t.id === mcpTransport())?.desc}
+                          </p>
+                        </div>
                         <NumField
                           label="Port"
                           value={draft()!.mcp.port}
                           onChange={(n) => setMCP({ port: n })}
-                          hint="The port the MCP server listens on. Clients connect to http://127.0.0.1:<port>/sse. Applies when you save."
+                          hint={`The port the MCP server listens on. Clients connect to http://127.0.0.1:<port>${mcpPath()}. Applies when you save.`}
                           min={STATIC_BOUNDS.mcp_port.min}
                           max={STATIC_BOUNDS.mcp_port.max}
                           step={STATIC_BOUNDS.mcp_port.step}
@@ -2058,6 +2162,12 @@ export function SettingsView() {
                       <p class="note mb-2.5 mt-0.5 text-[12.5px] leading-4 text-muted">
                         Pick the app you're connecting, then paste the setup into it.
                       </p>
+                      <Show when={mcpTransport() === "streamable-http"}>
+                        <p class="note mb-2.5 text-[12.5px] leading-4 text-muted">
+                          Set vectile up before? Paste the setup again once. The address changed
+                          from /sse to /mcp.
+                        </p>
+                      </Show>
                       <div class="overflow-hidden rounded-control border border-line bg-surface">
                         <ClientTabs value={mcpClient()} onChange={setMcpClient} />
                         <div
@@ -2067,7 +2177,11 @@ export function SettingsView() {
                           tabindex={0}
                           class="-outline-offset-2 focus-visible:outline-2 focus-visible:outline-leaf-deep"
                         >
-                          <ClientSetup client={activeClient()} url={mcpConnectUrl()} />
+                          <ClientSetup
+                            client={activeClient()}
+                            url={mcpConnectUrl()}
+                            transport={mcpConnectTransport()}
+                          />
                         </div>
                       </div>
                     </div>

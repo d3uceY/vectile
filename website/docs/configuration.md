@@ -75,6 +75,7 @@ See [Scanned PDFs](/docs/ocr).
 | `enabled` | bool | `false` | Start the MCP server with the app. |
 | `port` | int | `31123` | Port for the local server. Bound to `127.0.0.1` only. |
 | `allow_write` | bool | `false` | Let assistants call `vectile_index` and `vectile_prune`. |
+| `transport` | string | `"streamable-http"` | Which transport the server speaks: `streamable-http` (clients reach it at `/mcp`) or `sse` (`/sse`). |
 
 ## A full example
 
@@ -121,7 +122,8 @@ See [Scanned PDFs](/docs/ocr).
   "mcp": {
     "enabled": false,
     "port": 31123,
-    "allow_write": false
+    "allow_write": false,
+    "transport": "streamable-http"
   },
   "ocr": {
     "enabled": true,

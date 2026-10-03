@@ -215,6 +215,7 @@ export class MCPConfig {
     "enabled": boolean;
     "port": number;
     "allow_write": boolean;
+    "transport": string;
 
     /** Creates a new MCPConfig instance. */
     constructor($$source: Partial<MCPConfig> = {}) {
@@ -226,6 +227,9 @@ export class MCPConfig {
         }
         if (!("allow_write" in $$source)) {
             this["allow_write"] = false;
+        }
+        if (!("transport" in $$source)) {
+            this["transport"] = "";
         }
 
         Object.assign(this, $$source);

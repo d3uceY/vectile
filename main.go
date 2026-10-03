@@ -150,7 +150,7 @@ func main() {
 	// Auto-start the MCP server when the user enabled it in Settings. A busy
 	// port logs a warning but never blocks launch.
 	if cfg.MCP.Enabled {
-		if _, err := mcpSvc.StartServer(cfg.MCP.Port); err != nil {
+		if _, err := mcpSvc.StartServer(cfg.MCP.Port, cfg.MCP.Transport); err != nil {
 			log.Printf("mcp auto-start: %v", err)
 		}
 	}

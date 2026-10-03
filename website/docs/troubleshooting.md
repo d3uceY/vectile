@@ -66,7 +66,9 @@ model state.
   it is running, stopped, or about to start or stop when you save.
 - The port in the client must match the port in the app. Copy the address printed in the Connect
   section.
-- The client has to speak SSE. Some clients only speak stdio and cannot use a URL.
+- The address has to match the transport. Streamable HTTP answers on `/mcp` and SSE answers on
+  `/sse`, and the Connect section prints the address for whichever one you picked. Some clients
+  only speak stdio and cannot use a URL at all.
 - The server listens on `127.0.0.1` only, so a client in a container, a virtual machine, or on
   another computer cannot reach it. That is deliberate.
 

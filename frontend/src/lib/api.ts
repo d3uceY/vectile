@@ -42,17 +42,17 @@ export async function getStatus(): Promise<Status> {
   return AppService.GetStatus() as unknown as Status;
 }
 
-/** Live state of the in-app MCP server (running / port / URL). */
+/** Live state of the in-app MCP server (running / port / URL / transport). */
 export async function getMCPStatus(): Promise<MCPStatus> {
   return MCPService.GetMCPStatus() as unknown as MCPStatus;
 }
 
-/** Start the MCP SSE server on 127.0.0.1:port; returns the connection URL. */
-export async function startMCP(port: number): Promise<string> {
-  return MCPService.StartServer(port) as unknown as string;
+/** Start the MCP server on 127.0.0.1:port; returns the connection URL. */
+export async function startMCP(port: number, transport: string): Promise<string> {
+  return MCPService.StartServer(port, transport) as unknown as string;
 }
 
-/** Stop the MCP SSE server. No-op when it is not running. */
+/** Stop the MCP server. No-op when it is not running. */
 export async function stopMCP(): Promise<void> {
   await MCPService.StopServer();
 }

@@ -31,7 +31,7 @@ the app first.
 
 <Shot
   src="screenshots/settings-connect.png"
-  alt="Settings, Connect section: the running server state, the loopback URL with a copy button, an enabled toggle, the port field, an allow write tools toggle, and the list of vectile tools with write tagged"
+  alt="Settings, Connect section: the running server state, the loopback URL with a copy button, an enabled toggle, a transport choice, the port field, an allow write tools toggle, and the list of vectile tools with write tagged"
   caption="The status plate answers for the saved server and for the changes you have not saved yet."
 />
 
@@ -51,13 +51,16 @@ the app first.
 
 ## Connecting a client
 
+vectile speaks Streamable HTTP on `/mcp` by default. That is the transport current assistants
+probe first, and most of them find it from the URL alone.
+
 Claude Desktop, in `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "vectile": {
-      "url": "http://127.0.0.1:31123/sse"
+      "url": "http://127.0.0.1:31123/mcp"
     }
   }
 }
@@ -66,14 +69,32 @@ Claude Desktop, in `claude_desktop_config.json`:
 Claude Code:
 
 ```bash
-claude mcp add vectile --transport sse http://127.0.0.1:31123/sse
+claude mcp add vectile --transport http http://127.0.0.1:31123/mcp
 ```
 
-Anything else that speaks SSE:
+Anything else that speaks Streamable HTTP:
 
 ```text
-http://127.0.0.1:31123/sse
+http://127.0.0.1:31123/mcp
 ```
+
+## Choosing a transport
+
+**Settings → Connect** has a Transport choice:
+
+- **Streamable HTTP** (the default) answers on `/mcp`.
+- **SSE** is the older transport, for an assistant that cannot use Streamable HTTP. It answers on
+  `/sse`.
+
+The choice applies when you save, and the server restarts on the new address. The status plate
+names the transport that is actually running, so it never disagrees with a change you have not
+saved yet.
+
+VS Code and Claude Code are the two clients that record the transport in their own setup. Pick
+those tabs in Settings and the snippet already carries the right one, so there is nothing to edit.
+
+If you connected an assistant before vectile moved to Streamable HTTP, paste the setup in again
+once. The default address changed from `/sse` to `/mcp`.
 
 ## The port
 

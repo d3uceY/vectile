@@ -160,7 +160,7 @@ Files you delete get pruned automatically, so results don't go stale. Auto-reind
 
 Settings → Connect runs a local MCP (Model Context Protocol) server on `127.0.0.1:31123`. It exposes search and collection tools, plus index and prune tools that stay off until you enable **Allow write tools** in Settings. The server binds to loopback only, so nothing leaves the machine.
 
-Point Claude Desktop, Claude Code, or any MCP client at `http://127.0.0.1:31123/sse` to search your library from the assistant. The Settings section shows the live server status, the tools it serves, and per-client setup directions.
+Point Claude Desktop, Claude Code, or any MCP client at `http://127.0.0.1:31123/mcp` to search your library from the assistant. Streamable HTTP is the default transport; switch to SSE in Settings if a client needs the older one. The Settings section shows the live server status, the tools it serves, and per-client setup directions.
 
 ## How search works
 
@@ -211,6 +211,7 @@ Config file: `<os.UserConfigDir()>/vectile/config.json`
 | mcp.enabled | false | Serve MCP tools to local AI assistants on launch |
 | mcp.port | 31123 | Port the MCP server listens on (127.0.0.1 only) |
 | mcp.allow_write | false | Let AI assistants call the index and prune tools |
+| mcp.transport | streamable-http | MCP transport: `streamable-http` (`/mcp`) or `sse` (`/sse`) |
 | ocr.enabled | true | Run OCR on PDF pages that come back with no text |
 | ocr.languages | [eng] | Language codes to read with; codes with no matching data are ignored |
 

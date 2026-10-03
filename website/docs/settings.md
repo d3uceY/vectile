@@ -142,6 +142,6 @@ The MCP server that lets a local AI assistant search your library. See
 
 <Shot
   src="screenshots/settings-connect.png"
-  alt="Settings, Connect section: the running server state, its loopback URL, an enable toggle, a port field, an allow write tools toggle, and the five vectile tools"
+  alt="Settings, Connect section: the running server state, its loopback URL, an enable toggle, a transport choice, a port field, an allow write tools toggle, and the five vectile tools"
   caption="The one section that decides whether anything outside vectile can read your library."
 />

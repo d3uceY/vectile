@@ -155,12 +155,16 @@ export interface GUIConfig {
   mascot: MascotConfig;
 }
 
+/** Mirrors config.NormalizeTransport: streamable HTTP is the default. */
+export type MCPTransport = "streamable-http" | "sse";
+
 /** Mirrors config.MCPConfig (in-app MCP server settings). */
 export interface MCPConfig {
   enabled: boolean;
   port: number;
   /** Gates the write tools (vectile_index / vectile_prune). */
   allow_write: boolean;
+  transport: MCPTransport;
 }
 
 /** Mirrors mcp.MCPStatus (live server state from the backend). */
@@ -168,6 +172,7 @@ export interface MCPStatus {
   running: boolean;
   port: number;
   url: string;
+  transport: MCPTransport;
 }
 
 export interface AppConfig {

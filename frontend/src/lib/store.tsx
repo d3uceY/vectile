@@ -272,13 +272,17 @@ export function createAppStore() {
     await refresh();
     const st = mcpStatus();
     const wantRunning = d.mcp.enabled;
-    const portChanged = Boolean(st?.running && st.port !== d.mcp.port);
-    if (st?.running && (!wantRunning || portChanged)) {
+    // A different port or transport needs a restart: the running server is
+    // listening somewhere, or as something, the draft no longer describes.
+    const needsRestart = Boolean(
+      st?.running && (st.port !== d.mcp.port || st.transport !== d.mcp.transport),
+    );
+    if (st?.running && (!wantRunning || needsRestart)) {
       await api.stopMCP();
     }
     if (wantRunning) {
       try {
-        const url = await api.startMCP(d.mcp.port);
+        const url = await api.startMCP(d.mcp.port, d.mcp.transport);
         if (!st?.running) pushToast(`MCP server on ${url}`, "success");
         void refreshMCP();
       } catch (err) {

@@ -90,12 +90,17 @@ const config = {
     start_on_login: false,
     mascot: { show_searching: true, show_indexing: true, show_nothing: true },
   },
-  mcp: { enabled: true, port: 31123, allow_write: false },
+  mcp: { enabled: true, port: 31123, allow_write: false, transport: "streamable-http" },
 };
 
 // Live MCP server state returned by GetMCPStatus; StartServer/StopServer
 // mutate it so the Settings status plate reacts in the browser.
-let mcp = { running: true, port: 31123, url: "http://127.0.0.1:31123/sse" };
+let mcp = {
+  running: true,
+  port: 31123,
+  transport: "streamable-http",
+  url: "http://127.0.0.1:31123/mcp",
+};
 
 // Query-vector cache state for the Settings Cache panel. ClearCache zeroes it,
 // and repeating a search flips the "cached" chip on the results header.
@@ -481,7 +486,10 @@ export async function stub(request) {
       return { body: mcp };
     case M.StartServer: {
       const port = post.args?.args?.[0] ?? 31123;
-      mcp = { running: true, port, url: `http://127.0.0.1:${port}/sse` };
+      // Mirrors config.NormalizeTransport: only an exact "sse" picks SSE.
+      const transport = post.args?.args?.[1] === "sse" ? "sse" : "streamable-http";
+      const path = transport === "sse" ? "/sse" : "/mcp";
+      mcp = { running: true, port, transport, url: `http://127.0.0.1:${port}${path}` };
       // String return: JSON-encode so the runtime's res.json() gets a quoted value.
       return { body: JSON.stringify(mcp.url) };
     }

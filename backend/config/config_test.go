@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -25,6 +26,9 @@ func TestDefaults(t *testing.T) {
 	if cfg.MCP.Port != 31123 {
 		t.Fatalf("default MCP port = %d, want 31123", cfg.MCP.Port)
 	}
+	if cfg.MCP.Transport != TransportStreamableHTTP {
+		t.Fatalf("default MCP transport = %q, want %q", cfg.MCP.Transport, TransportStreamableHTTP)
+	}
 	if len(cfg.ProjectExcludeFolders) != 1 || cfg.ProjectExcludeFolders[0] != "node_modules" {
 		t.Fatalf("project folders should skip node_modules by default, got %v", cfg.ProjectExcludeFolders)
 	}
@@ -40,6 +44,42 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
+// TestLoadKeepsTransportWhenKeyAbsent covers the upgrade path: a config.json
+// written before mcp.transport existed must come back on the default, not as
+// the empty string.
+func TestLoadKeepsTransportWhenKeyAbsent(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	raw := `{"mcp": {"enabled": true, "port": 31234, "allow_write": false}}`
+	if err := os.WriteFile(path, []byte(raw), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.MCP.Enabled || cfg.MCP.Port != 31234 {
+		t.Fatalf("mcp config not read: %+v", cfg.MCP)
+	}
+	if cfg.MCP.Transport != TransportStreamableHTTP {
+		t.Fatalf("absent transport = %q, want the default %q", cfg.MCP.Transport, TransportStreamableHTTP)
+	}
+}
+
+func TestNormalizeTransport(t *testing.T) {
+	cases := map[string]string{
+		"":                      TransportStreamableHTTP,
+		"nonsense":              TransportStreamableHTTP,
+		TransportStreamableHTTP: TransportStreamableHTTP,
+		TransportSSE:            TransportSSE,
+	}
+	for in, want := range cases {
+		if got := NormalizeTransport(in); got != want {
+			t.Errorf("NormalizeTransport(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
 func TestSaveLoadRoundtrip(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	cfg := defaults()
@@ -49,6 +89,7 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	cfg.GUI.AutoReindexIntervalMinutes = 45
 	cfg.MCP.Enabled = true
 	cfg.MCP.Port = 40404
+	cfg.MCP.Transport = TransportSSE
 	cfg.ProjectExcludeFolders = []string{"node_modules", "references"}
 	cfg.RepositoryExcludeFolders = []string{"testdata", "go.sum"}
 	cfg.CalibreExcludeFolders = []string{"Samples"}
@@ -74,6 +115,9 @@ func TestSaveLoadRoundtrip(t *testing.T) {
 	}
 	if !got.MCP.Enabled || got.MCP.Port != 40404 {
 		t.Fatalf("mcp config not round-tripped: %+v", got.MCP)
+	}
+	if got.MCP.Transport != TransportSSE {
+		t.Fatalf("mcp transport not round-tripped: %+v", got.MCP)
 	}
 	if len(got.ProjectExcludeFolders) != 2 || got.ProjectExcludeFolders[1] != "references" {
 		t.Fatalf("project exclude folders not round-tripped: %v", got.ProjectExcludeFolders)
