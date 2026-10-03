@@ -82,6 +82,12 @@ export const ChevronDown = (p: IconProps) => (
   </Icon>
 );
 
+export const ChevronLeft = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m15 18-6-6 6-6" />
+  </Icon>
+);
+
 export const CloseIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M6 6l12 12M18 6 6 18" />

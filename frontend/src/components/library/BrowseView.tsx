@@ -14,7 +14,7 @@ import {
   Select,
   Skeleton,
 } from "../ui/primitives";
-import { BrowseIcon, CheckIcon, FileIcon, FolderIcon, TrashIcon } from "../ui/icons";
+import { BrowseIcon, CheckIcon, ChevronLeft, FileIcon, FolderIcon, TrashIcon } from "../ui/icons";
 
 /* Pages of chunks kept in memory (the backend sends 100 rows per page). Past six
    the far page is dropped and fetched again if the user scrolls back to it, so a
@@ -37,6 +37,9 @@ export function BrowseView() {
   const [selectedMeta, setSelectedMeta] = createSignal<DocumentSummary | null>(null);
   const [detail, setDetail] = createSignal<Document | null>(null);
   const [detailLoading, setDetailLoading] = createSignal(false);
+  /** Below the @lg breakpoint the panes stack, so only one shows at a time:
+      the chunk list first, then whatever chunk the user picked. */
+  const [showDetail, setShowDetail] = createSignal(false);
 
   const collection = createMemo(
     () => store.collections().find((c) => c.id === colId()) ?? store.collections()[0] ?? null,
@@ -63,6 +66,7 @@ export function BrowseView() {
     pager.reset();
     setChecked(new Set<number>());
     setSelectedId(null);
+    setShowDetail(false);
     if (id !== null) pager.loadNext();
   });
 
@@ -250,12 +254,11 @@ export function BrowseView() {
               options={store.collections().map((c) => ({ value: String(c.id), label: c.name }))}
             />
             <Chip tone="mint">{total().toLocaleString()} chunks</Chip>
-            <div class="flex-1" />
             <Show when={collection()}>
               <Button
                 size="sm"
                 variant="outline"
-                class="border-danger/30 text-danger hover:border-danger/50 hover:text-danger"
+                class="ml-auto border-danger/30 text-danger hover:border-danger/50 hover:text-danger"
                 onClick={() =>
                   setConfirm({
                     kind: "library",
@@ -270,9 +273,11 @@ export function BrowseView() {
           </div>
 
           <div class="flex min-h-0 flex-1 flex-col gap-4 @lg:grid @lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-            <div class="flex min-h-0 flex-1 flex-col gap-2">
-              <div class="flex items-center gap-2 rounded-lg bg-indigo-soft/70 px-2.5 py-1.5">
-                <span class="data text-[12px] font-medium text-ink">
+            <div
+              class={`min-h-0 flex-1 flex-col gap-2 ${showDetail() ? "hidden @lg:flex" : "flex"}`}
+            >
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-indigo-soft/70 px-2.5 py-1.5">
+                <span class="data whitespace-nowrap text-[12px] font-medium text-ink">
                   {nChecked() > 0 ? `${nChecked()} selected` : "Select chunks to delete"}
                 </span>
                 <button
@@ -291,11 +296,10 @@ export function BrowseView() {
                     Clear
                   </button>
                 </Show>
-                <div class="flex-1" />
                 <button
                   type="button"
                   disabled={nChecked() === 0}
-                  class="inline-flex items-center gap-1.5 rounded-control bg-danger px-2.5 py-1 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
+                  class="ml-auto inline-flex items-center gap-1.5 rounded-control bg-danger px-2.5 py-1 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
                   onClick={() => setConfirm({ kind: "chunks", count: nChecked() })}
                 >
                   <TrashIcon size={12} /> Delete
@@ -348,7 +352,10 @@ export function BrowseView() {
                             doc={doc()}
                             selected={selectedId() === doc().id}
                             checked={checked().has(doc().id)}
-                            onSelect={() => setSelectedId(doc().id)}
+                            onSelect={() => {
+                              setSelectedId(doc().id);
+                              setShowDetail(true);
+                            }}
                             onToggleCheck={() => toggleCheck(doc().id)}
                           />
                         )}
@@ -380,6 +387,8 @@ export function BrowseView() {
               doc={detail()}
               loading={detailLoading()}
               collectionName={collection()?.name ?? ""}
+              class={showDetail() ? "" : "hidden @lg:flex"}
+              onBack={() => setShowDetail(false)}
             />
           </div>
         </Show>
@@ -405,9 +414,11 @@ function SourceHeader(props: { path: string; sourceType: string }) {
   return (
     <div class="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-paper/95 px-3 py-1.5 backdrop-blur-[2px]">
       <FolderIcon size={14} class="shrink-0 text-faint" />
-      <span class="shrink-0 text-[12.5px] font-medium text-ink">{baseName(props.path)}</span>
-      <span class="data min-w-0 flex-1 truncate text-muted">{props.path}</span>
-      <span class="data shrink-0 text-muted">{props.sourceType}</span>
+      <span class="min-w-0 truncate text-[12.5px] font-medium text-ink @xl:max-w-[45%]">
+        {baseName(props.path)}
+      </span>
+      <span class="data hidden min-w-0 flex-1 truncate text-muted @xl:block">{props.path}</span>
+      <span class="data hidden shrink-0 text-muted @sm:block">{props.sourceType}</span>
     </div>
   );
 }
@@ -466,6 +477,9 @@ function ReadingPane(props: {
   doc: Document | null;
   loading: boolean;
   collectionName: string;
+  /** Drives the stacked (one-pane-at-a-time) mode below @lg. */
+  class?: string;
+  onBack: () => void;
 }) {
   const tags = () => {
     const t = props.doc?.metadata?.tags;
@@ -473,7 +487,7 @@ function ReadingPane(props: {
   };
 
   return (
-    <div class="sheet flex min-h-0 flex-1 flex-col overflow-hidden">
+    <div class={`sheet flex min-h-0 flex-1 flex-col overflow-hidden ${props.class ?? ""}`}>
       <Show
         when={props.meta}
         fallback={
@@ -487,10 +501,22 @@ function ReadingPane(props: {
         {(meta) => (
           <>
             <div class="border-b border-line bg-paper/60 px-5 py-4">
-              <h3 class="title text-[16px] leading-6 tracking-[-0.005em] text-ink">
-                {meta().title}
-              </h3>
-              <p class="data mt-1.5 truncate text-muted">{meta().sourcePath}</p>
+              <div class="flex items-start gap-2">
+                <button
+                  type="button"
+                  class="-ml-1.5 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep @lg:hidden"
+                  onClick={props.onBack}
+                  aria-label="Back to chunks"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <div class="min-w-0 flex-1">
+                  <h3 class="title text-[16px] leading-6 tracking-[-0.005em] text-ink">
+                    {meta().title}
+                  </h3>
+                  <p class="data mt-1.5 truncate text-muted">{meta().sourcePath}</p>
+                </div>
+              </div>
               <div class="mt-3 flex flex-wrap items-center gap-1.5">
                 <Chip tone="mint" class="min-w-0">
                   <span class="truncate">{props.collectionName}</span>
