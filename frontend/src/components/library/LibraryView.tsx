@@ -104,13 +104,13 @@ export function LibraryView() {
             </div>
           }
         >
-          <div class="sheet overflow-hidden">
+          <div class="sheet @container overflow-hidden">
             <div class="flex items-stretch border-b border-line bg-paper/60">
               <div class="grid flex-1 grid-cols-12 gap-2 px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
-                <span class="col-span-6">Collection</span>
-                <span class="col-span-2">Files</span>
-                <span class="col-span-2 text-right">Chunks</span>
-                <span class="col-span-2 text-right">Indexed</span>
+                <span class="col-span-8 @lg:col-span-6">Collection</span>
+                <span class="hidden @lg:block @lg:col-span-2">Files</span>
+                <span class="col-span-4 text-right @lg:col-span-2">Chunks</span>
+                <span class="hidden text-right @lg:block @lg:col-span-2">Indexed</span>
               </div>
               <div class="w-[43px] shrink-0" aria-hidden="true" />
             </div>
@@ -128,19 +128,19 @@ export function LibraryView() {
                           onClick={() => toggle(c.id)}
                           aria-expanded={isOpen()}
                         >
-                          <span class="col-span-6 flex items-center gap-2.5">
+                          <span class="col-span-8 flex items-center gap-2.5 @lg:col-span-6">
                             <ChevronDown
                               size={14}
                               class={`shrink-0 text-faint transition-transform duration-150 ease-snappy ${
                                 isOpen() ? "rotate-0" : "-rotate-90"
                               }`}
                             />
-                            <span class="flex min-w-0 items-center gap-2">
+                            <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                               <span class="title truncate text-[14px] text-ink">{c.name}</span>
                               <TypeBadge type={c.type} />
                               {c.needsReindex && (
                                 <span
-                                  class="shrink-0 rounded-control bg-highlighter/60 px-1.5 py-0.5 text-[11px] font-medium text-ink"
+                                  class="shrink-0 whitespace-nowrap rounded-control bg-highlighter/60 px-1.5 py-0.5 text-[11px] font-medium text-ink"
                                   title="No embeddings yet. Re-index after switching to a model with a different embedding dimension."
                                 >
                                   needs reindex
@@ -148,11 +148,11 @@ export function LibraryView() {
                               )}
                             </span>
                           </span>
-                          <span class="data col-span-2 text-muted">{c.sources}</span>
-                          <span class="data col-span-2 text-right text-muted">
+                          <span class="data hidden text-muted @lg:block @lg:col-span-2">{c.sources}</span>
+                          <span class="data col-span-4 text-right text-muted @lg:col-span-2">
                             {c.chunks.toLocaleString()}
                           </span>
-                          <span class="data col-span-2 text-right text-muted">
+                          <span class="data hidden text-right text-muted @lg:block @lg:col-span-2">
                             {c.lastIndexed ? new Date(c.lastIndexed).toLocaleDateString() : "never"}
                           </span>
                         </button>
@@ -192,18 +192,18 @@ export function LibraryView() {
                                     class="group flex items-stretch rounded-lg hover:bg-surface"
                                   >
                                     <div class="grid min-w-0 flex-1 grid-cols-12 items-center gap-2 px-5 py-1.5">
-                                      <span class="col-span-6 flex min-w-0 items-center gap-2 pl-6">
+                                      <span class="col-span-8 flex min-w-0 items-center gap-2 pl-6 @lg:col-span-6">
                                         <span class="data min-w-0 flex-1 truncate text-ink-soft">
                                           {s.path}
                                         </span>
                                       </span>
-                                      <span class="data col-span-2 truncate text-muted">
+                                      <span class="data hidden truncate text-muted @lg:block @lg:col-span-2">
                                         {s.sourceType}
                                       </span>
-                                      <span class="data col-span-2 text-right text-muted">
+                                      <span class="data col-span-4 text-right text-muted @lg:col-span-2">
                                         {s.chunks.toLocaleString()}
                                       </span>
-                                      <span class="data col-span-2 text-right text-muted">
+                                      <span class="data hidden text-right text-muted @lg:block @lg:col-span-2">
                                         {s.lastIndexed
                                           ? new Date(s.lastIndexed).toLocaleDateString()
                                           : "never"}

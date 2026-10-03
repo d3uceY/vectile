@@ -125,7 +125,9 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
       </Show>
 
       <div class="mt-3 flex items-center gap-2 overflow-hidden">
-        <Chip tone="mint">{r().collection}</Chip>
+        <Chip tone="mint" class="min-w-0">
+          <span class="truncate">{r().collection}</span>
+        </Chip>
         <span class="data shrink-0 text-muted">{r().sourceType}</span>
         <span class="mx-0.5 h-3 w-px shrink-0 bg-line-strong" aria-hidden="true" />
         <span class="data truncate text-muted">{r().sourcePath}</span>

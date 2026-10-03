@@ -132,8 +132,8 @@ export function IndexView() {
                     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-paper text-muted">
                       {kindOf(item).icon({ size: 16 })}
                     </span>
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2">
+                    <div class="min-w-[12rem] flex-1">
+                      <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                         <span class="title truncate text-[15px] tracking-[-0.01em] text-ink">{item.name}</span>
                         <Chip tone={item.type === "code" ? "code" : "neutral"}>{kindOf(item).label}</Chip>
                         {!item.enabled && <Chip>disabled</Chip>}
@@ -143,7 +143,7 @@ export function IndexView() {
                         {col() ? `${col()!.sources} sources · ${col()!.chunks.toLocaleString()} chunks` : "not indexed yet"}
                       </p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
                         variant="primary"

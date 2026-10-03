@@ -26,7 +26,6 @@ export function StatusStrip(props: { version?: string }) {
   return (
     <header class="flex h-13 shrink-0 items-center justify-between gap-3 border-b border-line bg-paper/70 px-6">
       <div class="flex min-w-0 items-center gap-4">
-        <span class="data shrink-0 text-muted">all local</span>
         <span class="h-3 w-px shrink-0 bg-line-strong" aria-hidden="true" />
         <span class="data truncate text-muted">
           {totals().collections} collections · {totals().chunks.toLocaleString()} chunks

@@ -492,7 +492,9 @@ function ReadingPane(props: {
               </h3>
               <p class="data mt-1.5 truncate text-muted">{meta().sourcePath}</p>
               <div class="mt-3 flex flex-wrap items-center gap-1.5">
-                <Chip tone="mint">{props.collectionName}</Chip>
+                <Chip tone="mint" class="min-w-0">
+                  <span class="truncate">{props.collectionName}</span>
+                </Chip>
                 <span class="data text-muted">chunk {meta().chunkIndex + 1}</span>
                 <Show when={tags().length > 0}>
                   <span class="data text-muted">{tags().map((t) => `#${t}`).join(" ")}</span>

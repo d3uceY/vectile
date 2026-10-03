@@ -72,7 +72,7 @@ export function Chip(props: {
               : "bg-paper text-muted";
   return (
     <span
-      class={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-medium leading-4 ${cls} ${props.class ?? ""}`}
+      class={`inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11.5px] font-medium leading-4 ${cls} ${props.class ?? ""}`}
     >
       {props.children}
     </span>
