@@ -1,9 +1,9 @@
 /* ============================================================
    vectile: design tokens + base styles
-   World: "field notebook / warm index-card library"
-   Warm cream ground, graph-paper dot + grid, a soft green
-   ambient wash, one friendly green accent, mono data labels,
-   serif-italic margin notes.
+   World: "studio editorial, warm and precise".
+   Warm bone ground, flat white cards, hairline borders, one dark
+   green interaction accent, a warm amber for attention, sans type,
+   mono data lines. No background texture. (See DESIGN.md.)
    ============================================================ */
 
 /* Self-hosted type (a desktop app must never hit a CDN at runtime) */
@@ -222,16 +222,39 @@
     outline-offset: 4px;
   }
 
-  /* Staggered entrance for result lists (one authored motion moment) */
+  /* Staggered entrance for result lists (one authored motion moment). The
+     hidden state lives in the keyframe, not the base rule: if animations are
+     switched off entirely the rows are simply visible, never stuck at 0. */
   .enter-stagger > * {
-    opacity: 0;
-    transform: translateY(4px);
-    animation: rise-in 220ms var(--ease-snappy) forwards;
+    animation: rise-in 220ms var(--ease-snappy) both;
   }
   @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  /* Browse: a source's chunk sheet slides in from the right over a fading
+     scrim. One authored moment for the surface; reduced motion snaps. */
+  .drawer-in {
+    animation: drawer-in 260ms var(--ease-snappy) both;
+  }
+  @keyframes drawer-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
+  .scrim-in {
+    animation: scrim-in 200ms ease-out both;
+  }
+  @keyframes scrim-in {
+    from {
+      opacity: 0;
     }
   }
 

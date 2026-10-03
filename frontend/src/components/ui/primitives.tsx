@@ -491,7 +491,7 @@ export function EmptyState(props: {
 export function Skeleton(props: { class?: string }) {
   return (
     <div
-      class={`animate-pulse rounded-md bg-surface ${props.class ?? "h-4 w-full"}`}
+      class={`animate-pulse rounded-md bg-line ${props.class ?? "h-4 w-full"}`}
       aria-hidden="true"
     />
   );

@@ -14,6 +14,8 @@ Operate. Search, browse, and manage are the jobs; the interface stays out of the
 
 Warm-neutral ground (`--color-paper: #f6f4ef`); no background texture.
 
+One pinned exception sits outside this palette. The **source folder art** in Browse (`frontend/public/folder.svg`) is the user's own asset, and its macOS yellow (`#FFCE00` flap, `#EDAF00` back) is deliberately the loudest hue on that surface. It is artwork the user pinned, not a second interface accent: the chrome around it stays bone, white, and dark green.
+
 | Token | Value | Role |
 |---|---|---|
 | `paper` | `#f6f4ef` | warm bone ground |
@@ -78,7 +80,7 @@ One authored moment: result lists stagger in (fade + 4px rise, 220ms, snappy eas
 
 - **Search** (home): large search bar with ⌘K; filter bar (collection, source type, advanced: path, sender/author, date, top-k); card results with title, highlighted snippet, rank (toggleable to score), collection chip, mono path, and a "Read full passage" expand that reveals Open file / Reveal in folder; a quiet stale-library hint under the filter bar; idle state with example queries; skeleton loading; honest empty state.
 - **Library**: collections as expandable rows (type badge, file count, chunks, last indexed) revealing per-source file lists.
-- **Browse**: collections → sources → chunks file tree (folders-first, indicator lines, arrow-key nav, expand/collapse all) beside a chunk preview card.
+- **Browse**: a collection as a grid of source folders — the folder art, the chunk count on the flap, the source name beneath, and nothing else — that opens a sheet sliding in from the right with that file's chunks; opening a chunk swaps the sheet to its text. Delete library sits in the collection bar above the grid; chunk selection and deletion live in the sheet. The sheet's passage uses the sheet's full width, so a source with long chunks reads at a comfortable measure rather than a narrow column.
 - **Index**: per-collection "Index new" / "Re-index all" / "Prune" with a header "Add sources" (opens Settings → Sources), "Index all", and "Re-index all", plus live progress. Every row states its kind with a source icon and a label (vaults, ebooks, project folders, code repos), and a dashed footer names any kind this library is not indexing yet. **Settings**: model, chunking, search, sources, and indexing ledgers with a sticky save bar when edited. **Sources**: one tab per source type (project folders, code repositories, Obsidian vaults, Calibre libraries) in a two-column picker that carries a count per type and a white field plate whose active cell is the dark-green pill. The active panel states what its paths become (one collection named after the group, or the single `obsidian` / `calibre` collection), holds that type's editor, and nests its own skip list (folder or file names) under a hairline. **Connect** (a Settings section): a cardstock status plate for the in-app MCP server (state dot, mono `127.0.0.1:<port>/sse` URL with a copy button, "binds to 127.0.0.1 · nothing leaves this machine"), an enable toggle + port field (applied on save), an allow-write toggle that gates the index/prune tools, the five `vectile_*` tools listed as mono rows (write tools tagged), and copyable setup snippets for Claude Desktop, Claude Code, and any MCP SSE client. **First run**: a driver.js tour on an empty library walks Settings → Index → Search and never shows again.
 
 ## Direction contract
