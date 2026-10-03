@@ -33,7 +33,7 @@ export function SubHeading(props: { children: JSX.Element; action?: JSX.Element 
 }
 
 export function FieldList(props: { children: JSX.Element }) {
-  return <div class="space-y-0 divide-y divide-line/70">{props.children}</div>;
+  return <div class="space-y-0 divide-y divide-line">{props.children}</div>;
 }
 
 export function NumField(props: {
@@ -62,7 +62,7 @@ export function NumField(props: {
         max={props.max}
         step={props.step}
         onInput={(e) => props.onChange(Number(e.currentTarget.value))}
-        class="h-8 w-24 rounded-control border border-line-control bg-surface px-2 text-right text-[13px] outline-none transition-colors focus:border-leaf"
+        class="h-8 w-24 rounded-control border border-line-control bg-surface px-2 text-right text-[13px] transition-colors focus:border-leaf"
       />
     </div>
   );

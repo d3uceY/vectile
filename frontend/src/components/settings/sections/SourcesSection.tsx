@@ -126,7 +126,7 @@ function ExcludeBlock(props: {
     <div class="mt-5 border-t border-line pt-4">
       <div class="flex items-center gap-2">
         <SlashIcon size={14} class="shrink-0 text-muted" />
-        <h5 class="text-[13px] font-semibold tracking-[-0.01em] text-ink-soft">Skip folders or files</h5>
+        <h4 class="text-[13px] font-semibold tracking-[-0.01em] text-ink-soft">Skip folders or files</h4>
         <InfoTip text={props.hint} />
         <span class="data ml-auto shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] text-muted tabular-nums">
           {props.values.length}
@@ -181,9 +181,9 @@ export function SourcesSection() {
             {activeKind().icon({ size: 18 })}
           </span>
           <div class="min-w-0">
-            <h4 class="text-[15px] font-semibold tracking-[-0.01em] text-ink">
+            <h3 class="text-[15px] font-semibold tracking-[-0.01em] text-ink">
               {activeKind().label}
-            </h4>
+            </h3>
             <p class="note mt-1 max-w-[64ch] text-[13px] leading-5 text-muted">
               {activeKind().blurb}
             </p>

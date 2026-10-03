@@ -59,7 +59,7 @@ export function PathList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder={props.placeholder ?? "/absolute/path"}
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()} aria-label="Browse for folder">
@@ -123,7 +123,7 @@ export function ChipList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="name, e.g. .trash or CHANGELOG.md"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" onClick={addInput}>
@@ -174,7 +174,7 @@ export function GroupItem(props: {
       {props.paths.length === 0 ? (
         <p class="text-[12.5px] leading-4 text-muted">No paths yet.</p>
       ) : (
-        <ul class="divide-y divide-line/60">
+        <ul class="divide-y divide-line">
           <For each={props.paths}>
             {(v) => (
               <li class="group flex items-center gap-2 py-1.5">
@@ -201,7 +201,7 @@ export function GroupItem(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="/absolute/path"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] transition-colors focus:border-leaf"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()}>
@@ -265,7 +265,7 @@ export function GroupList(props: {
             if (e.key === "Enter") addGroup();
           }}
           placeholder="collection name, e.g. client-work"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] outline-none transition-colors focus:border-leaf"
+          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] transition-colors focus:border-leaf"
         />
         <Button size="sm" onClick={addGroup}>
           New collection

@@ -12,6 +12,7 @@ export function CacheSection() {
 
   const cacheCount = () => store.cacheStats()?.entries ?? 0;
   const cacheBytes = () => store.cacheStats()?.bytes ?? 0;
+  const cacheLoaded = () => store.cacheStats() !== null;
   const [confirmClearCache, setConfirmClearCache] = createSignal(false);
   const [clearingCache, setClearingCache] = createSignal(false);
 
@@ -39,7 +40,9 @@ export function CacheSection() {
             />
             <span class="text-[12px] font-semibold leading-none text-ink-soft">
               {cacheCount() === 0
-                ? "nothing cached yet"
+                ? cacheLoaded()
+                  ? "nothing cached yet"
+                  : "checking…"
                 : `${cacheCount().toLocaleString()} quer${cacheCount() === 1 ? "y" : "ies"} cached`}
             </span>
             <Show when={cacheBytes() > 0}>

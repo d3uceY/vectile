@@ -579,14 +579,20 @@ export function ConfirmDialog(props: {
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const titleId = createUniqueId();
   return (
     <Show when={props.open}>
       <div
         class="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         onClick={props.busy ? undefined : props.onCancel}
       >
         <div class="sheet w-[22rem] p-5 shadow-pop" onClick={(e) => e.stopPropagation()}>
-          <h3 class="title text-[15px] tracking-[-0.01em] text-ink">{props.title}</h3>
+          <h3 id={titleId} class="title text-[15px] tracking-[-0.01em] text-ink">
+            {props.title}
+          </h3>
           <div class="read mt-2 text-[13.5px] leading-5 text-muted">{props.body}</div>
           <div class="mt-4 flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={props.onCancel} disabled={props.busy}>

@@ -1,4 +1,4 @@
-import { createEffect, createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, createUniqueId, For, Show } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import { Button, ViewHeading } from "../ui/primitives";
 import { cloneCfg, sanitizeConfig } from "./config";
@@ -17,6 +17,8 @@ import { VexterSection } from "./sections/VexterSection";
 
 export function SettingsView() {
   const store = useAppStore();
+
+  const leaveTitleId = createUniqueId();
 
   const draft = () => store.settingsDraft();
   const [section, setSection] = createSignal<SectionKey>(
@@ -127,8 +129,7 @@ export function SettingsView() {
               </For>
             </nav>
 
-              {/* Content pane: the active section as an index card on the green desk */}
-              <main
+              <div
                 class={`scroll-quiet min-w-0 flex-1 overflow-y-auto bg-surface ${
                   store.settingsDirty() ? "pb-20" : "pb-4"
                 }`}
@@ -162,7 +163,7 @@ export function SettingsView() {
                   <ConnectSection />
                 </Show>
               </div>
-              </main>
+              </div>
             </div>
           </div>
         </SettingsProvider>
@@ -188,12 +189,18 @@ export function SettingsView() {
         </div>
       </Show>
 
-      {/* Leaving Settings with unsaved edits: the store holds the navigation and
-          this dialog decides whether the draft is saved or dropped. */}
       <Show when={store.pendingLeave() !== null}>
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4" onClick={() => store.cancelLeave()}>
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={leaveTitleId}
+          onClick={() => store.cancelLeave()}
+        >
           <div class="sheet w-[24rem] p-5 shadow-pop" onClick={(e) => e.stopPropagation()}>
-            <h3 class="title text-[15px] tracking-[-0.01em] text-ink">Save your changes before leaving?</h3>
+            <h3 id={leaveTitleId} class="title text-[15px] tracking-[-0.01em] text-ink">
+              Save your changes before leaving?
+            </h3>
             <p class="read mt-2 text-[13.5px] leading-5 text-muted">
               You have unsaved changes. If you leave now, they'll be lost.
             </p>
