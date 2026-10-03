@@ -14,7 +14,7 @@ import {
   Select,
   Skeleton,
 } from "../ui/primitives";
-import { BrowseIcon, CheckIcon, ChevronLeft, FileIcon, FolderIcon, TrashIcon } from "../ui/icons";
+import { BrowseIcon, CheckIcon, ChevronLeft, FileIcon, TrashIcon } from "../ui/icons";
 
 /* Pages of chunks kept in memory (the backend sends 100 rows per page). Past six
    the far page is dropped and fetched again if the user scrolls back to it, so a
@@ -37,6 +37,8 @@ export function BrowseView() {
   const [selectedMeta, setSelectedMeta] = createSignal<DocumentSummary | null>(null);
   const [detail, setDetail] = createSignal<Document | null>(null);
   const [detailLoading, setDetailLoading] = createSignal(false);
+  const [detailError, setDetailError] = createSignal(false);
+  const [detailNonce, setDetailNonce] = createSignal(0);
   /** Below the @lg breakpoint the panes stack, so only one shows at a time:
       the chunk list first, then whatever chunk the user picked. */
   const [showDetail, setShowDetail] = createSignal(false);
@@ -87,19 +89,25 @@ export function BrowseView() {
   // The text lives in its own request: a page of rows drags no text along.
   createEffect(() => {
     const id = selectedId();
+    detailNonce();
     if (id === null) {
       setDetail(null);
+      setDetailError(false);
       return;
     }
     let stale = false;
     setDetailLoading(true);
+    setDetailError(false);
     api
       .getDocument(id)
       .then((d) => {
         if (!stale) setDetail(d);
       })
       .catch(() => {
-        if (!stale) setDetail(null);
+        if (!stale) {
+          setDetail(null);
+          setDetailError(true);
+        }
       })
       .finally(() => {
         if (!stale) setDetailLoading(false);
@@ -248,7 +256,7 @@ export function BrowseView() {
         >
           <div class="mb-3 flex flex-wrap items-center gap-2">
             <Select
-              aria-label="Library"
+              aria-label="Collection"
               value={collection() ? String(collection()!.id) : ""}
               onChange={onLibraryChange}
               options={store.collections().map((c) => ({ value: String(c.id), label: c.name }))}
@@ -257,8 +265,8 @@ export function BrowseView() {
             <Show when={collection()}>
               <Button
                 size="sm"
-                variant="outline"
-                class="ml-auto border-danger/30 text-danger hover:border-danger/50 hover:text-danger"
+                variant="danger"
+                class="ml-auto"
                 onClick={() =>
                   setConfirm({
                     kind: "library",
@@ -278,12 +286,14 @@ export function BrowseView() {
             >
               <div
                 class={`flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-2.5 py-1.5 ${
-                  nChecked() > 0 ? "bg-indigo-soft" : "bg-paper"
+                  nChecked() > 0 ? "bg-indigo-soft" : ""
                 }`}
               >
-                <span class="data whitespace-nowrap text-[12px] font-medium text-ink">
-                  {nChecked() > 0 ? `${nChecked()} selected` : "Select chunks to delete"}
-                </span>
+                <Show when={nChecked() > 0}>
+                  <span class="data whitespace-nowrap text-[12px] font-medium text-ink">
+                    {nChecked()} selected
+                  </span>
+                </Show>
                 <button
                   type="button"
                   class="data text-[12px] text-indigo hover:underline"
@@ -300,14 +310,15 @@ export function BrowseView() {
                     Clear
                   </button>
                 </Show>
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="danger"
+                  class="ml-auto"
                   disabled={nChecked() === 0}
-                  class="ml-auto inline-flex items-center gap-1.5 rounded-control bg-danger px-2.5 py-1 text-[12px] font-medium text-white transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
                   onClick={() => setConfirm({ kind: "chunks", count: nChecked() })}
                 >
                   <TrashIcon size={12} /> Delete
-                </button>
+                </Button>
               </div>
 
               <div ref={scroller} class="sheet scroll-quiet min-h-0 flex-1 overflow-y-auto py-1.5">
@@ -390,9 +401,10 @@ export function BrowseView() {
               meta={selectedMeta()}
               doc={detail()}
               loading={detailLoading()}
-              collectionName={collection()?.name ?? ""}
+              error={detailError()}
               class={showDetail() ? "" : "hidden @lg:flex"}
               onBack={() => setShowDetail(false)}
+              onRetry={() => setDetailNonce((n) => n + 1)}
             />
           </div>
         </Show>
@@ -416,8 +428,8 @@ function Hint(props: { children: JSX.Element }) {
 
 function SourceHeader(props: { path: string; sourceType: string }) {
   return (
-    <div class="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-paper/95 px-3 py-1.5 backdrop-blur-[2px]">
-      <FolderIcon size={14} class="shrink-0 text-faint" />
+    <div class="sticky top-0 z-10 flex items-center gap-2 border-b border-line bg-surface px-3 py-1.5">
+      <FileIcon size={14} class="shrink-0 text-faint" />
       <span class="min-w-0 truncate text-[12.5px] font-medium text-ink @xl:max-w-[45%]">
         {baseName(props.path)}
       </span>
@@ -468,7 +480,6 @@ function ChunkRow(props: {
         aria-current={props.selected}
         class="flex min-w-0 flex-1 items-center gap-2 text-left"
       >
-        <FileIcon size={14} class="shrink-0 text-faint" />
         <span class="truncate text-[13px] text-ink-soft">{props.doc.title}</span>
       </button>
       <span class="data shrink-0 text-muted">chunk {props.doc.chunkIndex + 1}</span>
@@ -480,10 +491,11 @@ function ReadingPane(props: {
   meta: DocumentSummary | null;
   doc: Document | null;
   loading: boolean;
-  collectionName: string;
+  error: boolean;
   /** Drives the stacked (one-pane-at-a-time) mode below @lg. */
   class?: string;
   onBack: () => void;
+  onRetry: () => void;
 }) {
   const tags = () => {
     const t = props.doc?.metadata?.tags;
@@ -495,7 +507,14 @@ function ReadingPane(props: {
       <Show
         when={props.meta}
         fallback={
-          <Show when={props.loading}>
+          <Show
+            when={props.loading}
+            fallback={
+              <div class="flex flex-1 items-center justify-center">
+                <p class="note text-[14px] text-muted">Nothing to read here yet.</p>
+              </div>
+            }
+          >
             <div class="flex flex-1 items-center justify-center">
               <Skeleton class="h-24 w-2/3" />
             </div>
@@ -504,7 +523,7 @@ function ReadingPane(props: {
       >
         {(meta) => (
           <>
-            <div class="border-b border-line bg-paper/60 px-5 py-4">
+            <div class="border-b border-line px-5 py-4">
               <div class="flex items-start gap-2">
                 <button
                   type="button"
@@ -522,9 +541,6 @@ function ReadingPane(props: {
                 </div>
               </div>
               <div class="mt-3 flex flex-wrap items-center gap-1.5">
-                <Chip tone="mint" class="min-w-0">
-                  <span class="truncate">{props.collectionName}</span>
-                </Chip>
                 <span class="data text-muted">chunk {meta().chunkIndex + 1}</span>
                 <Show when={tags().length > 0}>
                   <span class="data text-muted">{tags().map((t) => `#${t}`).join(" ")}</span>
@@ -535,7 +551,22 @@ function ReadingPane(props: {
               <Show
                 when={props.doc}
                 fallback={
-                  <Show when={props.loading}>
+                  <Show
+                    when={props.loading}
+                    fallback={
+                      <Show
+                        when={props.error}
+                        fallback={<p class="note text-[14px] text-muted">Nothing to read here yet.</p>}
+                      >
+                        <p class="data text-[12px] text-muted">
+                          Couldn't load this chunk.{" "}
+                          <button class="text-indigo hover:underline" onClick={props.onRetry}>
+                            Retry
+                          </button>
+                        </p>
+                      </Show>
+                    }
+                  >
                     <div class="space-y-2">
                       <Skeleton class="h-4 w-full" />
                       <Skeleton class="h-4 w-5/6" />
