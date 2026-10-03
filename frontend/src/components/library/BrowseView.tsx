@@ -276,7 +276,11 @@ export function BrowseView() {
             <div
               class={`min-h-0 flex-1 flex-col gap-2 ${showDetail() ? "hidden @lg:flex" : "flex"}`}
             >
-              <div class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg bg-indigo-soft/70 px-2.5 py-1.5">
+              <div
+                class={`flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg px-2.5 py-1.5 ${
+                  nChecked() > 0 ? "bg-indigo-soft" : "bg-paper"
+                }`}
+              >
                 <span class="data whitespace-nowrap text-[12px] font-medium text-ink">
                   {nChecked() > 0 ? `${nChecked()} selected` : "Select chunks to delete"}
                 </span>
@@ -435,7 +439,7 @@ function ChunkRow(props: {
       data-row-id={props.doc.id}
       onClick={props.onSelect}
       class={`group mx-1.5 flex cursor-pointer items-center gap-2 rounded-lg py-1 pr-2 pl-1.5 transition-colors duration-100 ease-snappy ${
-        props.selected ? "bg-indigo-mist" : "hover:bg-surface"
+        props.selected ? "bg-indigo-mist" : "hover:bg-surface-2"
       }`}
     >
       <button
@@ -541,7 +545,7 @@ function ReadingPane(props: {
                 }
               >
                 {(doc) => (
-                  <p class="read whitespace-pre-wrap text-[15px] leading-[1.7] text-ink-soft">
+                  <p class="read max-w-[68ch] whitespace-pre-wrap text-[15px] leading-[1.7] text-ink-soft">
                     {doc().content}
                   </p>
                 )}
