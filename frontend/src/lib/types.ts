@@ -84,6 +84,7 @@ export interface SourcePage {
 
 /** Mirrors search.SearchResult. */
 export interface SearchResult {
+  id: number;
   content: string;
   title: string;
   metadata: Record<string, unknown>;

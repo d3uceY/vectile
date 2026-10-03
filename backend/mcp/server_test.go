@@ -26,6 +26,9 @@ func TestCreateServerRegistersTools(t *testing.T) {
 	tools := s.ListTools()
 	want := []string{
 		"vectile_search", "vectile_list_collections", "vectile_collection_info",
+		"vectile_get_chunk", "vectile_read_source", "vectile_grep",
+		"vectile_status", "vectile_list_sources", "vectile_facets",
+		"vectile_find_related", "vectile_timeline",
 		"vectile_index", "vectile_prune",
 	}
 	if len(tools) != len(want) {

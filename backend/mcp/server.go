@@ -13,24 +13,34 @@ import (
 	"vectile/backend/services"
 )
 
-// CreateServer builds the MCP server with the vectile tools. Search and
-// inspection tools are always registered; the write tools (index/prune) are
-// registered too but refuse to run unless allow-write is enabled.
+// CreateServer builds the MCP server with the vectile tools. Search, reading,
+// and inspection tools are always registered; the write tools (index/prune)
+// are registered too but refuse to run unless allow-write is enabled.
 func CreateServer(core *services.Core) *server.MCPServer {
 	s := server.NewMCPServer(
 		"vectile",
 		"1.1.0",
 		server.WithInstructions(
-			"Search a private, local knowledge library: Obsidian vaults, books, "+
-				"code, and project documents indexed with hybrid vector + full-text "+
-				"search. Search and inspection are always available; indexing and "+
-				"pruning are enabled only when allow-write is on in Settings."),
+			"Search and read a private, local knowledge library: Obsidian vaults, "+
+				"books, code, and project documents indexed with hybrid vector + "+
+				"full-text search. A search returns chunk ids and snippets; use "+
+				"vectile_get_chunk or vectile_read_source to read the full text, and "+
+				"vectile_grep for exact strings. Everything is read-only except "+
+				"indexing and pruning, which need allow-write in Settings."),
 	)
 
 	s.AddTools(
 		server.ServerTool{Tool: searchTool, Handler: handleSearch(core)},
 		server.ServerTool{Tool: listCollectionsTool, Handler: handleListCollections(core)},
 		server.ServerTool{Tool: collectionInfoTool, Handler: handleCollectionInfo(core)},
+		server.ServerTool{Tool: getChunkTool, Handler: handleGetChunk(core)},
+		server.ServerTool{Tool: readSourceTool, Handler: handleReadSource(core)},
+		server.ServerTool{Tool: grepTool, Handler: handleGrep(core)},
+		server.ServerTool{Tool: statusTool, Handler: handleStatus(core)},
+		server.ServerTool{Tool: listSourcesTool, Handler: handleListSources(core)},
+		server.ServerTool{Tool: facetsTool, Handler: handleFacets(core)},
+		server.ServerTool{Tool: findRelatedTool, Handler: handleFindRelated(core)},
+		server.ServerTool{Tool: timelineTool, Handler: handleTimeline(core)},
 		server.ServerTool{Tool: indexTool, Handler: handleIndex(core)},
 		server.ServerTool{Tool: pruneTool, Handler: handlePrune(core)},
 	)
@@ -45,7 +55,8 @@ var searchTool = mcp.NewTool("vectile_search",
 		"Search the local knowledge library using hybrid vector + full-text "+
 			"search with Reciprocal Rank Fusion. Searches across all indexed "+
 			"collections by default, combining semantic similarity with keyword "+
-			"matching. Read-only."),
+			"matching. Each result carries a chunk id and a snippet; call "+
+			"vectile_get_chunk with the id for the full text. Read-only."),
 	mcp.WithString("query",
 		mcp.Required(),
 		mcp.Description("Search query text (natural language or keywords)")),
@@ -53,6 +64,8 @@ var searchTool = mcp.NewTool("vectile_search",
 		mcp.Description("Filter by collection name. Omit to search all.")),
 	mcp.WithNumber("top_k",
 		mcp.Description("Number of results to return (default: the configured top-k)")),
+	mcp.WithNumber("max_chars",
+		mcp.Description("Snippet length per result, in characters (default 1200, max 8000)")),
 	mcp.WithString("source_type",
 		mcp.Description("Filter by type: 'markdown', 'pdf', 'docx', 'epub', 'html', "+
 			"'plaintext', 'code', 'commit', or 'calibre-description'.")),

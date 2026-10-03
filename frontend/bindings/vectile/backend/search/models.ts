@@ -100,9 +100,11 @@ export class SearchResponse {
 }
 
 /**
- * SearchResult is a single search result, mirrored to the frontend.
+ * SearchResult is a single search result, mirrored to the frontend. ID is the
+ * chunk id, so a client can read the chunk (and its neighbours) after a search.
  */
 export class SearchResult {
+    "id": number;
     "content": string;
     "title": string;
     "metadata": { [_ in string]?: any };
@@ -113,6 +115,9 @@ export class SearchResult {
 
     /** Creates a new SearchResult instance. */
     constructor($$source: Partial<SearchResult> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = 0;
+        }
         if (!("content" in $$source)) {
             this["content"] = "";
         }
@@ -142,10 +147,10 @@ export class SearchResult {
      * Creates a new SearchResult instance from a string or object.
      */
     static createFrom($$source: any = {}): SearchResult {
-        const $$createField2_0 = $$createType3;
+        const $$createField3_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("metadata" in $$parsedSource) {
-            $$parsedSource["metadata"] = $$createField2_0($$parsedSource["metadata"]);
+            $$parsedSource["metadata"] = $$createField3_0($$parsedSource["metadata"]);
         }
         return new SearchResult($$parsedSource as Partial<SearchResult>);
     }

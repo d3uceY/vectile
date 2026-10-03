@@ -25,7 +25,7 @@ Eighteen seconds, no narration, sample data: search the whole library by meaning
 - **Reads scanned PDFs (optional).** One click in Settings installs a Tesseract OCR plugin, and PDFs that are photos of pages become searchable text. The card shows the version, the size, and the exact address the download comes from, and a run tells you when it hits pages it could not read.
 - **Keyboard-first desktop UI.** Jump to search from anywhere with ⌘K / Ctrl K, and move between Search, Library, Browse, Index, and Settings from the sidebar.
 - **Manage your library.** Expand a collection to its files, page through individual chunks, and delete stale sources, selected chunks, or a whole library in place.
-- **AI assistant access (MCP).** Serve search and collection tools to Claude Desktop or any MCP client over a local server, with index and prune tools available behind an Allow write tools toggle.
+- **AI assistant access (MCP).** Serve search, reading, and collection tools to Claude Desktop or any MCP client over a local server, with index and prune tools available behind an Allow write tools toggle.
 - **A little company.** Vexter, the pixel dinosaur, pokes up in the sidebar while you search, index, or come up empty. Settings → Vexter controls each moment.
 
 ## Documentation
@@ -166,7 +166,9 @@ Files you delete get pruned automatically, so results don't go stale. Auto-reind
 
 ### AI assistants (MCP)
 
-Settings → Connect runs a local MCP (Model Context Protocol) server on `127.0.0.1:31123`. It exposes search and collection tools, plus index and prune tools that stay off until you enable **Allow write tools** in Settings. The server binds to loopback only, so nothing leaves the machine.
+Settings → Connect runs a local MCP (Model Context Protocol) server on `127.0.0.1:31123`. It exposes search, reading, and collection tools, plus index and prune tools that stay off until you enable **Allow write tools** in Settings. The server binds to loopback only, so nothing leaves the machine.
+
+Search hands the assistant a short snippet and a chunk id rather than the whole passage. It reads more with `vectile_get_chunk` or `vectile_read_source`, finds exact strings with `vectile_grep`, and can list what a collection holds, so its context stays small.
 
 Point Claude Desktop, Claude Code, or any MCP client at `http://127.0.0.1:31123/mcp` to search your library from the assistant. Streamable HTTP is the default transport; switch to SSE in Settings if a client needs the older one. The Settings section shows the live server status, the tools it serves, and per-client setup directions.
 

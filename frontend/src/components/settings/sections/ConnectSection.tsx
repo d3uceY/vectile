@@ -266,7 +266,22 @@ function ClientSetup(props: { client: MCPClient; url: string; transport: MCPTran
 const MCP_TOOLS: { name: string; desc: string; kind: "read" | "write" }[] = [
   {
     name: "vectile_search",
-    desc: "Hybrid semantic + keyword search, filterable by collection, source type, path, and date.",
+    desc: "Hybrid semantic and keyword search, filterable by collection, source type, path, and date.",
+    kind: "read",
+  },
+  {
+    name: "vectile_get_chunk",
+    desc: "Read one result in full, with optional neighbouring chunks.",
+    kind: "read",
+  },
+  {
+    name: "vectile_read_source",
+    desc: "Read a whole note, book section, or code file reassembled in order.",
+    kind: "read",
+  },
+  {
+    name: "vectile_grep",
+    desc: "Exact or regex match for identifiers, error strings, and TODOs.",
     kind: "read",
   },
   {
@@ -277,6 +292,31 @@ const MCP_TOOLS: { name: string; desc: string; kind: "read" | "write" }[] = [
   {
     name: "vectile_collection_info",
     desc: "Details for one collection: counts, source types, and sample titles.",
+    kind: "read",
+  },
+  {
+    name: "vectile_list_sources",
+    desc: "List the files indexed in a collection.",
+    kind: "read",
+  },
+  {
+    name: "vectile_facets",
+    desc: "Metadata keys and common values, so search filters are not guesswork.",
+    kind: "read",
+  },
+  {
+    name: "vectile_status",
+    desc: "Library counts, database size, last indexed time, and active model.",
+    kind: "read",
+  },
+  {
+    name: "vectile_find_related",
+    desc: "More chunks like one the assistant already found.",
+    kind: "read",
+  },
+  {
+    name: "vectile_timeline",
+    desc: "Documents in date order, newest first.",
     kind: "read",
   },
   {

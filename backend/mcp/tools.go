@@ -28,6 +28,7 @@ func handleSearch(core *services.Core) server.ToolHandlerFunc {
 		}
 
 		topK := request.GetInt("top_k", core.Cfg.SearchDefaults.TopK)
+		maxChars := clampChars(request.GetInt("max_chars", defaultSnippetChars))
 
 		metadataFilters := make(map[string]string)
 		if mf, ok := request.GetArguments()["metadata_filter"].(map[string]any); ok {
@@ -56,9 +57,12 @@ func handleSearch(core *services.Core) server.ToolHandlerFunc {
 
 		output := make([]map[string]any, 0, len(results))
 		for _, r := range results {
+			text, truncated := snippet(r.Content, maxChars)
 			output = append(output, map[string]any{
+				"id":          r.ID,
 				"title":       r.Title,
-				"content":     r.Content,
+				"snippet":     text,
+				"truncated":   truncated,
 				"collection":  r.Collection,
 				"source_type": r.SourceType,
 				"source_path": r.SourcePath,
@@ -297,6 +301,41 @@ func describeCollection(description string) (text string, repos int) {
 		}
 	}
 	return description, 0
+}
+
+// --- Result shaping ---
+
+// Snippet sizes for search results. A hit returns a readable excerpt, and the
+// caller pulls the full chunk with vectile_get_chunk when it needs more.
+const (
+	defaultSnippetChars = 1200
+	minSnippetChars     = 200
+	maxSnippetChars     = 8000
+)
+
+func clampChars(n int) int {
+	switch {
+	case n <= 0:
+		return defaultSnippetChars
+	case n < minSnippetChars:
+		return minSnippetChars
+	case n > maxSnippetChars:
+		return maxSnippetChars
+	}
+	return n
+}
+
+// snippet trims text to at most max runes and reports whether it cut anything.
+// Trimming happens on runes so a multi-byte character is never split.
+func snippet(text string, max int) (string, bool) {
+	if len(text) <= max {
+		return text, false
+	}
+	runes := []rune(text)
+	if len(runes) <= max {
+		return text, false
+	}
+	return strings.TrimRight(string(runes[:max]), " \n\t") + "\u2026", true
 }
 
 // --- Source URI helpers ---

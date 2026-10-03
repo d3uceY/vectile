@@ -17,8 +17,10 @@ import (
 	"vectile/backend/embeddings"
 )
 
-// SearchResult is a single search result, mirrored to the frontend.
+// SearchResult is a single search result, mirrored to the frontend. ID is the
+// chunk id, so a client can read the chunk (and its neighbours) after a search.
 type SearchResult struct {
+	ID         int64          `json:"id"`
 	Content    string         `json:"content"`
 	Title      string         `json:"title"`
 	Metadata   map[string]any `json:"metadata"`
@@ -93,7 +95,7 @@ func Search(conn *sql.DB, query string, filters Filters, embedder QueryEmbedder,
 	}
 	var vecResults []rankedResult
 	if queryVec != nil {
-		vecResults, err = vectorSearch(conn, query, queryVec, topK, &filters)
+		vecResults, err = vectorSearch(conn, queryVec, topK, &filters)
 		if err != nil {
 			// Vector search failing shouldn't kill FTS.
 			slog.Warn("vector search failed, falling back to FTS only", "err", err)
@@ -200,14 +202,7 @@ type binaryCandidate struct {
 
 // vectorSearch runs binary-quantized Hamming KNN over the query vector to
 // gather a candidate pool, then reranks the pool with exact float L2 distances.
-func vectorSearch(conn *sql.DB, query string, queryVec []float32, topK int, filters *Filters) ([]rankedResult, error) {
-	// TEMP DEBUG: verify the query actually produced a real embedding.
-	// slog.Info("[vector-debug] embedded query",
-	// 	"query", query,
-	// 	"dim", len(queryVec),
-	// 	"l2norm", vectorNorm(queryVec),
-	// 	"first8", queryVec[:min(8, len(queryVec))],
-	// )
+func vectorSearch(conn *sql.DB, queryVec []float32, topK int, filters *Filters) ([]rankedResult, error) {
 	queryBlob := embeddings.SerializeFloat32(queryVec)
 	pool := vectorCandidatePool(topK, filters)
 
@@ -236,10 +231,8 @@ func vectorSearch(conn *sql.DB, query string, queryVec []float32, topK int, filt
 		return nil, err
 	}
 	if len(candidates) == 0 {
-		slog.Info("[vector-debug] no binary candidates", "query", query)
 		return nil, nil
 	}
-	slog.Info("[vector-debug] binary candidates", "count", len(candidates))
 
 	// Stage 2: fetch exact float vectors for the candidates by rowid (point
 	// lookups, no full scan) and rerank with squared L2.
@@ -278,15 +271,6 @@ func vectorSearch(conn *sql.DB, query string, queryVec []float32, topK int, filt
 
 	sort.Slice(reranked, func(i, j int) bool { return reranked[i].score < reranked[j].score })
 
-	// TEMP DEBUG: show the closest matches by exact squared-L2 distance.
-	for i := 0; i < min(5, len(reranked)); i++ {
-		slog.Info("[vector-debug] rerank",
-			"rank", i,
-			"docID", reranked[i].docID,
-			"squaredL2", reranked[i].score,
-		)
-	}
-
 	// Stage 3: apply filters and truncate to topK.
 	results := make([]rankedResult, 0, topK)
 	for _, r := range reranked {
@@ -312,15 +296,6 @@ func squaredL2(a, b []float32) float64 {
 		sum += d * d
 	}
 	return sum
-}
-
-// vectorNorm returns the L2 norm of v (TEMPORARY debug helper).
-func vectorNorm(v []float32) float64 {
-	var sum float64
-	for _, x := range v {
-		sum += float64(x) * float64(x)
-	}
-	return math.Sqrt(sum)
 }
 
 // escapeFTSQuery wraps each token in double quotes for safe FTS5 queries.
@@ -466,6 +441,16 @@ func passesFilters(conn *sql.DB, documentID int64, filters *Filters) bool {
 	}
 
 	docDate, _ := metadata["date"].(string)
+	if docDate == "" {
+		// Commit chunks carry author_date instead of date; without this, a
+		// date range silently excludes every commit.
+		docDate, _ = metadata["author_date"].(string)
+	}
+	// Compare whole days, so a commit timestamp is not cut off by a date_to
+	// that names its own day.
+	if len(docDate) > 10 {
+		docDate = docDate[:10]
+	}
 	if filters.DateFrom != "" && docDate != "" && docDate < filters.DateFrom {
 		return false
 	}
@@ -569,6 +554,7 @@ func fetchResult(conn *sql.DB, docID int64, score float64) (*SearchResult, error
 	}
 
 	return &SearchResult{
+		ID:         docID,
 		Content:    content,
 		Title:      titleText,
 		Metadata:   metadata,

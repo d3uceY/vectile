@@ -19,11 +19,21 @@ the address to paste into a client, and copyable setup snippets.
 
 | Tool | Writes? | What it does |
 |---|---|---|
-| `vectile_search` | No | The same search as the app, with the same filters. |
+| `vectile_search` | No | The same search as the app, with the same filters. Returns a snippet and a chunk id. |
+| `vectile_get_chunk` | No | One result in full, with optional neighbouring chunks. |
+| `vectile_read_source` | No | A whole note, book section, or code file, reassembled in order. |
+| `vectile_grep` | No | Exact or regular-expression match for identifiers, error strings, and TODOs. |
 | `vectile_list_collections` | No | Every collection with source and chunk counts and last-indexed time. |
 | `vectile_collection_info` | No | Detail on one collection: source types, counts, and sample titles. |
+| `vectile_list_sources` | No | The files indexed in one collection. |
+| `vectile_facets` | No | Metadata keys and common values, so filters are not guesswork. |
+| `vectile_status` | No | Counts, database size, last indexed time, and the active model. |
+| `vectile_find_related` | No | Chunks nearest to one the assistant already found. |
+| `vectile_timeline` | No | Documents in date order, newest first. |
 | `vectile_index` | Yes | Runs indexing for one collection and waits for it to finish. |
 | `vectile_prune` | Yes | Removes entries whose files no longer exist. |
+
+A search result carries a chunk id and a short snippet rather than the whole passage. The assistant reads more with `vectile_get_chunk` (that chunk, or its neighbours) or `vectile_read_source` (the whole note, book section, or file), which keeps its context small.
 
 The read tools are always available. The two write tools stay off until you switch on **Allow
 write tools**, so an assistant cannot start a long index of your library without you saying so in
@@ -43,6 +53,7 @@ the app first.
 |---|---|
 | `collection` | `obsidian` |
 | `top_k` | `20` |
+| `max_chars` | `1200` |
 | `source_type` | `markdown`, `pdf`, `docx`, `epub`, `html`, `plaintext`, `code`, `commit`, `calibre-description` |
 | `path` | `backend/services` |
 | `date_from` / `date_to` | `2026-01-01` |
