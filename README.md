@@ -8,6 +8,14 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
   <img src="docs/vectile-banner.svg" alt="vectile: your private library" width="100%">
 </p>
 
+## Demo
+
+Eighteen seconds, no narration, sample data: search the whole library by meaning, the collections behind it, every indexed chunk next to its source text, and a live indexing run.
+
+<p align="center">
+  <img src="docs/vectile-demo.gif" alt="vectile demo: a search that ranks by meaning, then the Library, Browse and Index views" width="100%">
+</p>
+
 ## Features
 
 - **Fully local and private.** Searches run on your machine against an in-process embedding model. No server, no cloud, no telemetry, no account.
