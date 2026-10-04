@@ -2,6 +2,7 @@ import { For } from "solid-js";
 import { Switch, Toggle } from "../../ui/primitives";
 import { MASCOT_ASSETS, MASCOT_STATIC } from "../../shell/mascot/assets";
 import { Section } from "../fields";
+import { VexterNavIcon } from "../nav";
 import { useSettings } from "../context";
 
 const MASCOT_STATES: {
@@ -39,16 +40,7 @@ export function VexterSection() {
 
   return (
     <Section
-      icon={
-        <span class="flex h-4.5 w-4.5 items-center justify-center overflow-hidden">
-          <img
-            src={MASCOT_STATIC}
-            alt=""
-            class="h-full w-full object-contain"
-            style="image-rendering: pixelated"
-          />
-        </span>
-      }
+      icon={<VexterNavIcon size={16} />}
       title="Vexter"
       note="The pixel dinosaur in the sidebar. It pokes up while your library works."
     >

@@ -1,4 +1,4 @@
-import { FileIcon } from "../../ui/icons";
+import { ChunkNavIcon } from "../../ui/nav-icons";
 import { STATIC_BOUNDS } from "../bounds";
 import { FieldList, NumField, Section } from "../fields";
 import { useSettings } from "../context";
@@ -8,7 +8,7 @@ export function ChunkingSection() {
 
   return (
     <Section
-      icon={<FileIcon size={16} />}
+      icon={<ChunkNavIcon size={16} />}
       title="Chunking"
       note="Smaller chunks match more precisely; overlap keeps sentences intact."
     >

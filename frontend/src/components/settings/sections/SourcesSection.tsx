@@ -2,6 +2,7 @@ import { createSignal, For, Show, type JSX } from "solid-js";
 import type { AppConfig } from "../../../lib/types";
 import { InfoTip } from "../../ui/primitives";
 import { CodeIcon, FileIcon, FolderOpenIcon, LibraryIcon, SlashIcon } from "../../ui/icons";
+import { SourcesNavIcon } from "../../ui/nav-icons";
 import { ChipList, GroupList, PathList } from "../lists";
 import { Section } from "../fields";
 import { useSettings } from "../context";
@@ -161,7 +162,7 @@ export function SourcesSection() {
 
   return (
     <Section
-      icon={<FolderOpenIcon size={16} />}
+      icon={<SourcesNavIcon size={16} />}
       title="Sources"
       note="Choose your sources for indexing."
     >

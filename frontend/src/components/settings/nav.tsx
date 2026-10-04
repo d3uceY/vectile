@@ -12,7 +12,7 @@ import {
 import { MASCOT_STATIC } from "../shell/mascot/assets";
 import type { NavIconSlot, SectionKey } from "./types";
 
-function VexterNavIcon(_p: NavIconSlot) {
+export function VexterNavIcon(_p: NavIconSlot) {
   return (
     <span class="flex h-4 w-4 items-center justify-center overflow-hidden">
       <img src={MASCOT_STATIC} alt="" class="h-full w-full object-contain" style="image-rendering: pixelated" />

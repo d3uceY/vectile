@@ -1,7 +1,7 @@
 import { createSignal, onMount, Show } from "solid-js";
 import { useAppStore } from "../../../lib/store";
 import { Button, ConfirmDialog } from "../../ui/primitives";
-import { BoltIcon } from "../../ui/icons";
+import { CacheNavIcon } from "../../ui/nav-icons";
 import { fmtBytes } from "../../../lib/format";
 import { Section } from "../fields";
 
@@ -28,7 +28,7 @@ export function CacheSection() {
 
   return (
     <Section
-      icon={<BoltIcon size={16} />}
+      icon={<CacheNavIcon size={16} />}
       title="Cache"
       note="Repeated searches reuse the query embedding instead of computing it again."
     >

@@ -1,4 +1,4 @@
-import { SearchIcon } from "../../ui/icons";
+import { SearchNavIcon } from "../../ui/nav-icons";
 import { STATIC_BOUNDS } from "../bounds";
 import { FieldList, NumField, RangeField, Section, SubHeading } from "../fields";
 import { useSettings } from "../context";
@@ -8,7 +8,7 @@ export function SearchSection() {
 
   return (
     <Section
-      icon={<SearchIcon size={16} />}
+      icon={<SearchNavIcon size={16} />}
       title="Search"
       note="Hybrid ranking blends exact-term and meaning results."
     >

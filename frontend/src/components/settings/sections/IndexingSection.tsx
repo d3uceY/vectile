@@ -1,6 +1,6 @@
 import { Show } from "solid-js";
 import { Toggle } from "../../ui/primitives";
-import { IndexIcon } from "../../ui/icons";
+import { IndexNavIcon } from "../../ui/nav-icons";
 import { STATIC_BOUNDS } from "../bounds";
 import { FieldList, NumField, Section } from "../fields";
 import { useSettings } from "../context";
@@ -10,7 +10,7 @@ export function IndexingSection() {
 
   return (
     <Section
-      icon={<IndexIcon size={16} />}
+      icon={<IndexNavIcon size={16} />}
       title="Indexing"
       note="How far back git history reaches, and whether the library refreshes itself."
     >

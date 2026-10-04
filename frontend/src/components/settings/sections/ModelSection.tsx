@@ -3,7 +3,8 @@ import { useAppStore } from "../../../lib/store";
 import { importModel, pickModelFile } from "../../../lib/api";
 import type { ModelInfo } from "../../../lib/types";
 import { Button, ConfirmDialog, InfoTip, Select, StatusPill } from "../../ui/primitives";
-import { BoltIcon, CloseIcon } from "../../ui/icons";
+import { CloseIcon } from "../../ui/icons";
+import { ModelNavIcon } from "../../ui/nav-icons";
 import { CatalogModelCard } from "../../ui/CatalogModelCard";
 import { openExternal } from "../../../lib/update";
 import { STATIC_BOUNDS } from "../bounds";
@@ -97,7 +98,7 @@ export function ModelSection() {
 
   return (
     <Section
-      icon={<BoltIcon size={16} />}
+      icon={<ModelNavIcon size={16} />}
       title="Model"
       note="Drop a .gguf into the models folder, or import one below."
     >

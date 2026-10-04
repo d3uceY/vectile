@@ -1,7 +1,8 @@
 import { createSignal, For, Show } from "solid-js";
 import { useAppStore } from "../../../lib/store";
 import type { MCPTransport } from "../../../lib/types";
-import { CheckIcon, CopyIcon, PlugIcon } from "../../ui/icons";
+import { CheckIcon, CopyIcon } from "../../ui/icons";
+import { ConnectNavIcon } from "../../ui/nav-icons";
 import { InfoTip, Toggle } from "../../ui/primitives";
 import { FieldList, NumField, Section, SubHeading } from "../fields";
 import { useSettings } from "../context";
@@ -401,7 +402,7 @@ export function ConnectSection() {
 
   return (
     <Section
-      icon={<PlugIcon size={16} />}
+      icon={<ConnectNavIcon size={16} />}
       title="Connect"
       note="Let AI assistants on this machine search your library."
     >
