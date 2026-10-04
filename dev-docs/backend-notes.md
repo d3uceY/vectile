@@ -1,6 +1,6 @@
 # Backend notes
 
-How the vectile backend came together: what I chose, and the problems I fixed along the way. Written for the next person who opens this repo.
+How the vectile backend came together: the choices behind it, and the problems fixed along the way. Written for the next person who opens this repo, alongside [`app-flow.md`](app-flow.md) for the end-to-end walkthrough and [`logging.md`](logging.md) for where errors go.
 
 ## What the backend does
 
@@ -15,12 +15,16 @@ Supported sources:
 - Code repositories. Git repos parsed with tree-sitter. Each function or class becomes a chunk. Commit history is indexed too.
 - Calibre libraries. Book metadata plus the text of EPUB and PDF files.
 
-Left out on purpose: email and RSS (they read macOS-only app databases), PDF OCR, the HTTP server, and the Ollama-specific settings (hosts, num_batch, worker count). OCR comes later.
+Left out on purpose: email and RSS, which read macOS-only app databases.
+
+Scanned PDFs go through OCR. vectile downloads a Tesseract bundle on demand, verifies it against the release checksums, and runs that copy by absolute path. See [`ocr.md`](../website/docs/ocr.md) for the user-facing side; the code is in `backend/ocr` and the fallback is wired into `ParsePDF`.
+
 ## Where the code lives
 
 ```
 main.go                     app startup, window, services, auto-reindex loop
 backend/appdata             the data directory and the model path
+backend/applog              the log file and its slog setup
 backend/config              config.json load, save, defaults
 backend/embeddings          the llama.go embedder (bge-m3)
 backend/db                  SQLite schema and helpers (modernc + vec0 + FTS5, query-vector cache)
@@ -28,6 +32,7 @@ backend/chunker             word-window and markdown chunking
 backend/parser              file parsers: md, docx, html, epub, pdf, xlsx, pptx, ipynb, xml, sql, shell, csv/json, calibre, code
 backend/search              hybrid search: vector + FTS + RRF, cached query vectors
 backend/indexer             obsidian, project, git, calibre indexers; prune
+backend/ocr                 Tesseract download, install, and run
 backend/services            Wails services the UI calls
 backend/startup             launch-at-login per OS
 third_party/llama-go        vendored llama.cpp bindings, per-OS/per-arch static archives
@@ -36,11 +41,11 @@ frontend/src/lib/api.ts     the only place the UI touches the bindings
 
 ## Key decisions
 
-Data directory. Everything the app persists lives under `<os.UserConfigDir()>/vectile`: `config.json`, `db/vectile.db`, and `models/bge-m3-Q4_K_M.gguf`. The pattern comes from Clipcat, another application of mine, hehe👌 : `os.UserConfigDir()` plus `MkdirAll`.
+Data directory. Everything the app persists lives under `<os.UserConfigDir()>/vectile`: `config.json`, `db/vectile.db`, `models/`, and `vectile.log`. The pattern comes from Clipcat, another application of mine: `os.UserConfigDir()` plus `MkdirAll`.
 
-Model placement. The app expects the model at `models/bge-m3-Q4_K_M.gguf`. It never downloads or copies it (it will soon though). You place it there by hand (at some point, you won't lol). `VECTILE_EMBED_MODEL` overrides the path for testing on other machines.
+Model placement. Models live in `models/` and are downloaded through the in-app catalog or imported from a file. `VECTILE_EMBED_MODEL` overrides the path for testing on other machines.
 
-SQLite driver. `modernc.org/sqlite`, which is pure Go and needs no cgo, plus its vec extension for sqlite-vec and built-in FTS5. Clipcat proved this combination works. local-rag uses mattn/go-sqlite3, which needs cgo, so i did not implement that part.
+SQLite driver. `modernc.org/sqlite`, which is pure Go and needs no cgo, plus its vec extension for sqlite-vec and built-in FTS5. Clipcat proved this combination works. local-rag uses mattn/go-sqlite3, which needs cgo, so that part was not ported.
 
 Schema. Modeled on local-rag: `collections`, `sources`, `documents`, two vec0 virtual tables, and an FTS5 table kept in sync by triggers. `vec_documents` holds 1024-float vectors. `vec_documents_bin` holds binary-quantized copies so candidate retrieval is fast; the float vectors are fetched by rowid for the final rerank.
 
@@ -70,21 +75,37 @@ Frontend bridge. Wails generates TypeScript bindings for the three services. The
 
 Open in the OS. AppService exposes `OpenFile` and `RevealInFolder`; the per-OS commands live in `backend/services/open_{windows,darwin,linux}.go` (rundll32/explorer, open/open -R, xdg-open). `GetStatus` and `ListCollections` also report `lastIndexed` (the most recent `last_indexed_at`), which drives the status-strip date and the stale-library hint.
 
-## Problems I hit and how I fixed them 
+Index run accounting. `IndexResult` carries `Skipped` and `Failed` as separate
+counters. `Skipped` means the file was already indexed and unchanged, which is
+the normal result of re-indexing a collection you have not touched. `Failed`
+means the file was read and produced no usable text, which is a real problem and
+carries a reason in `ErrorMessages`. Both reach the frontend through
+`indexing:complete`, so the Index summary and the toast can tell them apart.
+Sharing one counter is what once let a total parse failure report "0 new" as if
+it were healthy; see [`release-pdf-fix.md`](release-pdf-fix.md).
 
-1. Copy-Item flattened llama-go. My first `Copy-Item -Recurse` put llama-go's contents directly in `third_party/`, not `third_party/llama-go`. `go mod tidy` failed with `reading third_party\llama-go\go.mod: The system cannot find the path specified`. Fix: create the subfolder and move the files into it. 
+Rendering PDFs. `backend/parser/pdf.go` runs PDFium inside a WASM virtual
+machine. Pool setup and pool use are different steps: a pool can initialise
+cleanly and still fail when a document is opened, so a healthy startup is not
+evidence that PDF parsing works. The pool is also given its own `Stdout` and
+`Stderr` writers rather than the process handles, because a windowed build has
+no console and those handles are invalid. See
+[`release-pdf-fix.md`](release-pdf-fix.md).
 
-2. PoIrShell mangled go output. `go mod tidy 2>&1 | Select-Object` turned Go's stderr into "RemoteException" noise and hid the real message. Fix: run Go commands without the pipe. The real error was the path problem above.
+## Problems hit and how they were fixed
+1. Copy-Item flattened llama-go. A first attempt with `Copy-Item -Recurse` put llama-go's contents directly in `third_party/`, not `third_party/llama-go`. `go mod tidy` failed with `reading third_party\llama-go\go.mod: The system cannot find the path specified`. Fix: create the subfolder and move the files into it.
 
-3. Ported files carried unused imports. Removing OCR, email, and extra logging left `slog`, `os`, `json`, `fmt`, and `embeddings` imported but unused. The compiler caught each one. I removed them.
+2. PowerShell mangled go output. `go mod tidy 2>&1 | Select-Object` turned Go's stderr into "RemoteException" noise and hid the real message. Fix: run Go commands without the pipe. The real error was the path problem above.
+
+3. Ported files carried unused imports. Removing email and extra logging left `slog`, `os`, `json`, `fmt`, and `embeddings` imported but unused. The compiler caught each one. They were removed.
 
 4. db.Open returns only an error. The handle lives in the package global `db.DB`. The first integration test wrote `conn, err := db.Open(...)` and failed with "assignment mismatch". Fix: call `db.Open`, then read `db.DB`.
 
 5. Bindings land in a new folder. After the module rename, `wails3 generate bindings` outputs to `frontend/bindings/vectile/`, not `frontend/bindings/changeme/`. The frontend imports had to point at the new path. Also, never pass build flags to wails3 via `-f`; a space inside a flag value breaks its parser.
 
 6. Frontend types fought the generated models. Switching from mock data to real bindings surfaced several type mismatches.
-   - Mock ids Ire strings; the backend uses numbers.
-   - `GetStatus` returns the generated `Status` class whose `modelState` is the generated `State` enum, not My union. I cast at the `api.ts` boundary.
+   - Mock ids were strings; the backend uses numbers.
+   - `GetStatus` returns the generated `Status` class, whose `modelState` is the generated `State` enum rather than the local union. The cast happens at the `api.ts` boundary.
    - `Events.On` callbacks receive a `WailsEvent` wrapper, so the payload is `ev.data`, not the object directly.
    - `Prune` returns a result struct; My wrapper typed it as `void`. I await and ignore it.
 

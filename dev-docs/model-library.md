@@ -84,7 +84,7 @@ app falls back to the default instead of pointing at a ghost.
 That reconcile is why imports and hand-dropped files behave the same: both end
 up as rows with a path inside `models/`. The scan stores the native context
 window and the default batch size (32) on the row, and `UpsertModel`'s
-`ON CONFLICT` also backfills any row still holding `0` for either value — so
+`ON CONFLICT` also backfills any row still holding `0` for either value, so
 rows created before the batch-size default was fixed repair themselves on the
 next scan, without clobbering settings the user tuned.
 
@@ -148,9 +148,9 @@ threads go straight into the embedder via `SetModel`.
 
 Context window `0` is a sentinel meaning "the model's native maximum". The
 folder scan and import both read `<arch>.context_length` from the GGUF header
-and store it on the row, and a model that still has `0` (the key absent from
-the file) is passed through to llama.go, which resolves it to
-`llama_model_n_ctx_train` after load — there is no hardcoded 2048 cap anymore.
+and store it on the row, and a model that still has `0` is passed through to
+llama.go, which resolves it to `llama_model_n_ctx_train` after load. There is no
+hardcoded 2048 cap anymore.
 Threads `0` means "all cores".
 
 ## Key decisions

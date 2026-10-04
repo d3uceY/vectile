@@ -1,4 +1,4 @@
-# Indexing crash on some Windows machines — root cause and fix
+# Indexing crash on some Windows machines: root cause and fix
 
 **Date:** 2026-09-09
 

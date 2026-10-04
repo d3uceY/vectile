@@ -1,6 +1,8 @@
 # How vectile works
 
-A plain-English walkthrough of the whole app: what happens from launch, to indexing your files, to finding something in a search.
+A plain-English walkthrough of the whole app: what happens from launch, to indexing your files, to finding something in a search. If you are new to the codebase, start here.
+
+Related reading: [`backend-notes.md`](backend-notes.md) covers the choices behind the design, [`logging.md`](logging.md) explains where errors go, and [`release-pdf-fix.md`](release-pdf-fix.md) is a worked example of tracking down a bug that only appeared in a release.
 
 ## The big picture
 
@@ -25,10 +27,11 @@ flowchart LR
 ## Startup
 
 1. `main.go` runs first. It creates the data directory (under `os.UserConfigDir()/vectile`), loads `config.json` (or defaults), and builds the shared core: the embedder, the config, and the Wails app.
-2. The app opens the database and creates the schema if it is missing.
-3. The frontend loads. On mount it asks the backend for status, collections, and settings.
+2. It sets up logging, so anything that goes wrong later is written to a file you can read. See [`logging.md`](logging.md).
+3. The app opens the database and creates the schema if it is missing.
+4. The frontend loads. On mount it asks the backend for status, collections, and settings.
 
-Nothing is indexed at startup. The model is not loaded yet either. Both happen lazily: the model loads on the first embed, indexing starts when you tell it to. On a fresh install (an empty library), a three-step tour walks Settings → Index → Search: add a folder, index it, search.
+Nothing is indexed at startup, and the model is not loaded yet. Both happen later: the model loads the first time something needs an embedding, and indexing starts when you ask for it. On a fresh install (an empty library), a three-step tour walks Settings, then Index, then Search: add a folder, index it, search.
 
 ## Where your files go
 
@@ -36,7 +39,9 @@ The app keeps three things in the data directory.
 
 - `config.json`, the settings you change in the UI.
 - `db/vectile.db`, the SQLite database holding everything indexed.
-- `models/bge-m3-Q4_K_M.gguf`, the embedding model. You place this file there yourself. The app never downloads it.
+- `models/bge-m3-Q4_K_M.gguf`, the embedding model. You place this file there yourself, or download it from the app's built-in list.
+
+It also writes `vectile.log` there, which is the first place to look when something misbehaves.
 
 ## Adding sources (Settings)
 
@@ -66,6 +71,21 @@ Indexing turns files into searchable chunks.
 4. Each chunk is embedded. The bge-m3 model turns the text into a list of 1024 numbers that capture its meaning.
 5. The chunk text, its metadata, and its vector are stored in SQLite. Vectors go into a vec0 table for fast similarity search. The text also goes into an FTS5 table for exact-word search.
 6. Progress events stream to the UI, which shows a progress bar and the current file. A completion event updates the counts and shows a toast.
+
+The completion summary separates two things that are easy to confuse: files
+**skipped** because they were already up to date, and files that **failed**
+because they were read and produced no text. A run full of failures is not a
+healthy run, and the log says why. See [`logging.md`](logging.md).
+
+### Scanned PDFs
+
+A PDF that is a photo of a page has no text in it to extract. vectile renders
+the page to an image and runs Tesseract over it, but only if the OCR plugin is
+installed. Settings > OCR installs it, and the app offers to when an index run
+comes back empty.
+
+OCR is optional because the download is around 17 MB. It runs only on pages
+that had no text of their own, so a normal PDF never touches it.
 
 Code repos behave a little differently. Files are parsed with tree-sitter, so each function or class is its own chunk instead of a 500-word slice. Git watermarks track which commit was indexed, so the next run only reads files changed since then. Commit history is indexed as its own source type, so you can search "when did we add this function" by diff content.
 
