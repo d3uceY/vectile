@@ -101,6 +101,7 @@ const indexSimPlugin = {
           collection: sim.collection,
           indexed: sim.indexed,
           skipped: 0,
+          failed: 0,
           errors: 0,
           messages: [],
           pdfNoTextPages: noText,
@@ -113,7 +114,7 @@ const indexSimPlugin = {
           sim.timer = setTimeout(tick, 80);
           return;
         }
-        if (sim.all) emit("indexing:all-done", { pdfNoTextPages: sim.noText || 0 });
+        if (sim.all) emit("indexing:all-done", { pdfNoTextPages: sim.noText || 0, failed: 0 });
         sim = null;
         return;
       }
@@ -131,7 +132,7 @@ const indexSimPlugin = {
       if (!sim) return;
       const { all, collection, indexed } = sim;
       stop();
-      emit("indexing:cancelled", { collection, indexed, skipped: 0, errors: 0 });
+      emit("indexing:cancelled", { collection, indexed, skipped: 0, failed: 0, errors: 0 });
       if (all) emit("indexing:all-done", null);
     };
 

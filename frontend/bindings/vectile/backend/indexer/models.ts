@@ -7,10 +7,18 @@ import { Create as $Create } from "@wailsio/runtime";
 
 /**
  * IndexResult summarises an indexing run.
+ * 
+ * Skipped and Failed are deliberately separate. Skipped means "already up to
+ * date, nothing to do" and is the normal result of re-indexing an unchanged
+ * collection. Failed means "this file was read and produced no usable text",
+ * which is a real problem (a broken parser, an unreadable file, a scan with no
+ * OCR installed). Reporting both under one number made a total parse failure
+ * look identical to a healthy no-op run.
  */
 export class IndexResult {
     "Indexed": number;
     "Skipped": number;
+    "Failed": number;
     "Errors": number;
     "TotalFound": number;
 
@@ -29,6 +37,9 @@ export class IndexResult {
         }
         if (!("Skipped" in $$source)) {
             this["Skipped"] = 0;
+        }
+        if (!("Failed" in $$source)) {
+            this["Failed"] = 0;
         }
         if (!("Errors" in $$source)) {
             this["Errors"] = 0;
@@ -50,10 +61,10 @@ export class IndexResult {
      * Creates a new IndexResult instance from a string or object.
      */
     static createFrom($$source: any = {}): IndexResult {
-        const $$createField5_0 = $$createType0;
+        const $$createField6_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("ErrorMessages" in $$parsedSource) {
-            $$parsedSource["ErrorMessages"] = $$createField5_0($$parsedSource["ErrorMessages"]);
+            $$parsedSource["ErrorMessages"] = $$createField6_0($$parsedSource["ErrorMessages"]);
         }
         return new IndexResult($$parsedSource as Partial<IndexResult>);
     }

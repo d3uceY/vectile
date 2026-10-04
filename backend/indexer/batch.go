@@ -60,7 +60,6 @@ func indexItemsBatched(
 	}
 
 	b := &itemBatcher{cfg: cfg, total: total, itemAt: itemAt}
-	defer func() { result.Skipped += b.skipped }()
 	indexed := 0
 
 	for {
@@ -143,7 +142,6 @@ type itemBatcher struct {
 	total   int
 	next    int
 	itemAt  itemFunc
-	skipped int // items the itemFunc declined, or that had no usable text
 }
 
 // nextBatch returns the next batch, or nil once the items are exhausted or
@@ -164,7 +162,8 @@ func (b *itemBatcher) nextBatch(ctx context.Context) *itemBatch {
 		b.next++
 
 		if item == nil || !hasContent(item.Chunks) {
-			b.skipped++
+			// The itemFunc already recorded this as skipped or failed on the
+			// result; counting it again here would double-report it.
 			continue
 		}
 

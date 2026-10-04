@@ -218,6 +218,8 @@ export interface IndexComplete {
   collection: string;
   indexed: number;
   skipped: number;
+  /** Files read that yielded no usable text: a real problem, unlike skipped. */
+  failed: number;
   errors: number;
   messages: string[];
   /** PDF pages that yielded no text at all: the scans in this run. */
@@ -227,6 +229,7 @@ export interface IndexComplete {
 /** Mirrors services.IndexAllDone; the totals for a whole "Index all" run. */
 export interface IndexAllDone {
   pdfNoTextPages: number;
+  failed: number;
 }
 
 /** Mirrors services.IndexFileProgress; emitted per indexed file. */
@@ -242,6 +245,7 @@ export interface IndexCancelled {
   collection: string;
   indexed: number;
   skipped: number;
+  failed: number;
   errors: number;
 }
 

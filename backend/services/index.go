@@ -125,18 +125,21 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 			s.core.App.Event.Emit("indexing:pruned", pr.Pruned)
 		}
 		noText := 0
+		failed := 0
 		for _, name := range s.configuredCollections() {
 			if ctx.Err() != nil {
 				break
 			}
-			noText += s.runIndex(ctx, name, force).PDFNoTextPages
+			r := s.runIndex(ctx, name, force)
+			noText += r.PDFNoTextPages
+			failed += r.Failed
 		}
 		// The whole index-all run is done (all collections, or the first
 		// cancellation): the frontend reloads the library exactly once here
 		// instead of once per collection. Only announce a finished run; a
 		// cancellation already told the frontend its state.
 		if ctx.Err() == nil {
-			s.core.App.Event.Emit("indexing:all-done", IndexAllDone{PDFNoTextPages: noText})
+			s.core.App.Event.Emit("indexing:all-done", IndexAllDone{PDFNoTextPages: noText, Failed: failed})
 			s.core.sendNotification("index-all", "Indexing finished", "All collections indexed")
 		}
 	}()
@@ -415,7 +418,8 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *i
 
 	if ctx.Err() != nil {
 		s.core.App.Event.Emit("indexing:cancelled", IndexCancelled{
-			Collection: name, Indexed: result.Indexed, Skipped: result.Skipped, Errors: result.Errors,
+			Collection: name, Indexed: result.Indexed, Skipped: result.Skipped,
+			Failed: result.Failed, Errors: result.Errors,
 		})
 		s.core.clearIndexProgress(name)
 		return result
@@ -425,6 +429,7 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *i
 		Collection:     name,
 		Indexed:        result.Indexed,
 		Skipped:        result.Skipped,
+		Failed:         result.Failed,
 		Errors:         result.Errors,
 		Messages:       result.ErrorMessages,
 		PDFNoTextPages: result.PDFNoTextPages,

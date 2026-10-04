@@ -177,13 +177,22 @@ func ParsePDF(ctx context.Context, path string, opts *PDFOptions) ([]PageText, P
 	}
 
 	if len(pages) == 0 {
+		// Log enough to tell the three cases apart, because the indexer only
+		// sees "no content" and the shipped GUI build has no console: without
+		// this line a total PDF failure and an empty scan look identical.
 		switch {
+		case pdfPoolErr != nil:
+			slog.Error("no extractable text: PDF engine failed to start",
+				"path", path, "err", pdfPoolErr)
 		case opts != nil && opts.OCR && !ocr.Installed():
-			slog.Warn("no extractable text in PDF and the OCR plugin is not installed", "path", path)
+			slog.Warn("no extractable text in PDF and the OCR plugin is not installed",
+				"path", path, "pages", numPages)
 		case ocrEnabled:
-			slog.Warn("no extractable text in PDF (OCR produced no text either)", "path", path)
+			slog.Warn("no extractable text in PDF (OCR produced no text either)",
+				"path", path, "pages", numPages)
 		default:
-			slog.Warn("no extractable text found in PDF (OCR disabled)", "path", path)
+			slog.Warn("no extractable text found in PDF (OCR disabled)",
+				"path", path, "pages", numPages)
 		}
 	}
 

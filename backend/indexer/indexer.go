@@ -30,9 +30,17 @@ type Embedder interface {
 type ProgressCallback func(current, total int, itemName string)
 
 // IndexResult summarises an indexing run.
+//
+// Skipped and Failed are deliberately separate. Skipped means "already up to
+// date, nothing to do" and is the normal result of re-indexing an unchanged
+// collection. Failed means "this file was read and produced no usable text",
+// which is a real problem (a broken parser, an unreadable file, a scan with no
+// OCR installed). Reporting both under one number made a total parse failure
+// look identical to a healthy no-op run.
 type IndexResult struct {
 	Indexed    int
 	Skipped    int
+	Failed     int
 	Errors     int
 	TotalFound int
 	// PDFNoTextPages counts PDF pages that yielded neither text nor OCR text.
@@ -43,14 +51,15 @@ type IndexResult struct {
 }
 
 func (r *IndexResult) String() string {
-	return fmt.Sprintf("Indexed: %d, Skipped: %d, Errors: %d, Total found: %d",
-		r.Indexed, r.Skipped, r.Errors, r.TotalFound)
+	return fmt.Sprintf("Indexed: %d, Skipped: %d, Failed: %d, Errors: %d, Total found: %d",
+		r.Indexed, r.Skipped, r.Failed, r.Errors, r.TotalFound)
 }
 
 // Merge adds another result into this one.
 func (r *IndexResult) Merge(other *IndexResult) {
 	r.Indexed += other.Indexed
 	r.Skipped += other.Skipped
+	r.Failed += other.Failed
 	r.Errors += other.Errors
 	r.TotalFound += other.TotalFound
 	r.PDFNoTextPages += other.PDFNoTextPages
@@ -470,12 +479,14 @@ func fileToItem(ctx context.Context, conn *sql.DB, cfg *config.Config, filePath 
 	}
 
 	if !force && isSourceCurrent(conn, collectionID, absPath, mtime) {
+		res.recordSkip()
 		return nil
 	}
 
 	fh, err := fileHash(filePath)
 	if err != nil {
 		slog.Warn("cannot hash file, skipping", "path", filePath, "err", err)
+		res.recordFailure(fmt.Sprintf("cannot read %s: %v", filePath, err))
 		return nil
 	}
 
@@ -491,12 +502,17 @@ func fileToItem(ctx context.Context, conn *sql.DB, cfg *config.Config, filePath 
 			"UPDATE sources SET file_modified_at = ?, last_indexed_at = ? WHERE collection_id = ? AND source_path = ?",
 			mtime, time.Now().UTC().Format(time.RFC3339), collectionID, absPath,
 		)
+		res.recordSkip()
 		return nil
 	}
 
 	chunks := parseAndChunk(ctx, filePath, sourceType, cfg, res)
 	if len(chunks) == 0 {
-		slog.Warn("no content extracted, skipping", "path", filePath)
+		// The file was read and produced nothing usable. That is a failure, not
+		// an unchanged file: it is exactly what a broken parser or a scan with
+		// no OCR looks like, and it used to be indistinguishable from "skipped".
+		slog.Warn("no content extracted", "path", filePath, "sourceType", sourceType)
+		res.recordFailure(fmt.Sprintf("no text extracted from %s (%s)", filePath, sourceType))
 		return nil
 	}
 
@@ -506,6 +522,25 @@ func fileToItem(ctx context.Context, conn *sql.DB, cfg *config.Config, filePath 
 		Chunks:     chunks,
 		FileHash:   fh,
 		Mtime:      mtime,
+	}
+}
+
+// recordSkip counts a file that is already up to date: the healthy no-op case.
+func (r *IndexResult) recordSkip() {
+	if r != nil {
+		r.Skipped++
+	}
+}
+
+// recordFailure counts a file that was read but yielded nothing, keeping the
+// reason so the run summary can explain itself without a debugger.
+func (r *IndexResult) recordFailure(msg string) {
+	if r == nil {
+		return
+	}
+	r.Failed++
+	if len(r.ErrorMessages) < 10 {
+		r.ErrorMessages = append(r.ErrorMessages, msg)
 	}
 }
 

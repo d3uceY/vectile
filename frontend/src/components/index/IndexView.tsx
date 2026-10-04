@@ -97,6 +97,9 @@ export function IndexView() {
         <div class="mb-5 flex flex-wrap items-center gap-2 rounded-[8px] border border-line bg-surface px-4 py-2.5">
           <span class="font-mono text-[12px] text-muted">last: {store.indexLast()!.collection}</span>
           <Chip tone="mint">{store.indexLast()!.indexed} new</Chip>
+          <Show when={store.indexLast()!.failed > 0}>
+            <Chip tone="amber">{store.indexLast()!.failed} could not be read</Chip>
+          </Show>
           <Show when={store.indexLast()!.skipped > 0}>
             <Chip>{store.indexLast()!.skipped} skipped</Chip>
           </Show>

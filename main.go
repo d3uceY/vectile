@@ -3,6 +3,8 @@ package main
 import (
 	"embed"
 	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -10,6 +12,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/services/notifications"
 
 	"vectile/backend/appdata"
+	"vectile/backend/applog"
 	"vectile/backend/config"
 	"vectile/backend/db"
 	"vectile/backend/embeddings"
@@ -33,9 +36,28 @@ func main() {
 
 	// Resolve the app-data directory first so config, db/, and models/ have a
 	// home. The embedding model is expected to already be in models/.
-	if _, err := appdata.Init(); err != nil {
+	dataDir, err := appdata.Init()
+	if err != nil {
 		log.Fatalf("appdata init: %v", err)
 	}
+
+	// Send every slog record to <app-data>/vectile.log. The shipped Windows
+	// build is a GUI binary with no console, so without this a failure in the
+	// parser, indexer, or OCR is completely silent and the app just reports
+	// "0 indexed". Non-fatal: a read-only data dir must not block launch.
+	if err := applog.Init(dataDir); err != nil {
+		log.Printf("log file unavailable, continuing without it: %v", err)
+	}
+	defer applog.Close()
+
+	// The stdlib logger only carries startup-fatal paths (config, db, model
+	// apply). Point it at the same file so those are recoverable too.
+	if f, err := os.OpenFile(applog.Path(dataDir), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644); err == nil {
+		log.SetOutput(f)
+		defer f.Close()
+	}
+
+	slog.Info("vectile starting", "version", Version, "dataDir", dataDir)
 
 	cfg, err := config.Load(appdata.ConfigPath())
 	if err != nil {

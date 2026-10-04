@@ -643,6 +643,11 @@ export function createAppStore() {
     void refresh();
     void loadCacheStats();
     if (e.errors > 0) pushToast(`${e.collection}: ${e.errors} error(s)`, "danger");
+    else if (e.failed > 0)
+      pushToast(
+        `${e.collection}: ${e.failed} file(s) could not be read · see vectile.log`,
+        "danger",
+      );
     else pushToast(`Indexed ${e.collection} · ${e.indexed} new`, "success");
     if (!indexAllActive()) offerOCR(e.pdfNoTextPages ?? 0);
   });

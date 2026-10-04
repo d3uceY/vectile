@@ -182,11 +182,15 @@ type IndexProgress struct {
 
 // IndexComplete is emitted when an index run finishes.
 type IndexComplete struct {
-	Collection string   `json:"collection"`
-	Indexed    int      `json:"indexed"`
-	Skipped    int      `json:"skipped"`
-	Errors     int      `json:"errors"`
-	Messages   []string `json:"messages"`
+	Collection string `json:"collection"`
+	Indexed    int    `json:"indexed"`
+	Skipped    int    `json:"skipped"`
+	// Failed counts files that were read and produced no usable text. It is
+	// separate from Skipped (already up to date) so "this run found nothing to
+	// do" and "this run could not read anything" never look the same.
+	Failed   int      `json:"failed"`
+	Errors   int      `json:"errors"`
+	Messages []string `json:"messages"`
 	// PDFNoTextPages counts pages that yielded neither text nor OCR text. The
 	// frontend uses it to offer installing OCR when a run hits scans.
 	PDFNoTextPages int `json:"pdfNoTextPages"`
@@ -196,6 +200,7 @@ type IndexComplete struct {
 // per-run totals that a finished single collection cannot report on its own.
 type IndexAllDone struct {
 	PDFNoTextPages int `json:"pdfNoTextPages"`
+	Failed         int `json:"failed"`
 }
 
 // IndexFileProgress is emitted per successfully indexed file during a run,
@@ -213,6 +218,7 @@ type IndexCancelled struct {
 	Collection string `json:"collection"`
 	Indexed    int    `json:"indexed"`
 	Skipped    int    `json:"skipped"`
+	Failed     int    `json:"failed"`
 	Errors     int    `json:"errors"`
 }
 
