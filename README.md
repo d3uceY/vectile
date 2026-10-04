@@ -10,10 +10,10 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 
 ## Demo
 
-Eighteen seconds, no narration, sample data: search the whole library by meaning, the collections behind it, every indexed chunk next to its source text, and a live indexing run.
+Twenty-two seconds, no narration, sample data: search the whole library by meaning, the collections behind it, open a source to read a chunk where it lives, and a live indexing run.
 
 <p align="center">
-  <img src="docs/vectile-demo.gif" alt="vectile demo: a search that ranks by meaning, then the Library, Browse and Index views" width="100%">
+  <img src="docs/vectile-demo.gif" alt="vectile demo: a search that ranks by meaning, then the Library, a source opened to read one of its chunks in Browse, and a live indexing run" width="100%">
 </p>
 
 ## Features
