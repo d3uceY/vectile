@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"path/filepath"
 	"strings"
 
 	"vectile/backend/chunker"
@@ -203,8 +204,8 @@ func hasNilVec(vecs [][]float32) bool {
 }
 
 // writeItemBatch stores an embedded batch, attributing failures per item so
-// one bad item does not sink the rest. It returns the titles of the items
-// that were successfully stored, so the caller can emit per-file progress.
+// one bad item does not sink the rest. It returns a display name for each item
+// that was successfully stored, so the caller can emit per-file progress.
 func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *IndexResult, preCleared bool) []string {
 	// Offsets into b.vecs are only meaningful if one vector came back per text.
 	if len(b.vecs) != len(b.texts) {
@@ -219,7 +220,7 @@ func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *Inde
 		purgeSourceDocuments(conn, collectionID, b.items)
 	}
 
-	var indexedTitles []string
+	var indexedNames []string
 	offset := 0
 	for _, item := range b.items {
 		vecs := b.vecs[offset : offset+len(item.Chunks)]
@@ -248,9 +249,25 @@ func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *Inde
 			continue
 		}
 		result.Indexed++
-		indexedTitles = append(indexedTitles, item.Title)
+		indexedNames = append(indexedNames, itemProgressName(item))
 	}
-	return indexedTitles
+	return indexedNames
+}
+
+// itemProgressName is the label the per-file progress event carries for a
+// stored item: its display title when it has one (a book title, a
+// repo-relative path), otherwise the file's base name. Item builders for
+// obsidian vaults and project folders set no Title, so without the fallback
+// the loader shows a blank line under the bar for the two source types people
+// index most.
+func itemProgressName(item *indexItem) string {
+	if item.Title != "" {
+		return item.Title
+	}
+	if item.SourcePath == "" {
+		return ""
+	}
+	return filepath.Base(item.SourcePath)
 }
 
 // sqlParamLimit bounds how many bind parameters go into one statement.
