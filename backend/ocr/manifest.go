@@ -44,16 +44,22 @@ type asset struct {
 // this map is one vectile cannot install OCR on, and both Platform and the
 // service report that honestly instead of offering a download that would fail.
 //
-// Deleting entries here is the one-line retreat if a bundle turns out not to
-// be self-contained: the Windows archive is built static, but the Unix ones
-// link leptonica (and, on Linux, libicu and friends), so Install runs the
-// binary once and refuses to keep it if it cannot execute.
+// Every archive is built static by the bundler: leptonica and its image codecs
+// are compiled from source through vcpkg and linked in, and each Unix job
+// asserts the result only depends on the OS base libraries. Verified against
+// the published 5.5.3 assets: linux-amd64/arm64 need only libc/libm, and
+// macos-amd64/arm64 only libc++/libSystem.
+//
+// Install still runs the binary once before keeping it, so a future bundle that
+// regresses is rejected here instead of silently producing no text. Deleting an
+// entry is the one-line retreat if a platform ever turns out not to be
+// self-contained.
 var platforms = map[string]asset{
-	"windows-amd64": {"tesseract-" + Version + "-windows-amd64.zip", 17882639, true},
-	"linux-amd64":   {"tesseract-" + Version + "-linux-amd64.tar.gz", 20096630, false},
-	"linux-arm64":   {"tesseract-" + Version + "-linux-arm64.tar.gz", 19892804, false},
-	"macos-amd64":   {"tesseract-" + Version + "-macos-amd64.tar.gz", 18895822, false},
-	"macos-arm64":   {"tesseract-" + Version + "-macos-arm64.tar.gz", 18786846, false},
+	"windows-amd64": {"tesseract-" + Version + "-windows-amd64.zip", 17823819, true},
+	"linux-amd64":   {"tesseract-" + Version + "-linux-amd64.tar.gz", 20061590, false},
+	"linux-arm64":   {"tesseract-" + Version + "-linux-arm64.tar.gz", 19872943, false},
+	"macos-amd64":   {"tesseract-" + Version + "-macos-amd64.tar.gz", 18747568, false},
+	"macos-arm64":   {"tesseract-" + Version + "-macos-arm64.tar.gz", 18409451, false},
 }
 
 // Platform returns the release key for this build, or "" when there is no
