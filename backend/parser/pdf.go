@@ -24,12 +24,48 @@ var (
 	pdfPoolErr  error
 )
 
+// initPDFPool lazily builds the shared PDFium WASM pool.
+//
+// Stdout and Stderr are supplied explicitly because go-pdfium defaults both to
+// os.Stdout / os.Stderr, and it hands them to wazero as the WASI stdio fds.
+// The released Windows build is linked with -H windowsgui, which has no
+// console: the std handles are not merely empty, they are invalid, so wazero
+// fails to resolve "/dev/stdout" and every page fails to render with
+//
+//	could not instantiate webassembly module: GetFileType /dev/stdout:
+//	The handle is invalid.
+//
+// The pool itself initialises either way, so the failure only appeared at PDF
+// parse time and read as "0 indexed". Binding both streams to the app log
+// keeps pdfium's own diagnostics (issue text, load errors) instead of
+// discarding them, and gives wazero a writer that cannot fail a handle lookup.
 func initPDFPool() {
 	pdfPool, pdfPoolErr = webassembly.Init(webassembly.Config{
 		MinIdle:  1,
 		MaxIdle:  1,
 		MaxTotal: 1,
+		Stdout:   logWriter{},
+		Stderr:   logWriter{},
 	})
+}
+
+// logWriter routes a child process's output into the app log at debug level,
+// so pdfium diagnostics are visible with VECTILE_DEBUG=1 rather than lost.
+//
+// The Write method must never block or error: it now backs the WASI stdio fds
+// for a module that renders every page, so a failure here would fail parsing.
+// It returns len(p) unconditionally for that reason.
+type logWriter struct{}
+
+func (logWriter) Write(p []byte) (int, error) {
+	// Checked before formatting: pdfium is chatty and this must stay cheap
+	// when debug logging is off, which is the default.
+	if len(p) > 0 && slog.Default().Enabled(context.Background(), slog.LevelDebug) {
+		if msg := strings.TrimSpace(string(p)); msg != "" {
+			slog.Debug("pdfium", "msg", msg)
+		}
+	}
+	return len(p), nil
 }
 
 // ClosePDFPool shuts down the PDFium WASM pool. Call on application exit.
