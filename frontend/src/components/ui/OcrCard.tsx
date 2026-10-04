@@ -34,24 +34,24 @@ export function OcrCard(props: {
   const ready = () => Boolean(s()?.supported && !s()?.installed && !busy());
 
   return (
-    <div class="rounded-control border border-line bg-paper-warm p-4">
+    <div class="rounded-[8px] border border-line bg-surface p-4">
       <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
         <span class={`h-2 w-2 shrink-0 rounded-full ${status().dot}`} aria-hidden="true" />
-        <span class="text-[13px] font-medium text-ink">{status().word}</span>
+        <span class="text-[13px] font-semibold text-ink">{status().word}</span>
         <Show when={s()?.supported}>
-          <span class="data text-[11px] text-muted">
+          <span class="font-mono text-[11px] text-muted">
             tesseract {s()!.version} · {s()!.platform} · {fmtBytes(s()!.sizeBytes)}
           </span>
         </Show>
       </div>
 
-      <p class="mt-2 text-[13px] leading-5 text-muted">
+      <p class="mt-2 text-[13px] font-medium leading-5 text-muted">
         Reads PDFs that are photos of pages. PDFs with real text do not need it, and it never runs
         for a page that already came back with text.
       </p>
 
       <Show when={s()?.error}>
-        <p class="mt-2 text-[12.5px] leading-5 text-danger">{s()!.error}</p>
+        <p class="mt-2 text-[12px] font-medium leading-5 text-danger">{s()!.error}</p>
       </Show>
 
       <Show when={busy()}>
@@ -61,15 +61,15 @@ export function OcrCard(props: {
       </Show>
 
       <Show when={!busy() && s()?.installed}>
-        <p class="data mt-3 truncate text-[11px] text-muted" title={s()!.dir}>
+        <p class="mt-3 truncate font-mono text-[11px] text-muted" title={s()!.dir}>
           {s()!.dir}
         </p>
       </Show>
 
       <Show when={ready()}>
-        <div class="mt-3 rounded-control border border-line bg-surface px-3 py-2">
-          <p class="text-[10.5px] uppercase tracking-wide text-muted">Downloaded from</p>
-          <p class="data mt-0.5 truncate text-[11.5px] text-ink-soft" title={s()!.downloadUrl}>
+        <div class="mt-3 rounded-[8px] border border-line bg-surface-2 px-3 py-2">
+          <p class="font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted">Downloaded from</p>
+          <p class="mt-0.5 truncate font-mono text-[11px] text-ink-soft" title={s()!.downloadUrl}>
             {s()!.downloadUrl}
           </p>
         </div>

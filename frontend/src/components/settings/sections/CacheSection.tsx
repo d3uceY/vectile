@@ -33,10 +33,10 @@ export function CacheSection() {
       note="Repeated searches reuse the query embedding instead of computing it again."
     >
       <div class="space-y-6">
-        <div class="rounded-control border border-line bg-paper-warm px-4 py-3.5">
+        <div class="rounded-[8px] border border-line bg-surface px-4 py-3.5">
           <div class="flex items-center gap-2">
             <span
-              class={`h-2 w-2 shrink-0 rounded-full ${cacheCount() > 0 ? "bg-indigo" : "bg-faint"}`}
+              class={`h-2 w-2 shrink-0 rounded-full ${cacheCount() > 0 ? "bg-leaf" : "bg-ghost"}`}
             />
             <span class="text-[12px] font-semibold leading-none text-ink-soft">
               {cacheCount() === 0
@@ -46,20 +46,20 @@ export function CacheSection() {
                 : `${cacheCount().toLocaleString()} quer${cacheCount() === 1 ? "y" : "ies"} cached`}
             </span>
             <Show when={cacheBytes() > 0}>
-              <span class="data ml-auto shrink-0 text-[11.5px] text-muted">
+              <span class="ml-auto shrink-0 font-mono text-[11px] text-muted">
                 {fmtBytes(cacheBytes())}
               </span>
             </Show>
           </div>
           <div class="mt-2.5 border-t border-line" aria-hidden="true" />
-          <p class="note mt-2 text-[11.5px] leading-4 text-muted">
+          <p class="mt-2 text-[11px] font-medium leading-4 text-muted">
             only the query embedding is stored, never your results · cleared when you
             reindex or change the active model
           </p>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <p class="note max-w-[46ch] text-[12.5px] leading-4 text-muted">
+          <p class="max-w-[46ch] text-[12px] font-medium leading-4 text-muted">
             Clearing costs one extra embedding per repeated query.
           </p>
           <Button

@@ -23,16 +23,19 @@ export function ModelDownloadDialog(props: {
   return (
     <Show when={props.open}>
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
         role="dialog"
         aria-modal="true"
         aria-label="Add an embedding model"
         onClick={props.onDismiss}
       >
-        <div class="sheet w-104 p-6 shadow-pop" onClick={(e) => e.stopPropagation()}>
+        <div
+          class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          onClick={(e) => e.stopPropagation()}
+        >
          
-          <h3 class="title mt-2 text-[17px] tracking-[-0.01em] text-ink">Add an embedding model</h3>
-          <p class="read mt-2.5 text-[13.5px] leading-5 text-muted">
+          <h3 class="mt-2 text-[17px] font-semibold tracking-[-0.01em] text-ink">Add an embedding model</h3>
+          <p class="mt-2.5 text-[13px] font-medium leading-[1.7] text-muted">
             Vectile searches by meaning. It needs one of these, or bring your own.
           </p>
 

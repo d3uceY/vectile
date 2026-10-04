@@ -104,9 +104,9 @@ export function LibraryView() {
             </div>
           }
         >
-          <div class="sheet @container overflow-hidden">
-            <div class="flex items-stretch border-b border-line bg-paper/60">
-              <div class="grid flex-1 grid-cols-12 gap-2 px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
+          <div class="rounded-card border border-line-strong bg-surface shadow-xs @container overflow-hidden">
+            <div class="flex items-stretch border-b border-line bg-surface-2/60">
+              <div class="grid flex-1 grid-cols-12 gap-2 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
                 <span class="col-span-8 @lg:col-span-6">Collection</span>
                 <span class="hidden @lg:block @lg:col-span-2">Files</span>
                 <span class="col-span-4 text-right @lg:col-span-2">Chunks</span>
@@ -122,8 +122,8 @@ export function LibraryView() {
                     <li class="group">
                       <div class="flex items-stretch">
                         <button
-                          class={`grid flex-1 grid-cols-12 items-center gap-2 px-5 py-3.5 text-left transition-colors duration-100 ease-snappy ${
-                            isOpen() ? "bg-indigo-mist/40" : "hover:bg-surface-2"
+                          class={`grid flex-1 grid-cols-12 items-center gap-2 px-4 py-3 text-left transition-colors duration-100 ease-snappy ${
+                            isOpen() ? "bg-mint/40" : "hover:bg-surface-2"
                           }`}
                           onClick={() => toggle(c.id)}
                           aria-expanded={isOpen()}
@@ -136,11 +136,11 @@ export function LibraryView() {
                               }`}
                             />
                             <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                              <span class="title truncate text-[14px] text-ink">{c.name}</span>
+                              <span class="truncate text-[13px] font-semibold text-ink">{c.name}</span>
                               <TypeBadge type={c.type} />
                               {c.needsReindex && (
                                 <span
-                                  class="shrink-0 whitespace-nowrap rounded-control bg-highlighter/60 px-1.5 py-0.5 text-[11px] font-medium text-ink"
+                                  class="shrink-0 whitespace-nowrap rounded-full border border-amber-warm bg-amber-soft px-[7px] py-[1px] text-[12px] font-semibold text-amber-deep"
                                   title="No embeddings yet. Re-index after switching to a model with a different embedding dimension."
                                 >
                                   needs reindex
@@ -148,11 +148,13 @@ export function LibraryView() {
                               )}
                             </span>
                           </span>
-                          <span class="data hidden text-muted @lg:block @lg:col-span-2">{c.sources}</span>
-                          <span class="data col-span-4 text-right text-muted @lg:col-span-2">
+                          <span class="hidden font-mono text-[12px] text-muted @lg:block @lg:col-span-2">
+                            {c.sources}
+                          </span>
+                          <span class="col-span-4 text-right font-mono text-[12px] text-muted @lg:col-span-2">
                             {c.chunks.toLocaleString()}
                           </span>
-                          <span class="data hidden text-right text-muted @lg:block @lg:col-span-2">
+                          <span class="hidden text-right font-mono text-[12px] text-muted @lg:block @lg:col-span-2">
                             {c.lastIndexed ? new Date(c.lastIndexed).toLocaleDateString() : "never"}
                           </span>
                         </button>
@@ -174,9 +176,9 @@ export function LibraryView() {
                       </div>
 
                       <Show when={isOpen()}>
-                        <div class="border-t border-line bg-paper/70">
+                        <div class="border-t border-line bg-surface-2/60">
                           <Show when={c.description}>
-                            <p class="data px-5 pt-3 pb-1 text-muted">{c.description}</p>
+                            <p class="px-4 pt-3 pb-1 font-mono text-[12px] text-muted">{c.description}</p>
                           </Show>
                           <ScrollSentinel
                             root={getScroller}
@@ -189,21 +191,21 @@ export function LibraryView() {
                                 {(s) => (
                                   <li
                                     data-row-id={s.id}
-                                    class="group flex items-stretch rounded-lg hover:bg-surface"
+                                    class="group flex items-stretch rounded-[6px] hover:bg-surface-2"
                                   >
-                                    <div class="grid min-w-0 flex-1 grid-cols-12 items-center gap-2 px-5 py-1.5">
+                                    <div class="grid min-w-0 flex-1 grid-cols-12 items-center gap-2 px-4 py-1.5">
                                       <span class="col-span-8 flex min-w-0 items-center gap-2 pl-6 @lg:col-span-6">
-                                        <span class="data min-w-0 flex-1 truncate text-ink-soft">
+                                        <span class="min-w-0 flex-1 truncate font-mono text-[12px] text-ink-soft">
                                           {s.path}
                                         </span>
                                       </span>
-                                      <span class="data hidden truncate text-muted @lg:block @lg:col-span-2">
+                                      <span class="hidden truncate font-mono text-[12px] text-muted @lg:block @lg:col-span-2">
                                         {s.sourceType}
                                       </span>
-                                      <span class="data col-span-4 text-right text-muted @lg:col-span-2">
+                                      <span class="col-span-4 text-right font-mono text-[12px] text-muted @lg:col-span-2">
                                         {s.chunks.toLocaleString()}
                                       </span>
-                                      <span class="data hidden text-right text-muted @lg:block @lg:col-span-2">
+                                      <span class="hidden text-right font-mono text-[12px] text-muted @lg:block @lg:col-span-2">
                                         {s.lastIndexed
                                           ? new Date(s.lastIndexed).toLocaleDateString()
                                           : "never"}
@@ -232,17 +234,17 @@ export function LibraryView() {
                             </ul>
                           </Show>
                           <Show when={pager.items().length === 0 && pager.loaded()}>
-                            <div class="px-5 py-3">
-                              <p class="data text-muted">No sources indexed yet.</p>
+                            <div class="px-4 py-3">
+                              <p class="font-mono text-[12px] text-muted">No sources indexed yet.</p>
                             </div>
                           </Show>
                           <Show when={pager.loadingBottom()}>
-                            <p class="data px-5 py-2 text-muted">Loading more sources</p>
+                            <p class="px-4 py-2 font-mono text-[12px] text-muted">Loading more sources</p>
                           </Show>
                           <Show when={pager.failedNext()}>
-                            <p class="data px-5 py-2 text-muted">
+                            <p class="px-4 py-2 font-mono text-[12px] text-muted">
                               Couldn't load more sources.{" "}
-                              <button class="text-indigo hover:underline" onClick={pager.loadNext}>
+                              <button class="text-leaf-deep hover:underline" onClick={pager.loadNext}>
                                 Retry
                               </button>
                             </p>
@@ -261,8 +263,8 @@ export function LibraryView() {
             </ul>
           </div>
 
-          <div class="mt-4 flex items-center gap-2 text-[12.5px] text-muted">
-            <LibraryIcon size={14} class="text-faint" />
+          <div class="mt-4 flex items-center gap-2 text-[12px] font-medium text-muted">
+            <LibraryIcon size={14} class="text-muted" />
             <span>Deleted files are pruned automatically.</span>
           </div>
         </Show>

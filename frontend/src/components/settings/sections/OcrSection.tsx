@@ -53,7 +53,7 @@ export function OcrSection() {
 
         <Show when={store.ocrState()?.installed}>
           <div class="flex flex-wrap items-center justify-between gap-3">
-            <p class="note max-w-[46ch] text-[12.5px] leading-4 text-muted">
+            <p class="max-w-[46ch] text-[12px] font-medium leading-4 text-muted">
               PDFs you already indexed keep the text they have. Re-indexing reads them
               again, this time with OCR.
             </p>

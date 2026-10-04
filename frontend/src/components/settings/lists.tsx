@@ -28,15 +28,15 @@ export function PathList(props: {
   return (
     <div class="flex flex-col gap-2">
       {props.values.length === 0 ? (
-        <p class="rounded-control border border-dashed border-line-strong px-3 py-2.5 text-[13px] leading-5 text-muted">
+        <p class="rounded-[8px] border border-dashed border-line-strong px-3 py-2.5 text-[13px] font-medium leading-5 text-muted">
           {props.empty ?? "Nothing here yet. Add a path below."}
         </p>
       ) : (
-        <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
+        <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
           <For each={props.values}>
             {(v) => (
               <li class="group flex items-center gap-2 px-3 py-2">
-                <span class="data min-w-0 flex-1 truncate font-mono text-[12.5px] text-muted" title={v}>
+                <span class="min-w-0 flex-1 truncate font-mono text-[12px] text-muted" title={v}>
                   {v}
                 </span>
                 <button
@@ -59,7 +59,7 @@ export function PathList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder={props.placeholder ?? "/absolute/path"}
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] transition-colors focus:border-leaf"
+          class="h-9 min-w-0 flex-1 rounded-control border border-line-control bg-paper px-3 text-[13px] transition-colors duration-100 focus:border-ink"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()} aria-label="Browse for folder">
@@ -92,7 +92,7 @@ export function ChipList(props: {
   return (
     <div class="flex flex-col gap-2">
       {props.values.length === 0 ? (
-        <p class="text-[12.5px] leading-4 text-muted">
+        <p class="text-[12px] font-medium leading-4 text-muted">
           {props.empty ?? "None."}
         </p>
       ) : (
@@ -123,7 +123,7 @@ export function ChipList(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="name, e.g. .trash or CHANGELOG.md"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] transition-colors focus:border-leaf"
+          class="h-9 min-w-0 flex-1 rounded-control border border-line-control bg-paper px-2.5 text-[13px] transition-colors duration-100 focus:border-ink"
           spellcheck={false}
         />
         <Button size="sm" onClick={addInput}>
@@ -160,7 +160,7 @@ export function GroupItem(props: {
     <li class="px-3 py-3">
       <div class="mb-2 flex items-center gap-2">
         <span class="min-w-0 flex-1 truncate text-[13px] font-semibold text-ink">{props.name}</span>
-        <span class="data shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 font-mono text-[11px] text-muted">
+        <span class="shrink-0 rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-muted">
           {props.paths.length} {props.paths.length === 1 ? "path" : "paths"}
         </span>
         <button
@@ -172,13 +172,13 @@ export function GroupItem(props: {
         </button>
       </div>
       {props.paths.length === 0 ? (
-        <p class="text-[12.5px] leading-4 text-muted">No paths yet.</p>
+        <p class="text-[12px] font-medium leading-4 text-muted">No paths yet.</p>
       ) : (
         <ul class="divide-y divide-line">
           <For each={props.paths}>
             {(v) => (
               <li class="group flex items-center gap-2 py-1.5">
-                <span class="data min-w-0 flex-1 truncate font-mono text-[12.5px] text-muted" title={v}>
+                <span class="min-w-0 flex-1 truncate font-mono text-[12px] text-muted" title={v}>
                   {v}
                 </span>
                 <button
@@ -201,7 +201,7 @@ export function GroupItem(props: {
             if (e.key === "Enter") addInput();
           }}
           placeholder="/absolute/path"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-2.5 text-[12.5px] transition-colors focus:border-leaf"
+          class="h-9 min-w-0 flex-1 rounded-control border border-line-control bg-paper px-2.5 text-[13px] transition-colors duration-100 focus:border-ink"
           spellcheck={false}
         />
         <Button size="sm" variant="outline" onClick={() => void browse()}>
@@ -238,11 +238,11 @@ export function GroupList(props: {
   return (
     <div class="flex flex-col gap-2">
       {entries().length === 0 ? (
-        <p class="rounded-control border border-dashed border-line-strong px-3 py-2.5 text-[13px] leading-5 text-muted">
+        <p class="rounded-[8px] border border-dashed border-line-strong px-3 py-2.5 text-[13px] font-medium leading-5 text-muted">
           {props.empty ?? "No collections yet. Create one, then add its folders."}
         </p>
       ) : (
-        <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
+        <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
           <For each={entries()}>
             {([gname, paths]) => (
               <GroupItem
@@ -265,7 +265,7 @@ export function GroupList(props: {
             if (e.key === "Enter") addGroup();
           }}
           placeholder="collection name, e.g. client-work"
-          class="h-8 min-w-0 flex-1 rounded-control border border-line-control bg-surface px-3 text-[13px] transition-colors focus:border-leaf"
+          class="h-9 min-w-0 flex-1 rounded-control border border-line-control bg-paper px-3 text-[13px] transition-colors duration-100 focus:border-ink"
         />
         <Button size="sm" onClick={addGroup}>
           New collection

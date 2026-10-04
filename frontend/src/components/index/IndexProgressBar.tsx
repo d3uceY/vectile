@@ -24,9 +24,9 @@ export function IndexProgressBar(props: {
 
   return (
     <ProgressBar label={`Indexing ${props.collection}`} percent={pct()} preparing={preparing()} onCancel={props.onCancel}>
-      <span class="data truncate text-muted">{props.file ?? ""}</span>
+      <span class="truncate font-mono text-[12px] text-muted">{props.file ?? ""}</span>
       <Show when={!preparing()}>
-        <span class="data shrink-0 text-leaf-deep">
+        <span class="shrink-0 font-mono text-[12px] text-leaf-deep">
           {props.current}/{props.total}
         </span>
       </Show>

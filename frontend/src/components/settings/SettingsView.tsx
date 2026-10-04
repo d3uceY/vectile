@@ -49,7 +49,7 @@ export function SettingsView() {
         <ViewHeading title="Settings" note="Model, chunking, search, and sources. Everything stays on this machine." />
       </div>
 
-      <Show when={draft()} fallback={<p class="note px-6 text-muted">Loading settings…</p>}>
+      <Show when={draft()} fallback={<p class="px-6 text-[13px] font-medium text-muted">Loading settings…</p>}>
         <SettingsProvider>
           <div class="flex min-h-0 flex-1 flex-col">
             <div class="scroll-quiet flex w-full shrink-0 items-center gap-1.5 overflow-x-auto px-4 pb-3 md:hidden">
@@ -66,15 +66,13 @@ export function SettingsView() {
                       type="button"
                       onClick={() => setSection(it.key)}
                       aria-current={active() ? "page" : undefined}
-                      class={`group flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12.5px] font-medium transition-colors ${
-                        active() ? "border-indigo bg-indigo text-white" : "border-line-control bg-paper text-ink-soft"
+                      class={`group flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors duration-100 ${
+                        active() ? "border-leaf-deep bg-mint text-leaf-deep" : "border-line-control bg-paper text-ink-soft"
                       }`}
                     >
                       <span
                         class={`flex shrink-0 items-center justify-center ${
-                          active()
-                            ? ""
-                            : "transition-transform duration-200 ease-snappy group-focus-visible:scale-110 group-hover:scale-110"
+                          active() ? "" : "text-muted"
                         }`}
                       >
                         <it.icon size={15} active={active()} />
@@ -89,13 +87,13 @@ export function SettingsView() {
             <div class="flex min-h-0 min-w-0 flex-1">
             {/* Left rail: grouped sections, active on a mint pill */}
             <nav
-              class="scroll-quiet hidden w-44 shrink-0 overflow-y-auto border-r border-line py-3 pr-3 md:block"
+              class="scroll-quiet hidden w-52 shrink-0 overflow-y-auto border-r border-line py-3 pr-3 md:block"
               aria-label="Settings sections"
             >
               <For each={NAV_GROUPS}>
                 {(g) => (
-                  <div class="mb-6">
-                    <p class="data mb-2 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
+                  <div class="mb-5">
+                    <p class="mb-1.5 px-2.5 text-[12px] font-semibold text-muted">
                       {g.label}
                     </p>
                     <For each={g.items}>
@@ -106,18 +104,16 @@ export function SettingsView() {
                             type="button"
                             onClick={() => setSection(it.key)}
                             aria-current={active() ? "page" : undefined}
-                            class={`group flex w-full items-center gap-2.5 rounded-control px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
-                              active() ? "bg-indigo text-white" : "text-ink-soft hover:bg-surface-2 hover:text-ink"
+                            class={`group flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-[13px] font-semibold transition-colors duration-100 ease-snappy ${
+                              active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
                             }`}
                           >
                             <span
-                              class={`flex h-6 w-6 shrink-0 items-center justify-center rounded-control transition-transform duration-200 ease-snappy ${
-                                active()
-                                  ? "text-white"
-                                  : "text-muted group-focus-visible:scale-110 group-hover:scale-110"
+                              class={`flex h-[18px] w-[18px] shrink-0 items-center justify-center ${
+                                active() ? "text-leaf-deep" : "text-muted"
                               }`}
                             >
-                              <it.icon size={15} active={active()} />
+                              <it.icon size={18} active={active()} />
                             </span>
                             <span class="min-w-0 truncate text-left">{it.label}</span>
                           </button>
@@ -130,7 +126,7 @@ export function SettingsView() {
             </nav>
 
               <div
-                class={`scroll-quiet min-w-0 flex-1 overflow-y-auto bg-surface ${
+                class={`scroll-quiet min-w-0 flex-1 overflow-y-auto bg-paper ${
                   store.settingsDirty() ? "pb-20" : "pb-4"
                 }`}
               >
@@ -172,9 +168,9 @@ export function SettingsView() {
       {/* Sticky save bar: pinned to the bottom of the view so saving doesn't
           mean scrolling back to the top. Only appears while the draft is dirty. */}
       <Show when={store.settingsDirty()}>
-        <div class="absolute inset-x-0 bottom-0 flex items-center gap-3 border-t border-line bg-paper/90 px-6 py-3.5">
+        <div class="absolute inset-x-0 bottom-0 flex items-center gap-3 border-t border-line bg-paper px-6 py-3.5">
           <span
-            class="inline-flex items-center gap-1.5 rounded-full border border-amber/30 bg-amber-soft px-2 py-0.5 text-[11.5px] font-medium text-amber-deep"
+            class="inline-flex items-center gap-1.5 rounded-full border border-amber-warm bg-amber-soft px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-amber-deep"
             role="status"
           >
             <span class="h-1.5 w-1.5 rounded-full bg-amber" aria-hidden="true" />
@@ -191,17 +187,20 @@ export function SettingsView() {
 
       <Show when={store.pendingLeave() !== null}>
         <div
-          class="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
           role="dialog"
           aria-modal="true"
           aria-labelledby={leaveTitleId}
           onClick={() => store.cancelLeave()}
         >
-          <div class="sheet w-[24rem] p-5 shadow-pop" onClick={(e) => e.stopPropagation()}>
-            <h3 id={leaveTitleId} class="title text-[15px] tracking-[-0.01em] text-ink">
+          <div
+            class="od-scale-in w-[26rem] rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id={leaveTitleId} class="text-[17px] font-semibold tracking-[-0.01em] text-ink">
               Save your changes before leaving?
             </h3>
-            <p class="read mt-2 text-[13.5px] leading-5 text-muted">
+            <p class="mt-2 text-[13px] font-medium leading-[1.7] text-muted">
               You have unsaved changes. If you leave now, they'll be lost.
             </p>
             <div class="mt-5 flex flex-col gap-2">

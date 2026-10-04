@@ -31,9 +31,9 @@ function ModelPlate(props: { state: ModelState; name?: string }) {
       <span class="relative flex h-2 w-2 shrink-0">
         <span class={`h-2 w-2 rounded-full ${m().dot} ${props.state === "loaded" ? "pulse-dot" : ""}`} />
       </span>
-      <span class={`data shrink-0 transition-colors ${m().text}`}>{props.state}</span>
-      <span class="data min-w-0 truncate text-muted">{props.name ?? "…"}</span>
-      <span class="data shrink-0 text-muted">local</span>
+      <span class={`shrink-0 text-[12px] font-semibold ${m().text}`}>{props.state}</span>
+      <span class="min-w-0 truncate text-[12px] font-medium text-muted">{props.name ?? "…"}</span>
+      <span class="shrink-0 text-[11px] font-medium text-muted">local</span>
     </span>
   );
 }
@@ -43,20 +43,19 @@ export function Sidebar() {
   return (
     <aside class="relative flex w-16 shrink-0 flex-col border-r border-line bg-sidebar md:w-56">
       {/* Title plate */}
-      <div class="flex flex-col items-center gap-2.5 pb-4 pt-6 md:block md:px-5">
-        <div class="flex items-center justify-center gap-3 md:justify-start">
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center">
-            <img src="/vectile-logo.png" alt="vectile" class="h-10 w-10" />
+      <div class="flex flex-col items-center gap-2.5 pb-3 pt-6 md:block md:px-4">
+        <div class="flex items-center justify-center gap-2.5 md:justify-start">
+          <span class="flex h-8 w-8 shrink-0 items-center justify-center">
+            <img src="/vectile-logo.png" alt="vectile" class="h-8 w-8" />
           </span>
-          <span class="hidden font-serif text-[25px] font-medium leading-none tracking-[-0.015em] text-ink md:inline">
+          <span class="hidden text-[20px] font-semibold leading-none tracking-[-0.02em] text-ink md:inline">
             vectile
           </span>
         </div>
       </div>
-      <div class="mx-5 hidden border-t border-line md:block" aria-hidden="true" />
 
-      {/* Index tabs */}
-      <nav class="flex-1 px-3 pt-3" aria-label="Primary">
+      {/* Destination rail */}
+      <nav class="flex-1 px-2 pt-2" aria-label="Primary">
         <ul class="space-y-0.5">
           <For each={NAV}>
             {(item) => {
@@ -64,10 +63,8 @@ export function Sidebar() {
               return (
                 <li>
                   <button
-                    class={`group relative flex w-full items-center justify-center gap-3 rounded-l-[9px] py-2 text-[13.5px] font-medium transition-colors duration-150 ease-snappy md:justify-start md:px-3 ${
-                      active()
-                        ? "-mr-4.25 bg-indigo text-white"
-                        : "text-ink-soft hover:bg-surface-2 hover:text-ink"
+                    class={`group flex w-full items-center justify-center gap-2.5 rounded-[12px] py-2.5 text-[13px] font-semibold transition-colors duration-100 ease-snappy md:justify-start md:pl-4 md:pr-2.5 ${
+                      active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
                     }`}
                     aria-current={active() ? "page" : undefined}
                     aria-label={item.label}
@@ -75,13 +72,11 @@ export function Sidebar() {
                     onClick={() => store.setView(item.id)}
                   >
                     <span
-                      class={`flex shrink-0 items-center justify-center transition-transform duration-200 ease-snappy ${
-                        active()
-                          ? "text-white"
-                          : "text-faint group-focus-visible:scale-110 group-hover:scale-110 group-hover:text-ink-soft"
+                      class={`flex h-[18px] w-[18px] shrink-0 items-center justify-center ${
+                        active() ? "text-leaf-deep" : "text-faint group-hover:text-ink-soft"
                       }`}
                     >
-                      <item.icon size={17} active={active()} />
+                      <item.icon size={18} active={active()} />
                     </span>
                     <span class="hidden md:inline">{item.label}</span>
                   </button>

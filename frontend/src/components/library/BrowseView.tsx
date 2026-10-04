@@ -340,7 +340,7 @@ export function BrowseView() {
             </Show>
           </div>
 
-          <div ref={scroller} class="sheet scroll-quiet min-h-0 flex-1 overflow-y-auto p-3">
+          <div ref={scroller} class="scroll-quiet relative min-h-0 flex-1 overflow-y-auto p-1">
             <ScrollSentinel root={getScroller} onVisible={grid.loadPrev} stop={grid.stopPrev} />
             <Show when={grid.loadingTop()}>
               <Hint>Loading earlier files</Hint>
@@ -355,12 +355,12 @@ export function BrowseView() {
               <Show
                 when={grid.items().length > 0}
                 fallback={
-                  <p class="note px-3 py-8 text-center text-[14px] leading-5 text-muted">
+                  <p class="px-3 py-12 text-center text-[13px] font-medium text-muted">
                     No files in this collection yet. Index it, or pick another collection.
                   </p>
                 }
               >
-                <ul class="grid grid-cols-[repeat(auto-fill,minmax(8.25rem,1fr))] gap-x-1 gap-y-1.5">
+                <ul class="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3">
                   <For each={grid.items()}>
                     {(s) => <FileTile source={s} onOpen={() => openFile(s)} />}
                   </For>
@@ -387,7 +387,7 @@ export function BrowseView() {
         {(s) => (
           <>
             <div
-              class="scrim-in fixed inset-0 z-40 bg-ink/20"
+              class="scrim-in fixed inset-0 z-40 bg-ink/30"
               onClick={closeDrawer}
               aria-hidden="true"
             />
@@ -397,9 +397,9 @@ export function BrowseView() {
               aria-modal="true"
               aria-labelledby={drawerTitleId}
               tabindex={-1}
-              class="drawer-in fixed inset-y-0 right-0 z-50 flex w-full max-w-140 flex-col border-l border-line bg-surface shadow-pop"
+              class="drawer-in fixed bottom-4 right-4 top-16 z-50 flex w-full max-w-[30rem] flex-col overflow-hidden rounded-[12px] border border-line-strong bg-paper shadow-overlay"
             >
-              <header class="flex items-start gap-2 border-b border-line px-4 py-3">
+              <header class="flex items-start gap-2 border-b border-line px-[18px] pb-3.5 pt-4">
                 <Show when={chunkView() === "content"}>
                   <button
                     type="button"
@@ -413,11 +413,11 @@ export function BrowseView() {
                 <div class="min-w-0 flex-1">
                   <h2
                     id={drawerTitleId}
-                    class="title truncate text-[15px] leading-6 tracking-[-0.01em] text-ink"
+                    class="truncate text-[17px] font-semibold leading-tight tracking-[-0.01em] text-ink"
                   >
                     {baseName(s().path)}
                   </h2>
-                  <p class="data mt-0.5 text-muted">
+                  <p class="mt-0.5 font-mono text-[11px] text-muted">
                     {s().chunks.toLocaleString()} chunk{s().chunks === 1 ? "" : "s"}
                   </p>
                 </div>
@@ -434,12 +434,14 @@ export function BrowseView() {
               <Show
                 when={chunkView() === "list"}
                 fallback={
-                  <div class="scroll-quiet min-h-0 flex-1 overflow-y-auto p-4">
+                  <div class="scroll-quiet min-h-0 flex-1 overflow-y-auto px-[18px] py-4">
                     <Show when={content()}>
                       {(doc) => (
                         <>
-                          <p class="data mb-2 text-muted">chunk {doc().chunkIndex + 1}</p>
-                          <p class="read max-w-[68ch] whitespace-pre-wrap text-[15px] leading-[1.7] text-ink-soft">
+                          <p class="mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-muted">
+                            chunk {doc().chunkIndex + 1}
+                          </p>
+                          <p class="read max-w-[68ch] whitespace-pre-wrap text-[13px] leading-[1.75] text-ink-soft">
                             {doc().content}
                           </p>
                         </>
@@ -453,11 +455,11 @@ export function BrowseView() {
                       </div>
                     </Show>
                     <Show when={!content() && !contentLoading() && contentError()}>
-                      <p class="data text-[12px] text-muted">
+                      <p class="font-mono text-[11px] text-muted">
                         Couldn't load this chunk.{" "}
                         <button
                           type="button"
-                          class="text-indigo hover:underline"
+                          class="text-leaf-deep hover:underline"
                           onClick={() => {
                             const id = lastChunkId();
                             if (id !== null) openChunk(id);
@@ -471,18 +473,18 @@ export function BrowseView() {
                 }
               >
                 <div
-                  class={`flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-1.5 ${
-                    nChecked() > 0 ? "bg-indigo-soft" : ""
+                  class={`flex flex-wrap items-center gap-x-3 gap-y-1 px-[14px] py-1.5 ${
+                    nChecked() > 0 ? "bg-mint" : ""
                   }`}
                 >
                   <Show when={nChecked() > 0}>
-                    <span class="data whitespace-nowrap text-[12px] font-medium text-ink">
+                    <span class="whitespace-nowrap text-[12px] font-semibold text-ink">
                       {nChecked()} selected
                     </span>
                   </Show>
                   <button
                     type="button"
-                    class="data text-[12px] text-indigo hover:underline"
+                    class="text-[12px] font-semibold text-leaf-deep hover:underline"
                     onClick={selectAll}
                   >
                     {allLoaded() ? "Select all" : "Select loaded"}
@@ -490,7 +492,7 @@ export function BrowseView() {
                   <Show when={nChecked() > 0}>
                     <button
                       type="button"
-                      class="data text-[12px] text-indigo hover:underline"
+                      class="text-[12px] font-semibold text-leaf-deep hover:underline"
                       onClick={() => setChecked(new Set<number>())}
                     >
                       Clear
@@ -514,13 +516,13 @@ export function BrowseView() {
                       void loadChunks(false);
                     }
                   }}
-                  class="scroll-quiet min-h-0 flex-1 overflow-y-auto p-2"
+                  class="scroll-quiet min-h-0 flex-1 overflow-y-auto px-1.5 py-2"
                 >
                   <Show
                     when={chunks().length > 0}
                     fallback={
                       <Show when={!chunkLoading() && !chunkError()}>
-                        <p class="note px-3 py-8 text-center text-[14px] leading-5 text-muted">
+                        <p class="px-3 py-8 text-center text-[13px] font-medium text-muted">
                           No chunks in this file.
                         </p>
                       </Show>
@@ -529,17 +531,17 @@ export function BrowseView() {
                     <ul class="enter-stagger">
                       <For each={chunks()}>
                         {(d) => (
-                          <li class="group flex items-center gap-2 rounded-control py-0.5 pr-2 pl-1.5 transition-colors duration-100 ease-snappy hover:bg-surface-2">
+                          <li class="group flex items-center gap-2 rounded-[6px] px-2 py-1.5 transition-colors duration-100 ease-snappy hover:bg-surface-2">
                             <button
                               type="button"
                               role="checkbox"
                               aria-checked={checked().has(d.id)}
                               aria-label={`Select chunk ${d.chunkIndex + 1} of ${baseName(s().path)}`}
                               onClick={() => toggleCheck(d.id)}
-                              class={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors duration-100 ease-snappy ${
+                              class={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border transition-colors duration-100 ease-snappy ${
                                 checked().has(d.id)
-                                  ? "border-indigo bg-indigo text-white"
-                                  : "border-line-control bg-paper text-transparent hover:border-indigo/60"
+                                  ? "border-leaf-deep bg-leaf-deep text-white"
+                                  : "border-line-control bg-paper text-transparent hover:border-leaf/60"
                               }`}
                             >
                               <CheckIcon size={11} strokeWidth={2.5} />
@@ -547,11 +549,11 @@ export function BrowseView() {
                             <button
                               type="button"
                               onClick={() => openChunk(d.id)}
-                              class="flex min-w-0 flex-1 items-center py-1.5 text-left"
+                              class="flex min-w-0 flex-1 items-center text-left"
                             >
-                              <span class="truncate text-[13px] text-ink-soft">{d.title}</span>
+                              <span class="truncate text-[13px] font-semibold text-ink-soft">{d.title}</span>
                             </button>
-                            <span class="data shrink-0 text-muted">chunk {d.chunkIndex + 1}</span>
+                            <span class="shrink-0 font-mono text-[11px] text-muted">chunk {d.chunkIndex + 1}</span>
                           </li>
                         )}
                       </For>
@@ -597,22 +599,24 @@ function FileTile(props: { source: Source; onOpen: () => void }) {
         type="button"
         onClick={props.onOpen}
         title={props.source.path}
-        class="group flex w-full flex-col items-center gap-1.5 rounded-card px-2 pt-2 pb-1.5 text-center transition-colors duration-100 ease-snappy hover:bg-surface-2"
+        class="group flex w-full flex-col overflow-hidden rounded-[8px] border border-line bg-surface text-left transition-[border-color,box-shadow,transform] duration-150 ease-snappy hover:-translate-y-0.5 hover:border-line-strong hover:shadow-card"
       >
-        <span class="relative block w-full">
+        <span class="relative flex aspect-[4/3] w-full items-center justify-center bg-surface-2">
           <img
             src="/folder.svg"
             alt=""
             draggable={false}
-            class="mx-auto block w-[74%] max-w-27"
+            class="block w-[62%] max-w-24"
           />
-          <span class="data pointer-events-none absolute left-1/2 top-[64%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-line bg-surface px-1.5 py-px text-[11px] font-semibold tabular-nums text-ink">
+          <span class="pointer-events-none absolute left-1/2 top-[64%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-line-strong bg-paper px-1.5 py-px font-mono text-[11px] font-semibold tabular-nums text-ink">
             {props.source.chunks.toLocaleString()}
             <span class="sr-only"> chunks</span>
           </span>
         </span>
-        <span class="line-clamp-2 w-full text-[12.5px] leading-4 text-ink-soft group-hover:text-ink">
-          {baseName(props.source.path)}
+        <span class="flex items-center gap-2 border-t border-line px-2.5 py-2">
+          <span class="line-clamp-2 min-w-0 flex-1 text-[12px] font-semibold leading-[1.3] text-ink-soft group-hover:text-ink">
+            {baseName(props.source.path)}
+          </span>
         </span>
       </button>
     </li>
@@ -622,14 +626,16 @@ function FileTile(props: { source: Source; onOpen: () => void }) {
 function GridSkeleton() {
   return (
     <div
-      class="grid grid-cols-[repeat(auto-fill,minmax(8.25rem,1fr))] gap-x-1 gap-y-1.5"
+      class="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3"
       aria-hidden="true"
     >
       <For each={[0, 1, 2, 3, 4, 5, 6, 7]}>
         {() => (
-          <div class="flex flex-col items-center gap-2 px-2 pt-2 pb-1.5">
-            <Skeleton class="h-14 w-[74%] max-w-27" />
-            <Skeleton class="h-3.5 w-3/4" />
+          <div class="flex flex-col overflow-hidden rounded-[8px] border border-line bg-surface">
+            <Skeleton class="aspect-[4/3] w-full rounded-none" />
+            <div class="border-t border-line px-2.5 py-2">
+              <Skeleton class="h-3.5 w-3/4" />
+            </div>
           </div>
         )}
       </For>
@@ -638,12 +644,12 @@ function GridSkeleton() {
 }
 
 function Hint(props: { children: JSX.Element }) {
-  return <p class="data px-3 py-1.5 text-[12px] text-muted">{props.children}</p>;
+  return <p class="px-1 py-1.5 font-mono text-[11px] text-muted">{props.children}</p>;
 }
 
 function Retry(props: { onClick: () => void }) {
   return (
-    <button type="button" class="text-indigo hover:underline" onClick={props.onClick}>
+    <button type="button" class="text-leaf-deep hover:underline" onClick={props.onClick}>
       Retry
     </button>
   );

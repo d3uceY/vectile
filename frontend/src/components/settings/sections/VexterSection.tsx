@@ -60,7 +60,7 @@ export function VexterSection() {
           description="Hide the mascot for every moment at once."
           hint="Vexter is the small pixel dinosaur in the sidebar. When this is on, it never appears, whether you're searching, indexing, or turning up nothing."
         />
-        <div class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
+        <div class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
           <For each={MASCOT_STATES}>
             {(s) => (
               <div
@@ -73,8 +73,8 @@ export function VexterSection() {
                   <img class="mascot-preview__static" src={s.static} alt="" draggable={false} />
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="text-[13.5px] font-medium leading-tight text-ink">{s.label}</p>
-                  <p class="text-[12.5px] leading-5 text-muted">{s.desc}</p>
+                  <p class="text-[13px] font-semibold leading-tight text-ink">{s.label}</p>
+                  <p class="text-[12px] font-medium leading-5 text-muted">{s.desc}</p>
                 </div>
                 <Switch
                   checked={draft()!.gui.mascot[s.key]}

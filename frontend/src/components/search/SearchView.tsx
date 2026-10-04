@@ -106,15 +106,15 @@ export function SearchView() {
       {/* The search bar */}
       <div class="relative z-10">
         <div
-          class={`sheet flex items-center gap-3 px-4 transition-shadow duration-150 ease-snappy ${
-            value() ? "shadow-card" : ""
+          class={`flex items-center gap-3 rounded-[12px] border border-line-strong bg-surface px-4 transition-shadow duration-150 ease-snappy ${
+            value() ? "shadow-card" : "shadow-xs"
           }`}
         >
-          <SearchIcon size={19} class="shrink-0 text-leaf" />
+          <SearchIcon size={18} class="shrink-0 text-muted" />
           <input
             id="search-input"
             ref={(el) => store.registerSearchInput(el)}
-            class="h-13 w-full bg-transparent text-[15.5px] text-ink outline-none placeholder:text-muted"
+            class="h-11 w-full bg-transparent text-[14px] font-medium text-ink outline-none placeholder:text-faint"
             placeholder="Search your notes, books, and code"
             value={value()}
             onInput={(e) => onInput(e.currentTarget.value)}
@@ -127,7 +127,7 @@ export function SearchView() {
           />
           <Show when={value()}>
             <button
-              class="shrink-0 rounded-full p-1 text-faint transition-colors hover:bg-surface hover:text-ink"
+              class="shrink-0 rounded-full p-1 text-faint transition-colors duration-100 hover:bg-surface-2 hover:text-ink"
               onClick={clearAll}
               aria-label="Clear search"
             >
@@ -153,27 +153,27 @@ export function SearchView() {
             aria-label="Filter by source type"
           />
           <button
-            class={`inline-flex h-8 items-center gap-1.5 rounded-control border px-3 text-[13px] transition-colors ${
+            class={`inline-flex h-9 items-center gap-1.5 rounded-control border px-3 text-[13px] font-semibold transition-colors duration-100 ${
               showAdvanced()
-                ? "border-indigo/40 bg-indigo-mist text-indigo-deep"
-                : "border-line-control bg-surface text-ink-soft hover:border-faint"
+                ? "border-ink bg-surface-2 text-ink"
+                : "border-line-control bg-surface text-ink-soft hover:border-line-strong"
             }`}
             onClick={() => setShowAdvanced((v) => !v)}
             aria-expanded={showAdvanced()}
           >
             Filters
             <Show when={anyFilter()}>
-              <span class="h-1.5 w-1.5 rounded-full bg-indigo" />
+              <span class="h-1.5 w-1.5 rounded-full bg-leaf-deep" />
             </Show>
           </button>
         </div>
 
         {/* Advanced filters */}
         <Show when={showAdvanced()}>
-          <div class="mt-3 grid grid-cols-2 gap-3 rounded-card border border-line bg-paper/80 p-4 md:grid-cols-4">
+          <div class="mt-3 grid grid-cols-2 gap-3 rounded-card border border-line-strong bg-surface p-4 md:grid-cols-4">
             <FilterField label="Path contains">
               <input
-                class="h-8 w-full rounded-control border border-line-control bg-surface px-3 text-[13px] outline-none placeholder:text-muted focus:border-leaf"
+                class="h-9 w-full rounded-control border border-line-control bg-paper px-3 text-[13px] font-medium outline-none placeholder:text-faint focus:border-ink"
                 placeholder="e.g. rustyquill"
                 value={store.filters().path ?? ""}
                 onInput={(e) => applyFilter({ path: e.currentTarget.value }, true)}
@@ -181,7 +181,7 @@ export function SearchView() {
             </FilterField>
             <FilterField label="Sender / author">
               <input
-                class="h-8 w-full rounded-control border border-line-control bg-surface px-3 text-[13px] outline-none placeholder:text-muted focus:border-leaf"
+                class="h-9 w-full rounded-control border border-line-control bg-paper px-3 text-[13px] font-medium outline-none placeholder:text-faint focus:border-ink"
                 placeholder="e.g. orders@…"
                 value={store.filters().sender ?? ""}
                 onInput={(e) => applyFilter({ sender: e.currentTarget.value }, true)}
@@ -190,7 +190,7 @@ export function SearchView() {
             <FilterField label="From">
               <input
                 type="date"
-                class="h-8 w-full rounded-control border border-line-control bg-surface px-2 text-[13px] outline-none focus:border-leaf"
+                class="h-9 w-full rounded-control border border-line-control bg-paper px-2 text-[13px] font-medium outline-none focus:border-ink"
                 value={store.filters().dateFrom ?? ""}
                 onChange={(e) => applyFilter({ dateFrom: e.currentTarget.value })}
               />
@@ -236,7 +236,7 @@ export function SearchView() {
 function FilterField(props: { label: string; children: JSX.Element }) {
   return (
     <label class="flex flex-col gap-1.5">
-      <span class="text-[11.5px] font-medium uppercase tracking-[0.08em] text-muted">
+      <span class="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
         {props.label}
       </span>
       {props.children}
@@ -248,20 +248,20 @@ function IdleState(props: { onPick: (q: string) => void }) {
   return (
     <div class="relative flex h-full flex-col items-center justify-center">
       <div class="relative flex flex-col items-center text-center">
-        <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-card border border-line bg-surface text-indigo shadow-card">
+        <div class="od-fade-in mb-5 flex h-12 w-12 items-center justify-center rounded-[12px] border border-line bg-surface-2 text-leaf-deep">
           <BoltIcon size={20} />
         </div>
-        <h2 class="title text-[22px] tracking-[-0.02em] text-ink">
+        <h2 class="od-fade-slide-up text-[32px] font-semibold leading-[1.24] tracking-[-0.02em] text-ink">
           Ask your library
         </h2>
-        <p class="note mt-2 max-w-[36ch] text-[15.5px] leading-6 text-muted">
+        <p class="od-fade-slide-up mt-2 max-w-[44ch] text-[14px] font-medium leading-6 text-muted">
           Searches meaning and exact words together.
         </p>
-        <div class="mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
+        <div class="od-stagger mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
           <For each={exampleQueries}>
             {(q) => (
               <button
-                class="rounded-full border border-line bg-paper px-3.5 py-1.5 text-[13px] text-ink-soft transition-all duration-150 ease-snappy hover:border-indigo/50 hover:text-indigo-deep active:scale-[0.98]"
+                class="rounded-full border border-line bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors duration-100 ease-snappy hover:border-leaf/40 hover:bg-mint hover:text-leaf-deep active:translate-y-px"
                 onClick={() => props.onPick(q)}
               >
                 {q}
@@ -279,7 +279,7 @@ function SearchingState() {
     <div class="space-y-3">
       <For each={[0, 1, 2, 3]}>
         {(i) => (
-          <div class="sheet p-5">
+          <div class="rounded-card border border-line bg-surface p-5 shadow-xs">
             <Skeleton class="mb-3 h-4 w-1/3" />
             <Skeleton class="mb-2 h-3 w-full" />
             <Skeleton class="mb-2 h-3 w-5/6" />
@@ -307,7 +307,7 @@ function ResultList() {
     >
       <div class="enter-stagger space-y-3">
         <div class="flex items-center justify-between gap-3">
-          <p class="data flex items-center gap-2 text-muted">
+          <p class="flex items-center gap-2 text-[12px] font-medium text-muted">
             {results().length} result{results().length === 1 ? "" : "s"} · hybrid ranked
             <Show when={store.searchCached()}>
               <span title="This query's embedding was reused from the cache. Results are still ranked fresh.">
@@ -316,14 +316,14 @@ function ResultList() {
             </Show>
           </p>
           <div
-            class="flex items-center rounded-full border border-line bg-paper p-0.5"
+            class="flex items-center rounded-full border border-line bg-surface-2 p-0.5"
             role="group"
             aria-label="Result score display"
           >
             <button
               type="button"
-              class={`h-6 rounded-full px-2.5 text-[11.5px] font-medium transition-colors duration-150 ease-snappy ${
-                store.scoreDisplay() === "rank" ? "bg-indigo-mist text-indigo-deep" : "text-muted hover:text-ink"
+              class={`h-7 rounded-full px-3 text-[12px] font-semibold transition-colors duration-100 ease-snappy ${
+                store.scoreDisplay() === "rank" ? "bg-mint text-leaf-deep" : "text-muted hover:text-ink"
               }`}
               onClick={() => store.setScoreDisplay("rank")}
               aria-pressed={store.scoreDisplay() === "rank"}
@@ -332,8 +332,8 @@ function ResultList() {
             </button>
             <button
               type="button"
-              class={`h-6 rounded-full px-2.5 text-[11.5px] font-medium transition-colors duration-150 ease-snappy ${
-                store.scoreDisplay() === "percent" ? "bg-indigo-mist text-indigo-deep" : "text-muted hover:text-ink"
+              class={`h-7 rounded-full px-3 text-[12px] font-semibold transition-colors duration-100 ease-snappy ${
+                store.scoreDisplay() === "percent" ? "bg-mint text-leaf-deep" : "text-muted hover:text-ink"
               }`}
               onClick={() => store.setScoreDisplay("percent")}
               aria-pressed={store.scoreDisplay() === "percent"}
@@ -352,8 +352,8 @@ function ResultList() {
 
 function FreshnessBar(props: { days: number; disabled?: boolean; onReindex: () => void }) {
   return (
-    <div class="mt-3 flex items-center gap-3 rounded-control border border-line bg-surface/40 py-2 pl-3 pr-2">
-      <span class="note text-[13px] leading-5 text-muted">
+    <div class="mt-3 flex items-center gap-3 rounded-[8px] border border-line bg-surface py-2 pl-3 pr-2">
+      <span class="text-[13px] font-medium leading-5 text-muted">
         Last indexed {props.days} day{props.days === 1 ? "" : "s"} ago
       </span>
       <Button

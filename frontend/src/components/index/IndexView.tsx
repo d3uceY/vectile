@@ -82,8 +82,8 @@ export function IndexView() {
       </ViewHeading>
 
       <Show when={configured().length > 0 && !store.canIndex()}>
-        <div class="mb-5 flex items-center gap-3 rounded-card border border-amber/30 bg-amber-soft/40 px-4 py-2.5">
-          <span class="note flex-1 text-[13px] leading-5 text-ink-soft">
+        <div class="mb-5 flex items-center gap-3 rounded-[8px] border border-amber-warm bg-amber-soft px-4 py-2.5">
+          <span class="flex-1 text-[13px] font-medium leading-5 text-ink-soft">
             Indexing needs an active model.
           </span>
           <Button size="sm" variant="outline" onClick={() => store.openSettings("model")}>
@@ -94,8 +94,8 @@ export function IndexView() {
 
       {/* Last run summary */}
       <Show when={!store.indexing() && store.indexLast()}>
-        <div class="mb-5 flex flex-wrap items-center gap-2 rounded-card border border-line bg-surface/40 px-4 py-2.5">
-          <span class="data text-muted">last: {store.indexLast()!.collection}</span>
+        <div class="mb-5 flex flex-wrap items-center gap-2 rounded-[8px] border border-line bg-surface px-4 py-2.5">
+          <span class="font-mono text-[12px] text-muted">last: {store.indexLast()!.collection}</span>
           <Chip tone="mint">{store.indexLast()!.indexed} new</Chip>
           <Show when={store.indexLast()!.skipped > 0}>
             <Chip>{store.indexLast()!.skipped} skipped</Chip>
@@ -127,19 +127,19 @@ export function IndexView() {
               const col = () => dbCol(item.name);
               const prog = () => progressOf(item.name);
               return (
-                <div class="sheet p-5">
-                  <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
-                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-line bg-paper text-muted">
+                <div class="rounded-card border border-line bg-surface p-4 shadow-xs">
+                  <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] border border-line bg-surface-2 text-muted">
                       {kindOf(item).icon({ size: 16 })}
                     </span>
                     <div class="min-w-[12rem] flex-1">
                       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span class="title truncate text-[15px] tracking-[-0.01em] text-ink">{item.name}</span>
+                        <span class="truncate text-[14px] font-semibold tracking-[-0.01em] text-ink">{item.name}</span>
                         <Chip tone={item.type === "code" ? "code" : "neutral"}>{kindOf(item).label}</Chip>
                         {!item.enabled && <Chip>disabled</Chip>}
                         {col()?.needsReindex && <Chip tone="amber">needs reindex</Chip>}
                       </div>
-                      <p class="data mt-1 text-muted">
+                      <p class="mt-1 font-mono text-[12px] text-muted">
                         {col() ? `${col()!.sources} sources · ${col()!.chunks.toLocaleString()} chunks` : "not indexed yet"}
                       </p>
                     </div>
@@ -192,11 +192,11 @@ export function IndexView() {
 
       <Show when={configured().length > 0 && missingKinds().length > 0}>
         <div class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-card border border-dashed border-line-strong px-4 py-2.5">
-          <span class="text-[12.5px] text-muted">Not indexing yet:</span>
-          <span class="text-[12.5px] font-medium text-ink-soft">{missingKinds().join(" · ")}</span>
+          <span class="text-[12px] font-medium text-muted">Not indexing yet:</span>
+          <span class="text-[12px] font-semibold text-ink-soft">{missingKinds().join(" · ")}</span>
           <button
             type="button"
-            class="ml-auto text-[12.5px] font-medium text-indigo hover:underline"
+            class="ml-auto text-[12px] font-semibold text-leaf-deep hover:underline"
             onClick={() => store.openSettings("sources")}
           >
             Add in Settings

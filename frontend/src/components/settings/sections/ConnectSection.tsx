@@ -143,7 +143,7 @@ function TransportTabs(props: { value: MCPTransport; onChange: (id: MCPTransport
     <div
       role="radiogroup"
       aria-label="MCP transport"
-      class="grid grid-cols-1 gap-1 rounded-control border border-line-control bg-surface p-1 min-[430px]:grid-cols-2"
+      class="grid grid-cols-1 gap-1 rounded-[8px] border border-line-control bg-surface-2 p-1 min-[430px]:grid-cols-2"
     >
       <For each={MCP_TRANSPORTS}>
         {(t, i) => {
@@ -157,14 +157,14 @@ function TransportTabs(props: { value: MCPTransport; onChange: (id: MCPTransport
               tabindex={active() ? 0 : -1}
               onClick={() => props.onChange(t.id)}
               onKeyDown={(e) => onKey(e, i())}
-              class={`flex min-w-0 items-center gap-2 rounded-[7px] px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
-                active() ? "bg-indigo text-white" : "text-ink-soft hover:bg-surface-2 hover:text-ink"
+              class={`flex min-w-0 items-center gap-2 rounded-[6px] px-2.5 py-2 text-[13px] font-semibold transition-colors duration-100 ease-snappy ${
+                active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
               }`}
             >
               <span class="min-w-0 flex-1 truncate text-left">{t.label}</span>
               <span
-                class={`data shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[11px] ${
-                  active() ? "bg-surface text-ink" : "bg-paper text-muted"
+                class={`shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[11px] ${
+                  active() ? "bg-paper text-leaf-deep" : "bg-surface-2 text-muted"
                 }`}
               >
                 {t.path}
@@ -237,11 +237,11 @@ function ClientSetup(props: { client: MCPClient; url: string; transport: MCPTran
     <div>
       <div class="flex items-start gap-3 px-4 pb-3 pt-3.5">
         <div class="min-w-0 flex-1">
-          <p class="text-[13px] font-medium leading-5 text-ink">{props.client.title ?? props.client.label}</p>
-          <p class="mt-0.5 text-[12.5px] leading-4 text-muted">{props.client.where}</p>
+          <p class="text-[13px] font-semibold leading-5 text-ink">{props.client.title ?? props.client.label}</p>
+          <p class="mt-0.5 text-[12px] font-medium leading-4 text-muted">{props.client.where}</p>
         </div>
         <button
-          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-control px-2 py-1.5 text-[12px] text-ink-soft outline-offset-2 transition-colors hover:border-leaf hover:text-leaf-deep focus-visible:outline-2 focus-visible:outline-leaf-deep"
+          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-control px-2 py-1.5 text-[12px] font-semibold text-ink-soft outline-offset-2 transition-colors duration-100 hover:border-line-strong hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
           onClick={() => void copy()}
           aria-label={`Copy setup for ${props.client.label}`}
           title="Copy"
@@ -250,11 +250,11 @@ function ClientSetup(props: { client: MCPClient; url: string; transport: MCPTran
           {copied() ? "copied" : "copy"}
         </button>
       </div>
-      <pre class="select-text overflow-x-auto border-t border-line px-4 py-3 font-mono text-[12.5px] leading-[1.6] text-ink">
+      <pre class="select-text overflow-x-auto border-t border-line px-4 py-3 font-mono text-[12px] leading-[1.6] text-ink">
         <code>{payload()}</code>
       </pre>
       <Show when={props.client.then}>
-        <p class="border-t border-line px-4 py-2.5 text-[12px] leading-4 text-muted">{props.client.then}</p>
+        <p class="border-t border-line px-4 py-2.5 text-[12px] font-medium leading-4 text-muted">{props.client.then}</p>
       </Show>
       <p class="sr-only" role="status" aria-live="polite">
         {copied() ? `${props.client.label} setup copied` : ""}
@@ -358,10 +358,10 @@ export function ConnectSection() {
           ? "starts when you save"
           : "stopped";
   const mcpDot = () =>
-    running() && !mcpStopping() ? "bg-indigo" : mcpPending() || mcpStopping() ? "bg-amber" : "bg-faint";
+    running() && !mcpStopping() ? "bg-leaf" : mcpPending() || mcpStopping() ? "bg-amber" : "bg-ghost";
   const mcpStateText = () =>
     running() && !mcpStopping()
-      ? "text-indigo-deep"
+      ? "text-leaf-deep"
       : mcpPending() || mcpStopping()
         ? "text-amber-deep"
         : "text-muted";
@@ -406,7 +406,7 @@ export function ConnectSection() {
       note="Let AI assistants on this machine search your library."
     >
       <div class="space-y-6">
-        <div class="rounded-control border border-line bg-paper-warm px-4 py-3.5">
+        <div class="rounded-[8px] border border-line bg-surface px-4 py-3.5">
           <div class="flex items-center gap-2">
             <span class="relative flex h-2 w-2 shrink-0">
               <span class={`h-2 w-2 rounded-full ${mcpDot()}`} />
@@ -415,11 +415,11 @@ export function ConnectSection() {
               {mcpStateLabel()}
             </span>
             <Show when={running()}>
-              <span class="data shrink-0 text-[11px] text-muted">{liveTransportLabel()}</span>
+              <span class="shrink-0 font-mono text-[11px] text-muted">{liveTransportLabel()}</span>
             </Show>
             <Show when={running()}>
               <button
-                class="ml-auto -mr-1 flex h-6 shrink-0 items-center gap-1 rounded-control px-1.5 text-[11.5px] text-muted outline-offset-2 transition-colors hover:bg-surface-2 hover:text-indigo focus-visible:outline-2 focus-visible:outline-leaf-deep"
+                class="ml-auto -mr-1 flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-[12px] font-semibold text-muted outline-offset-2 transition-colors duration-100 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
                 onClick={() => void copyUrl()}
                 aria-label="Copy server URL"
                 title="Copy URL"
@@ -430,12 +430,12 @@ export function ConnectSection() {
             </Show>
           </div>
           <Show when={running()}>
-            <p class="data mt-2 truncate text-ink-soft" title={mcpConnectUrl()}>
+            <p class="mt-2 truncate font-mono text-[12px] text-ink-soft" title={mcpConnectUrl()}>
               {mcpConnectUrl()}
             </p>
           </Show>
-          <p class="mt-2 text-[12px] leading-4 text-muted">{mcpStateNote()}</p>
-          <p class="mt-2.5 text-[12px] leading-4 text-ink-soft">
+          <p class="mt-2 text-[12px] font-medium leading-4 text-muted">{mcpStateNote()}</p>
+          <p class="mt-2.5 text-[12px] font-medium leading-4 text-ink-soft">
             {mcpScope()}. Binds to 127.0.0.1, so nothing leaves this machine.
           </p>
         </div>
@@ -450,7 +450,7 @@ export function ConnectSection() {
           />
           <Show when={draft()!.mcp.enabled}>
             <div class="py-3.5">
-              <p class="mb-2 flex items-center gap-1.5 text-[13.5px] text-ink-soft">
+              <p class="mb-2 flex items-center gap-1.5 text-[13px] font-medium text-ink">
                 Transport
                 <InfoTip text="How AI clients talk to the server. Streamable HTTP is the current standard and what most assistants probe first; SSE is the older transport. Applies when you save." />
               </p>
@@ -458,7 +458,7 @@ export function ConnectSection() {
                 value={mcpTransport()}
                 onChange={(t) => setMCP({ transport: t })}
               />
-              <p class="note mt-2 text-[12.5px] leading-4 text-muted">
+              <p class="mt-2 text-[12px] font-medium leading-4 text-muted">
                 {MCP_TRANSPORTS.find((t) => t.id === mcpTransport())?.desc}
               </p>
             </div>
@@ -483,17 +483,17 @@ export function ConnectSection() {
 
         <div>
           <SubHeading>What your AI can do</SubHeading>
-          <p class="note mb-2 mt-0.5 text-[12.5px] leading-4 text-muted">
+          <p class="mb-2 mt-0.5 text-[12px] font-medium leading-4 text-muted">
             {mcpWriteAllowed()
               ? "Search, plus index and prune, scoped to your library."
               : "Read-only search now. Turn on Allow write tools to let an AI index and prune."}
           </p>
-          <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
+          <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
             <For each={MCP_TOOLS}>
               {(t) => (
                 <li class="flex items-start gap-3 px-3 py-2">
-                  <span class="data mt-px shrink-0 text-[11.5px] text-ink-soft">{t.name}</span>
-                  <span class="text-[12.5px] leading-5 text-muted">{t.desc}</span>
+                  <span class="mt-px shrink-0 font-mono text-[11px] text-ink-soft">{t.name}</span>
+                  <span class="text-[12px] font-medium leading-5 text-muted">{t.desc}</span>
                   <Show when={t.kind === "write"}>
                     <span
                       class={`ml-auto shrink-0 rounded-full px-2 py-0.5 font-mono text-[11px] ${
@@ -511,16 +511,16 @@ export function ConnectSection() {
 
         <div>
           <SubHeading>How to connect</SubHeading>
-          <p class="note mb-2.5 mt-0.5 text-[12.5px] leading-4 text-muted">
+          <p class="mb-2.5 mt-0.5 text-[12px] font-medium leading-4 text-muted">
             Pick the app you're connecting, then paste the setup into it.
           </p>
           <Show when={mcpTransport() === "streamable-http"}>
-            <p class="note mb-2.5 text-[12.5px] leading-4 text-muted">
+            <p class="mb-2.5 text-[12px] font-medium leading-4 text-muted">
               Set vectile up before? Paste the setup again once. The address changed
               from /sse to /mcp.
             </p>
           </Show>
-          <div class="overflow-hidden rounded-control border border-line bg-surface">
+          <div class="overflow-hidden rounded-[8px] border border-line bg-surface">
             <ClientTabs value={mcpClient()} onChange={setMcpClient} />
             <div
               role="tabpanel"

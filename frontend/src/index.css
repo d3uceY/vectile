@@ -1,13 +1,15 @@
 /* ============================================================
    vectile: design tokens + base styles
-   World: "studio editorial, warm and precise".
-   Warm bone ground, flat white cards, hairline borders, one dark
-   green interaction accent, a warm amber for attention, sans type,
-   mono data lines. No background texture. (See DESIGN.md.)
+   World: cool-neutral reference desk (OpenDesign system).
+   White ground, panel cards, hairline borders, a five-stop text
+   ladder, one dark green interaction accent, a warm amber for
+   attention, sans type (Albert Sans), mono data lines (IBM Plex
+   Mono). Flat surfaces only. (See DESIGN.md.)
    ============================================================ */
 
 /* Self-hosted type (a desktop app must never hit a CDN at runtime) */
-@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/albert-sans";
+@import "@fontsource-variable/albert-sans/wght-italic.css";
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 
@@ -15,27 +17,28 @@
 @import "driver.js/dist/driver.css";
 
 @theme {
-  /* Type: Plus Jakarta Sans carries all voices (chrome + display via weight);
+  /* Type: Albert Sans carries all voices (chrome + display via weight);
      IBM Plex Mono handles data lines only. */
-  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", Georgia, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Albert Sans Variable", "Albert Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Albert Sans Variable", "Albert Sans", Georgia, ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  /* Studio editorial: warm bone ground, white cards, warm-neutral hairlines.
-     One warm hue (OKLCH 82-86) carries every neutral stop, so text, borders,
-     and surfaces read as one family instead of warm ground + cool grey text. */
-  --color-paper: #f6f4ef; /* app ground: warm bone */
-  --color-paper-warm: #f0ece3; /* cardstock plates */
-  --color-surface: #ffffff; /* white card / inset surface */
-  --color-surface-2: #f2efe9; /* hover + light fills */
-  --color-sidebar: #f0ede7; /* neutral column */
-  --color-ink: #292721; /* 13.6:1 on paper */
-  --color-ink-soft: #48443c; /* 8.8:1 on paper */
-  --color-muted: #68645b; /* 5.4:1 on paper, 4.6:1 worst case */
-  --color-faint: #807c72; /* icons + decoration only, 3.8:1 on paper. Not text. */
-  --color-line: #e6e2da; /* decorative hairline */
-  --color-line-strong: #cac5bb; /* decorative reinforcement: cards, dashed states */
-  --color-line-control: #8c877e; /* control boundary: 3:1+ on every plate */
+  /* Cool-neutral family (OpenDesign ramp): white ground, panel cards, a
+     five-stop text ladder and three border weights. One neutral hue holds
+     every stop, so text, borders and surfaces read as one family. */
+  --color-paper: #ffffff; /* app ground */
+  --color-paper-warm: #ededed; /* cardstock plates */
+  --color-surface: #fafafa; /* card / panel fill */
+  --color-surface-2: #ededed; /* hover + light fills */
+  --color-sidebar: #fafafa; /* neutral column */
+  --color-ink: #202020; /* text-strong */
+  --color-ink-soft: #494949; /* text */
+  --color-muted: #5c5c5c; /* supporting text */
+  --color-faint: #848484; /* icons + decoration; lightest text step */
+  --color-ghost: #bdbdbd; /* decoration only, never text */
+  --color-line: #ededed; /* decorative hairline: card edges, dividers */
+  --color-line-strong: #dbdbdb; /* standard card / section border */
+  --color-line-control: #8c8c8c; /* control boundary: 3:1+ on every plate */
 
   /* Brand + primary action + success: leaf green (single job). The mint fills
      hold the leaf hue so the green family reads as one coherent scale. */
@@ -67,16 +70,24 @@
   --color-danger: #c13b2f;
   --color-danger-soft: #fbeae8;
 
-  /* Radius */
-  --radius-card: 14px;
-  --radius-control: 10px;
+  /* Radius (OpenDesign scale: 2 / 4 / 8 / 12 / 16 / pill) */
+  --radius-card: 8px;
+  --radius-control: 4px;
 
-  /* Shadows: offset + blur only, no zero-offset halos */
-  --shadow-card: 0 1px 2px rgb(36 39 44 / 0.05), 0 14px 30px -18px rgb(36 39 44 / 0.14);
-  --shadow-pop: 0 2px 6px rgb(36 39 44 / 0.06), 0 22px 44px -22px rgb(36 39 44 / 0.2);
+  /* Shadows: offset + blur only, no zero-offset halos. sm / md / lg. */
+  --shadow-xs: 0 1px 0 rgb(28 27 26 / 0.04);
+  --shadow-card: 0 1px 2px rgb(28 27 26 / 0.05), 0 1px 3px rgb(28 27 26 / 0.04);
+  --shadow-pop: 0 6px 24px rgb(28 27 26 / 0.07), 0 2px 6px rgb(28 27 26 / 0.04);
+  --shadow-overlay: 0 24px 60px rgb(28 27 26 / 0.16), 0 8px 16px rgb(28 27 26 / 0.07);
 
-  /* Motion */
-  --ease-snappy: cubic-bezier(0.22, 0.8, 0.24, 1);
+  /* Motion: OpenDesign durations + product ease. Enter ~200ms, exit ~140ms. */
+  --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-out-soft: cubic-bezier(0, 0, 0, 1);
+  --duration-fast: 100ms;
+  --duration-quick: 150ms;
+  --duration-enter: 200ms;
+  --duration-gentle: 250ms;
+  --duration-exit: 140ms;
 }
 
 @layer base {
@@ -95,12 +106,13 @@
     background-color: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-optical-sizing: auto; /* Fraunces opsz auto-tunes display vs. text */
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow: hidden; /* the app shell owns scrolling, not the page */
-    font-feature-settings: "ss01" on, "cv01" on;
     color-scheme: light;
   }
 
@@ -175,13 +187,13 @@
     letter-spacing: -0.01em;
   }
 
-  /* Paper card on the green surface: a distinct fill so it reads as a card
-     against the warm ground, plus a hairline border and a slight lift. */
+  /* Panel card (OpenDesign recipe): panel fill, hairline border, 8px radius,
+     and the lightest elevation step. */
   .sheet {
     background-color: var(--color-surface);
-    border: 1px solid var(--color-line);
+    border: 1px solid var(--color-line-strong);
     border-radius: var(--radius-card);
-    box-shadow: 0 1px 2px rgb(27 34 38 / 0.04);
+    box-shadow: var(--shadow-xs);
   }
 
   /* Warm paper + green ambient wash: a soft green haze behind the hero/content.
@@ -222,11 +234,22 @@
     outline-offset: 4px;
   }
 
-  /* Staggered entrance for result lists (one authored motion moment). The
-     hidden state lives in the keyframe, not the base rule: if animations are
-     switched off entirely the rows are simply visible, never stuck at 0. */
-  .enter-stagger > * {
-    animation: rise-in 220ms var(--ease-snappy) both;
+  /* Entrance motion (OpenDesign vocabulary). Enter ~200ms, exit ~140ms on
+     --ease-snappy. The hidden state lives in each keyframe, never in the base
+     rule, so motion-off leaves elements visible instead of stuck at 0. */
+  .enter-stagger > *,
+  .od-fade-slide-up {
+    animation: od-fade-slide-up 200ms var(--ease-snappy) both;
+  }
+  @keyframes od-fade-slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   @keyframes rise-in {
     from {
@@ -238,15 +261,98 @@
       transform: translateY(0);
     }
   }
+  .od-fade-in {
+    animation: od-fade-in 180ms var(--ease-snappy) both;
+  }
+  @keyframes od-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .od-slide-left {
+    animation: od-slide-left 220ms var(--ease-snappy) both;
+  }
+  @keyframes od-slide-left {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  .od-popover-in {
+    animation: od-popover-in 140ms var(--ease-snappy) both;
+  }
+  @keyframes od-popover-in {
+    from {
+      opacity: 0;
+      transform: translateY(-3px) scale(0.93);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  .od-scale-in {
+    animation: od-scale-in 250ms var(--ease-snappy) both;
+  }
+  @keyframes od-scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 
-  /* Browse: a source's chunk sheet slides in from the right over a fading
-     scrim. One authored moment for the surface; reduced motion snaps. */
+  /* Staggered children: 40ms steps for the first eight items. */
+  .od-stagger > * {
+    animation: od-fade-slide-up 200ms var(--ease-snappy) both;
+  }
+  .od-stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .od-stagger > *:nth-child(2) { animation-delay: 40ms; }
+  .od-stagger > *:nth-child(3) { animation-delay: 80ms; }
+  .od-stagger > *:nth-child(4) { animation-delay: 120ms; }
+  .od-stagger > *:nth-child(5) { animation-delay: 160ms; }
+  .od-stagger > *:nth-child(6) { animation-delay: 200ms; }
+  .od-stagger > *:nth-child(7) { animation-delay: 240ms; }
+  .od-stagger > *:nth-child(8) { animation-delay: 280ms; }
+
+  /* Accordion: animate height with grid-template-rows 0fr -> 1fr so the
+     open/close reads as a slide, not a jump (OpenDesign pattern). */
+  .accordion-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 200ms var(--ease-snappy),
+      opacity 200ms var(--ease-snappy);
+  }
+  .accordion-collapsible.open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  .accordion-collapsible-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Browse: the floating source drawer slides in with a small rise and fade
+     over a fading scrim. One authored moment for the surface; reduced motion
+     snaps. */
   .drawer-in {
-    animation: drawer-in 260ms var(--ease-snappy) both;
+    animation: drawer-in 220ms var(--ease-snappy) both;
   }
   @keyframes drawer-in {
     from {
-      transform: translateX(100%);
+      transform: translateX(18px);
+      opacity: 0;
     }
   }
   .scrim-in {
@@ -408,7 +514,7 @@
   }
 }
 
-/* ---- driver.js setup tour: the notebook world's paper popover ----
+/* ---- driver.js setup tour: the OpenDesign popover ----
    driver.js hardcodes most colors, so the theme is a targeted override of its
    classes rather than a variable swap. The overlay tint comes from the config
    (overlayColor/overlayOpacity); the next button is tagged .setup-next in
@@ -416,27 +522,28 @@
 .driver-popover {
   --driver-popover-font-family: var(--font-sans);
   background: var(--color-paper);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-pop);
+  border: 1px solid var(--color-line-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-overlay);
   color: var(--color-ink);
   min-width: 260px;
   max-width: 330px;
   padding: 18px 18px 14px;
 }
 .driver-popover-title {
-  font-family: var(--font-serif);
-  font-weight: 400;
+  font-family: var(--font-sans);
+  font-weight: 600;
   font-size: 17px;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   line-height: 1.35;
   color: var(--color-ink);
   padding-right: 24px;
 }
 .driver-popover-description {
   margin-top: 8px;
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.6;
   color: var(--color-muted);
 }
 .driver-popover-progress-text {
@@ -444,10 +551,10 @@
   font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--color-faint);
+  color: var(--color-muted);
 }
 .driver-popover-close-btn {
-  color: var(--color-faint);
+  color: var(--color-muted);
 }
 .driver-popover-close-btn:hover,
 .driver-popover-close-btn:focus {
@@ -455,22 +562,25 @@
 }
 .driver-popover-footer-btn {
   background: var(--color-paper);
-  border: 1px solid var(--color-line-strong);
+  border: 1px solid var(--color-line-control);
   border-radius: var(--radius-control);
   color: var(--color-ink-soft);
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   padding: 6px 12px;
-  transition: all 150ms var(--ease-snappy);
+  transition: background-color 100ms var(--ease-snappy), border-color 100ms var(--ease-snappy),
+    color 100ms var(--ease-snappy);
 }
 .driver-popover-footer-btn:hover,
 .driver-popover-footer-btn:focus {
-  border-color: var(--color-leaf);
+  background: var(--color-surface-2);
+  border-color: var(--color-line-strong);
   color: var(--color-ink);
 }
 .driver-popover .setup-next {
   background: var(--color-leaf-deep);
   border-color: var(--color-leaf-deep);
+  border-radius: 9999px;
   color: #fff;
 }
 .driver-popover .setup-next:hover,

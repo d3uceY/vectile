@@ -30,16 +30,16 @@ export function DownloadProgressBar(props: {
       onCancel={props.onCancel}
     >
       <Show when={!preparing()}>
-        <span class="data shrink-0 text-leaf-deep">{Math.round(pct())}%</span>
-        <span class="data truncate text-muted">
+        <span class="shrink-0 font-mono text-[12px] text-leaf-deep">{Math.round(pct())}%</span>
+        <span class="truncate font-mono text-[12px] text-muted">
           {fmtBytes(props.progress.downloaded)} / {fmtBytes(props.progress.total)}
         </span>
         <Show when={props.progress.speed > 0}>
-          <span class="data shrink-0 text-muted">{fmtBytes(props.progress.speed)}/s</span>
+          <span class="shrink-0 font-mono text-[12px] text-muted">{fmtBytes(props.progress.speed)}/s</span>
         </Show>
       </Show>
       <Show when={preparing()}>
-        <span class="data shrink-0 text-muted">Downloading…</span>
+        <span class="shrink-0 font-mono text-[12px] text-muted">Downloading…</span>
       </Show>
     </ProgressBar>
   );

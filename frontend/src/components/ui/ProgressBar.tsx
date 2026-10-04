@@ -36,7 +36,7 @@ export function ProgressBar(props: {
           <button
             type="button"
             onClick={props.onCancel}
-            class="ml-auto inline-flex h-6 shrink-0 items-center rounded-full px-2.5 text-[11.5px] font-medium text-danger transition-colors hover:bg-danger-soft"
+            class="ml-auto inline-flex h-6 shrink-0 items-center rounded-full px-2.5 text-[12px] font-semibold text-danger transition-colors duration-100 hover:bg-danger-soft"
           >
             Cancel
           </button>

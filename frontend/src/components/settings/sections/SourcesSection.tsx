@@ -91,15 +91,15 @@ function SourceTabs(props: {
               tabindex={active() ? 0 : -1}
               onClick={() => props.onChange(k.id)}
               onKeyDown={(e) => onKey(e, i())}
-              class={`flex min-w-0 items-center gap-2 rounded-[7px] px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
-                active() ? "bg-indigo text-white" : "text-ink-soft hover:bg-surface-2 hover:text-ink"
+              class={`flex min-w-0 items-center gap-2 rounded-[8px] px-2.5 py-2 text-[13px] font-semibold transition-colors duration-100 ease-snappy ${
+                active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
               }`}
             >
               <k.icon size={15} />
               <span class="min-w-0 flex-1 truncate text-left">{k.label}</span>
               <span
-                class={`data shrink-0 rounded-full px-1.5 py-0.5 text-[11px] tabular-nums ${
-                  active() ? "bg-surface text-ink" : "bg-paper text-muted"
+                class={`shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[11px] tabular-nums ${
+                  active() ? "bg-paper text-leaf-deep" : "bg-surface-2 text-muted"
                 }`}
               >
                 {props.counts[k.id]}
@@ -126,13 +126,13 @@ function ExcludeBlock(props: {
     <div class="mt-5 border-t border-line pt-4">
       <div class="flex items-center gap-2">
         <SlashIcon size={14} class="shrink-0 text-muted" />
-        <h4 class="text-[13px] font-semibold tracking-[-0.01em] text-ink-soft">Skip folders or files</h4>
+        <h4 class="text-[13px] font-semibold text-ink">Skip folders or files</h4>
         <InfoTip text={props.hint} />
-        <span class="data ml-auto shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 text-[11px] text-muted tabular-nums">
+        <span class="ml-auto shrink-0 rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-muted tabular-nums">
           {props.values.length}
         </span>
       </div>
-      <p class="note mt-1.5 text-[12.5px] leading-4 text-muted">{props.note}</p>
+      <p class="mt-1.5 text-[12px] font-medium leading-4 text-muted">{props.note}</p>
       <div class="mt-2.5">
         <ChipList
           values={props.values}
@@ -184,14 +184,14 @@ export function SourcesSection() {
             <h3 class="text-[15px] font-semibold tracking-[-0.01em] text-ink">
               {activeKind().label}
             </h3>
-            <p class="note mt-1 max-w-[64ch] text-[13px] leading-5 text-muted">
+            <p class="mt-1 max-w-[64ch] text-[13px] font-medium leading-5 text-muted">
               {activeKind().blurb}
             </p>
           </div>
         </div>
 
         <Show when={sourceKind() === "projects"}>
-          <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+          <p class="mt-2.5 max-w-[64ch] text-[12px] font-medium leading-5 text-muted">
             Each group becomes one collection, named after the group.
           </p>
           <div class="mt-3.5">
@@ -216,7 +216,7 @@ export function SourcesSection() {
         </Show>
 
         <Show when={sourceKind() === "repositories"}>
-          <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+          <p class="mt-2.5 max-w-[64ch] text-[12px] font-medium leading-5 text-muted">
             Each group becomes one collection. How far back commit history reaches is
             set under Indexing.
           </p>
@@ -242,9 +242,9 @@ export function SourcesSection() {
         </Show>
 
         <Show when={sourceKind() === "obsidian"}>
-          <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+          <p class="mt-2.5 max-w-[64ch] text-[12px] font-medium leading-5 text-muted">
             Every vault lands in one collection called{" "}
-            <span class="data text-ink-soft">obsidian</span>.
+            <span class="font-mono text-[12px] text-ink-soft">obsidian</span>.
           </p>
           <div class="mt-3.5">
             <PathList
@@ -267,9 +267,9 @@ export function SourcesSection() {
         </Show>
 
         <Show when={sourceKind() === "calibre"}>
-          <p class="mt-2.5 max-w-[64ch] text-[12.5px] leading-5 text-muted">
+          <p class="mt-2.5 max-w-[64ch] text-[12px] font-medium leading-5 text-muted">
             Every library lands in one collection called{" "}
-            <span class="data text-ink-soft">calibre</span>.
+            <span class="font-mono text-[12px] text-ink-soft">calibre</span>.
           </p>
           <div class="mt-3.5">
             <PathList

@@ -13,15 +13,15 @@ type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Button(props: ButtonProps) {
   const variant = props.variant ?? "primary";
   const size = props.size ?? "md";
-  const cls = `inline-flex items-center justify-center gap-2 rounded-control font-medium transition-all duration-150 ease-snappy select-none active:scale-[0.98] disabled:opacity-45 disabled:pointer-events-none ${
-    size === "sm" ? "h-8 px-3 text-[13px]" : "h-9.5 px-4 text-sm"
+  const cls = `inline-flex items-center justify-center gap-2 rounded-control font-semibold leading-none whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] duration-100 ease-snappy select-none active:translate-y-px disabled:opacity-45 disabled:pointer-events-none ${
+    size === "sm" ? "h-8 px-3 text-[13px]" : "h-9 px-4 text-[14px]"
   } ${
     variant === "primary"
-      ? "bg-leaf-deep text-white hover:bg-leaf shadow-[0_1px_2px_rgb(21_112_62/0.3)]"
+      ? "rounded-full bg-leaf-deep text-white hover:bg-leaf shadow-[0_1px_2px_rgb(21_112_62/0.25)]"
       : variant === "outline"
-        ? "border border-line-control bg-paper text-ink-soft hover:border-indigo/50 hover:text-indigo-deep"
+        ? "border border-line-control bg-paper text-ink-soft hover:border-line-strong hover:bg-surface-2 hover:text-ink"
         : variant === "ghost"
-          ? "text-ink-soft hover:bg-indigo-soft hover:text-indigo-deep"
+          ? "text-ink-soft hover:bg-surface-2 hover:text-ink"
           : variant === "danger"
             ? "border border-danger/40 bg-paper text-danger hover:border-danger hover:bg-danger-soft"
             : "text-faint hover:text-ink"
@@ -43,7 +43,7 @@ export function Button(props: ButtonProps) {
 export function Kbd(props: { children: JSX.Element; class?: string }) {
   return (
     <kbd
-      class={`inline-flex h-5 min-w-5 items-center justify-center rounded-[5px] border border-line-strong bg-surface px-1 font-mono text-[11px] leading-none text-muted ${props.class ?? ""}`}
+      class={`inline-flex h-5 min-w-5 items-center justify-center rounded-[4px] border border-line-strong bg-surface px-1 font-mono text-[11px] leading-none text-muted ${props.class ?? ""}`}
     >
       {props.children}
     </kbd>
@@ -60,19 +60,19 @@ export function Chip(props: {
   const tone = props.tone ?? "neutral";
   const cls =
     tone === "mint"
-      ? "bg-surface-2 text-muted"
+      ? "border border-line bg-surface-2 text-ink-soft"
       : tone === "leaf"
-        ? "bg-leaf-deep text-white"
+        ? "border border-transparent bg-leaf-deep text-white"
         : tone === "code"
-          ? "bg-paper text-muted font-mono"
+          ? "border border-line bg-surface-2 font-mono text-muted"
           : tone === "amber"
-            ? "bg-amber-soft text-amber-deep"
+            ? "border border-amber-warm bg-amber-soft text-amber-deep"
             : tone === "indigo"
-              ? "bg-indigo-soft text-indigo-deep"
-              : "bg-paper text-muted";
+              ? "border border-transparent bg-mint text-leaf-deep"
+              : "border border-line bg-surface-2 text-muted";
   return (
     <span
-      class={`inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11.5px] font-medium leading-4 ${cls} ${props.class ?? ""}`}
+      class={`inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-full px-[7px] py-[1px] text-[12px] font-semibold leading-[1.5] ${cls} ${props.class ?? ""}`}
     >
       {props.children}
     </span>
@@ -246,8 +246,8 @@ export function Select(props: SelectProps) {
         <button
           ref={trigger}
           type="button"
-          class={`inline-flex h-8 min-w-0 flex-1 items-center rounded-control border bg-surface pl-3 pr-8 text-left text-[13px] transition-colors duration-150 ease-snappy disabled:pointer-events-none disabled:opacity-45 ${
-            open() ? "border-leaf" : "border-line-control hover:border-faint"
+          class={`inline-flex h-9 min-w-0 flex-1 items-center rounded-control border bg-surface pl-2.5 pr-8 text-left text-[13px] transition-colors duration-100 ease-snappy disabled:pointer-events-none disabled:opacity-45 ${
+            open() ? "border-ink" : "border-line-control hover:border-line-strong"
           } ${selected() ? "text-ink" : "text-muted"}`}
           aria-label={props["aria-label"]}
           aria-haspopup="listbox"
@@ -274,7 +274,7 @@ export function Select(props: SelectProps) {
             ref={list}
             id={listId}
             role="listbox"
-            class="scroll-quiet fixed z-50 max-h-64 overflow-y-auto rounded-control border border-line-strong bg-surface py-1.5 shadow-pop"
+            class="scroll-quiet fixed z-50 max-h-[min(280px,48vh)] overflow-y-auto rounded-control border border-line-strong bg-paper p-1 shadow-pop"
             style={menuStyle()}
           >
             <For each={props.options}>
@@ -284,9 +284,9 @@ export function Select(props: SelectProps) {
                   role="option"
                   aria-selected={o.value === props.value}
                   title={o.label}
-                  class={`flex min-h-8 cursor-pointer items-center gap-2 px-3 py-1.5 text-[13px] ${
-                    i() === activeIdx() ? "bg-indigo-soft" : ""
-                  } ${o.value === props.value ? "font-medium text-ink" : "text-ink-soft"}`}
+                  class={`flex min-h-[30px] cursor-pointer items-center gap-2 rounded-[4px] px-2 py-1.5 text-[13px] ${
+                    i() === activeIdx() ? "bg-surface-2" : ""
+                  } ${o.value === props.value ? "font-semibold text-ink" : "text-ink-soft"}`}
                   onMouseEnter={() => setActiveIdx(i())}
                   onMouseDown={(e) => {
                     e.preventDefault();
@@ -295,7 +295,7 @@ export function Select(props: SelectProps) {
                 >
                   <span class="min-w-0 flex-1 truncate">{o.label}</span>
                   <Show when={o.value === props.value}>
-                    <CheckIcon size={13} class="shrink-0 text-indigo-deep" />
+                    <CheckIcon size={13} class="shrink-0 text-leaf-deep" />
                   </Show>
                 </li>
               )}
@@ -321,8 +321,8 @@ export function Switch(props: {
       aria-checked={props.checked}
       aria-label={props.label}
       onClick={() => props.onChange(!props.checked)}
-      class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-150 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
-        props.checked ? "border-leaf bg-leaf" : "border-line-control bg-surface"
+      class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-100 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
+        props.checked ? "border-leaf-deep bg-leaf-deep" : "border-line-control bg-surface-2"
       }`}
     >
       <span
@@ -347,10 +347,10 @@ export function Toggle(props: {
     <div class="flex items-center justify-between gap-4 py-2">
       <span>
         <span class="flex items-center gap-1.5">
-          <span class="block text-sm text-ink">{props.label}</span>
+          <span class="block text-[13px] font-semibold text-ink">{props.label}</span>
           {props.hint && <InfoTip text={props.hint} />}
         </span>
-        {props.description && <span class="block text-[13px] text-muted">{props.description}</span>}
+        {props.description && <span class="block text-[12px] font-medium text-muted">{props.description}</span>}
       </span>
       <Switch checked={props.checked} onChange={props.onChange} label={props.label} />
     </div>
@@ -394,7 +394,7 @@ export function InfoTip(props: { text: string; class?: string }) {
       <button
         ref={ref}
         type="button"
-        class={`inline-flex shrink-0 items-center justify-center rounded-full text-faint transition-colors hover:text-indigo focus-visible:text-indigo ${props.class ?? ""}`}
+        class={`inline-flex shrink-0 items-center justify-center rounded-full text-faint transition-colors duration-100 hover:text-leaf-deep focus-visible:text-leaf-deep ${props.class ?? ""}`}
         aria-label="What this setting does"
         onMouseEnter={show}
         onMouseLeave={hide}
@@ -407,7 +407,7 @@ export function InfoTip(props: { text: string; class?: string }) {
         <Portal mount={document.body}>
           <div
             role="tooltip"
-            class="pointer-events-none fixed z-100 w-75 rounded-control border border-line-strong bg-surface p-3 text-[13px] leading-5 text-ink shadow-pop"
+            class="pointer-events-none fixed z-100 w-[260px] rounded-control border border-line-strong bg-paper px-[9px] py-[5px] text-[12px] font-medium leading-[1.4] text-ink shadow-pop"
             style={{ left: `${pos()!.x}px`, top: `${pos()!.y}px` }}
           >
             {props.text}
@@ -421,10 +421,10 @@ export function InfoTip(props: { text: string; class?: string }) {
 /* ---------------- StatusPill (in-process model engine) ---------------- */
 
 /** Shared model-state → dot/text mapping, used by StatusPill and the sidebar plate. */
-export const modelStateMeta: Record<ModelState, { dot: string; text: string }> = {
-  loaded: { dot: "bg-leaf", text: "text-leaf-deep" },
-  idle: { dot: "bg-faint", text: "text-muted" },
-  failed: { dot: "bg-danger", text: "text-danger" },
+export const modelStateMeta: Record<ModelState, { dot: string; text: string; pill: string }> = {
+  loaded: { dot: "bg-leaf", text: "text-leaf-deep", pill: "border-leaf/40 bg-mint" },
+  idle: { dot: "bg-faint", text: "text-muted", pill: "border-line bg-surface-2" },
+  failed: { dot: "bg-danger", text: "text-danger", pill: "border-danger/40 bg-danger-soft" },
 };
 
 const modelLabel: Record<ModelState, string> = {
@@ -454,12 +454,14 @@ export function StatusPill(props: {
   }
   return (
     <span
-      class={`inline-flex items-center gap-2 rounded-full border border-line bg-paper px-3 py-1 ${m().text}`}
+      class={`inline-flex items-center gap-1.5 rounded-full border px-[7px] py-0.5 text-[12px] font-bold uppercase tracking-[0.02em] ${m().pill} ${m().text}`}
       title={tip}
     >
       {dot}
-      <span class="data">{modelLabel[props.state]}</span>
-      {props.name && <span class="data text-muted">· {props.name}</span>}
+      <span>{modelLabel[props.state]}</span>
+      {props.name && (
+        <span class="font-medium normal-case tracking-normal text-muted">· {props.name}</span>
+      )}
     </span>
   );
 }
@@ -473,14 +475,16 @@ export function EmptyState(props: {
   children?: JSX.Element;
 }) {
   return (
-    <div class="flex flex-col items-center justify-center px-6 py-16 text-center">
+    <div class="flex flex-col items-center justify-center rounded-card border border-dashed border-line-strong px-6 py-12 text-center">
       {props.icon && (
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-card border border-line bg-surface text-indigo">
+        <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-[8px] border border-line bg-surface text-leaf-deep">
           {props.icon}
         </div>
       )}
-      <h3 class="title text-lg tracking-[-0.01em] text-ink">{props.title}</h3>
-      {props.note && <p class="note mt-2 max-w-[34ch] text-[15.5px] leading-6 text-muted">{props.note}</p>}
+      <h3 class="text-[15px] font-semibold tracking-[-0.01em] text-ink">{props.title}</h3>
+      {props.note && (
+        <p class="mt-2 max-w-[42ch] text-[13px] font-medium leading-[1.7] text-muted">{props.note}</p>
+      )}
       {props.children && <div class="mt-5">{props.children}</div>}
     </div>
   );
@@ -503,10 +507,10 @@ export function ViewHeading(props: { title: string; note?: string; children?: JS
   return (
     <div class="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div>
-        <h1 class="title text-[28px] leading-tight tracking-[-0.025em] text-ink">
+        <h1 class="text-[24px] font-semibold leading-tight tracking-[-0.02em] text-ink">
           {props.title}
         </h1>
-        {props.note && <p class="note mt-1.5 text-[15.5px] text-muted">{props.note}</p>}
+        {props.note && <p class="mt-1.5 text-[13px] font-medium text-muted">{props.note}</p>}
       </div>
       {props.children && <div class="flex items-center gap-2">{props.children}</div>}
     </div>
@@ -525,35 +529,37 @@ export function ToastStack(props: {
   onDismiss: (id: number) => void;
 }) {
   return (
-    <div class="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
+    <div class="pointer-events-none fixed bottom-6 left-1/2 z-50 flex w-full max-w-[480px] -translate-x-1/2 flex-col items-center gap-2 px-4">
       <For each={props.toasts}>
         {(t) => (
           <div
-            class={`pointer-events-auto flex items-start gap-3 rounded-card border bg-surface px-4 py-3 shadow-pop ${
-              t.tone === "danger" ? "border-danger/40" : "border-line"
+            class={`od-fade-slide-up pointer-events-auto flex items-center gap-3 rounded-full border px-4 py-2.5 shadow-overlay ${
+              t.tone === "danger"
+                ? "border-danger/60 bg-ink/90"
+                : t.tone === "success"
+                  ? "border-leaf/50 bg-ink/90"
+                  : "border-white/15 bg-ink/90"
             }`}
           >
             <span
-              class={`mt-1 h-2 w-2 shrink-0 rounded-full ${
-                t.tone === "success" ? "bg-leaf" : t.tone === "danger" ? "bg-danger" : "bg-faint"
+              class={`h-2 w-2 shrink-0 rounded-full ${
+                t.tone === "success" ? "bg-leaf-soft" : t.tone === "danger" ? "bg-danger" : "bg-ghost"
               }`}
             />
-            <div class="flex-1">
-              <p class="text-[13px] leading-5 text-ink-soft">{t.message}</p>
-              <Show when={t.action}>
-                <button
-                  class="mt-1.5 text-[12px] font-medium text-leaf-deep hover:underline"
-                  onClick={() => {
-                    t.action?.run();
-                    props.onDismiss(t.id);
-                  }}
-                >
-                  {t.action?.label}
-                </button>
-              </Show>
-            </div>
+            <p class="text-[13px] font-medium leading-5 text-white">{t.message}</p>
+            <Show when={t.action}>
+              <button
+                class="shrink-0 text-[12px] font-semibold text-mint-strong hover:underline"
+                onClick={() => {
+                  t.action?.run();
+                  props.onDismiss(t.id);
+                }}
+              >
+                {t.action?.label}
+              </button>
+            </Show>
             <button
-              class="text-faint hover:text-ink"
+              class="shrink-0 text-white/60 transition-colors duration-100 hover:text-white"
               onClick={() => props.onDismiss(t.id)}
               aria-label="Dismiss"
             >
@@ -583,26 +589,29 @@ export function ConfirmDialog(props: {
   return (
     <Show when={props.open}>
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-ink/20 p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onClick={props.busy ? undefined : props.onCancel}
       >
-        <div class="sheet w-[22rem] p-5 shadow-pop" onClick={(e) => e.stopPropagation()}>
-          <h3 id={titleId} class="title text-[15px] tracking-[-0.01em] text-ink">
+        <div
+          class="od-scale-in w-[26.25rem] rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 id={titleId} class="text-[17px] font-semibold tracking-[-0.01em] text-ink">
             {props.title}
           </h3>
-          <div class="read mt-2 text-[13.5px] leading-5 text-muted">{props.body}</div>
-          <div class="mt-4 flex justify-end gap-2">
-            <Button size="sm" variant="ghost" onClick={props.onCancel} disabled={props.busy}>
+          <div class="mt-2 text-[13px] font-medium leading-[1.7] text-muted">{props.body}</div>
+          <div class="mt-5 flex justify-end gap-2">
+            <Button size="sm" variant="ghost" class="rounded-full" onClick={props.onCancel} disabled={props.busy}>
               {props.cancelLabel ?? "Keep"}
             </Button>
             <button
               type="button"
               onClick={props.onConfirm}
               disabled={props.busy}
-              class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-control bg-danger px-3 text-[13px] font-medium text-white transition-all duration-150 ease-snappy active:scale-[0.98] disabled:opacity-45 disabled:pointer-events-none"
+              class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-full bg-danger px-4 text-[13px] font-semibold leading-none text-white transition-[background-color,transform] duration-100 ease-snappy active:translate-y-px disabled:opacity-45 disabled:pointer-events-none"
             >
               {props.busy ? (props.busyLabel ?? "Deleting…") : (props.confirmLabel ?? "Delete")}
             </button>

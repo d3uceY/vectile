@@ -20,29 +20,29 @@ export function CatalogModelCard(props: {
   const active = () => props.downloadState?.key === m().key;
 
   return (
-    <div class="rounded-control border border-line bg-paper p-3">
+    <div class="rounded-[8px] border border-line bg-surface p-3">
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <p class="flex items-center gap-1.5 text-[13px] font-medium text-ink">
+          <p class="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
             {m().name}
             <Show when={m().recommended}>
-              <span class="rounded-control bg-amber-soft px-1.5 py-0.5 text-[10.5px] font-medium text-amber-deep">
+              <span class="rounded-full border border-amber-warm bg-amber-soft px-[7px] py-[1px] text-[11px] font-semibold text-amber-deep">
                 recommended
               </span>
             </Show>
           </p>
-          <p class="data mt-0.5 text-muted">
+          <p class="mt-0.5 font-mono text-[11px] text-muted">
             {m().dimensions} dims · {fmtBytes(m().sizeBytes)} · {m().quantization}
             {m().language ? ` · ${m().language}` : ""}
           </p>
-          <p class="mt-0.5 text-[12.5px] text-muted">{m().description}</p>
+          <p class="mt-0.5 text-[12px] font-medium text-muted">{m().description}</p>
         </div>
         <Show when={!active()}>
           <Show
             when={!installed()}
             fallback={
               <div class="flex items-center gap-2">
-                <span class="rounded-control bg-surface-2 px-1.5 py-0.5 text-[10.5px] font-medium text-muted">
+                <span class="rounded-full border border-line bg-surface-2 px-[7px] py-[1px] text-[11px] font-semibold text-muted">
                   installed
                 </span>
                 <Button size="sm" variant="danger" onClick={() => props.onUninstall(m().file)}>

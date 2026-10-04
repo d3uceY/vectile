@@ -24,18 +24,18 @@ export function StatusStrip(props: { version?: string }) {
   const onSearch = () => store.view() !== "search" && store.focusSearch();
 
   return (
-    <header class="flex h-13 shrink-0 items-center justify-between gap-3 border-b border-line bg-paper/70 px-6">
+    <header class="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-line bg-paper px-3.5">
       <div class="flex min-w-0 items-center gap-4">
         <span class="h-3 w-px shrink-0 bg-line-strong" aria-hidden="true" />
-        <span class="data truncate text-muted">
+        <span class="truncate text-[12px] font-medium text-muted">
           {totals().collections} collections · {totals().chunks.toLocaleString()} chunks
           {totals().size ? ` · ${totals().size}` : ""}
           {lastIndexedLabel(st()?.lastIndexed ?? "")}
         </span>
       </div>
-      <div class="flex shrink-0 items-center gap-3">
+      <div class="flex shrink-0 items-center gap-2">
         <button
-          class="flex items-center gap-2 rounded-control px-2 py-1 text-[12.5px] text-muted transition-colors hover:bg-surface hover:text-ink"
+          class="flex items-center gap-2 rounded-full px-2.5 py-1 text-[12px] font-semibold text-muted transition-colors duration-100 hover:bg-surface-2 hover:text-ink"
           onClick={onSearch}
         >
           <span class="hidden md:inline">Jump to search</span>
@@ -43,7 +43,7 @@ export function StatusStrip(props: { version?: string }) {
         </button>
         {props.version && (
           <button
-            class="data hidden shrink-0 cursor-pointer text-muted transition-colors hover:text-indigo-deep md:inline"
+            class="hidden shrink-0 cursor-pointer text-[12px] font-medium text-muted transition-colors duration-100 hover:text-leaf-deep md:inline"
             title="vectile on GitHub"
             onClick={() => openExternal(HOME_URL)}
           >

@@ -106,14 +106,14 @@ export function ModelSection() {
           <div class="flex flex-wrap items-center gap-3">
             <StatusPill state={store.modelState()} name={store.modelName()} />
           </div>
-          <div class="data truncate text-muted" title={store.status()?.modelPath ?? ""}>
+          <div class="truncate font-mono text-[12px] text-muted" title={store.status()?.modelPath ?? ""}>
             {store.status()?.modelPath ?? "…"}
           </div>
         </div>
 
         <FieldList>
           <div class="flex items-center justify-between gap-4 py-3.5">
-            <span class="text-[13.5px] text-ink-soft">Active model</span>
+            <span class="text-[13px] font-medium text-ink">Active model</span>
             <Select
               aria-label="Active model"
               placeholder="No model installed"
@@ -123,7 +123,7 @@ export function ModelSection() {
             />
           </div>
           <div class="flex items-center justify-between gap-4 py-3.5">
-            <span class="text-[13.5px] text-ink-soft">Add a model file</span>
+            <span class="text-[13px] font-medium text-ink">Add a model file</span>
             <Button size="sm" variant="outline" onClick={() => void importModelFlow()}>
               Import model…
             </Button>
@@ -135,7 +135,7 @@ export function ModelSection() {
             action={
               <button
                 type="button"
-                class="text-[12px] font-medium text-indigo hover:underline"
+                class="text-[12px] font-semibold text-leaf-deep hover:underline"
                 onClick={() =>
                   openExternal(
                     "https://huggingface.co/models?library=gguf&sort=trending&search=embedding",
@@ -166,12 +166,12 @@ export function ModelSection() {
 
         <Show when={activeModel()}>
           {(m) => (
-            <div class="rounded-control border border-line bg-paper-warm p-5">
-              <p class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-ink-soft">
+            <div class="rounded-[8px] border border-line bg-surface p-5">
+              <p class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-ink">
                 {m().name} settings
                 <InfoTip text="Each model carries its own settings. Context window 0 falls back to the model's native maximum (shown here when the .gguf reports one); threads 0 uses all cores." />
               </p>
-              <div class="data mb-3 truncate text-muted">
+              <div class="mb-3 truncate font-mono text-[12px] text-muted">
                 Dimensions: {m().dimensions > 0 ? m().dimensions : "auto"}
               </div>
               <FieldList>
@@ -217,15 +217,15 @@ export function ModelSection() {
         <Show when={store.models().length > 0}>
           <div>
             <SubHeading>Installed models</SubHeading>
-            <ul class="divide-y divide-line overflow-hidden rounded-control border border-line bg-paper-warm pb-1.5">
+            <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
               <For each={store.models()}>
                 {(m) => (
                   <li class="flex items-center gap-2 px-3 py-2">
-                    <span class="data flex-1 truncate text-muted" title={m.path}>
+                    <span class="flex-1 truncate font-mono text-[12px] text-muted" title={m.path}>
                       {modelLabel(m)}
                     </span>
                     {m.isActive && (
-                      <span class="shrink-0 rounded-full bg-indigo-soft px-2 py-0.5 text-[11px] font-medium text-indigo-deep">
+                      <span class="shrink-0 rounded-full border border-transparent bg-mint px-2 py-0.5 text-[11px] font-semibold text-leaf-deep">
                         active
                       </span>
                     )}
@@ -245,7 +245,7 @@ export function ModelSection() {
         </Show>
 
         <Show when={store.models().length === 0}>
-          <p class="note text-muted">No models yet. Import a .gguf or drop one into the models folder.</p>
+          <p class="text-[13px] font-medium text-muted">No models yet. Import a .gguf or drop one into the models folder.</p>
         </Show>
 
         <ConfirmDialog
