@@ -5,7 +5,7 @@ import { Button } from "./primitives";
 /** Update prompt shown once per launch when a NEWER STABLE release exists
     (beta/rc/etc. never triggers it; see isNewer in lib/update). Matches the
     notebook world: a paper sheet, serif title, a mint "latest" plate, and one
-    clear primary action that opens the README's Download section. */
+    clear primary action that opens the latest release page. */
 export function UpdateDialog(props: {
   open: boolean;
   latest: string;

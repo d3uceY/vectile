@@ -6,8 +6,9 @@ import { Browser } from "@wailsio/runtime";
 
 export const REPO = "d3uceY/vectile";
 export const HOME_URL = `https://github.com/${REPO}`;
-/** Opens the README's ## Download section, where every release lives. */
-export const DOWNLOAD_URL = `https://github.com/${REPO}#download`;
+/** Opens the latest release page directly, so the download prompt lands on
+    the current version's assets instead of the whole releases list. */
+export const DOWNLOAD_URL = `https://github.com/${REPO}/releases/latest`;
 
 /** True when running inside the Wails desktop webview. The browser dev-stub
     also sets window._wails, so require a non-localhost origin too; that keeps

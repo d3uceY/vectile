@@ -574,42 +574,72 @@ jobs:
           PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v' | sed -n '2p')
           if [ -n "$PREV_TAG" ]; then RANGE="${PREV_TAG}..${CURR_TAG}"; else RANGE="${CURR_TAG}"; fi
 
-          # ── Download table + first-run notes ─────────────────────────────
+          # ── Download cards + first-run notes ─────────────────────────────
+          #
+          # Big, real platform logos (skillicons.dev tiles) so the right build is
+          # obvious at a glance. Each tile carries its own dark background, which
+          # a plain black-on-transparent logo (e.g. the Apple mark) would not
+          # survive on GitHub's dark theme. Deliberately raw HTML, not a markdown
+          # table: GitHub sanitises inline styles, so sizing comes from
+          # width/height attributes. A heredoc keeps the HTML readable and lets
+          # REL/ICON_BASE expand; do not put backticks or `$` in here.
+          REL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${CURR_TAG}"
+          ICON_BASE="https://skillicons.dev/icons?i="
           {
-            echo '## Download'
-            echo ''
-            echo '| Platform | Link | Note |'
-            echo '|---|---|---|'
-            echo "| Windows (installer) | [vectile-windows-amd64-installer.exe](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-installer.exe) | ⚠️ SmartScreen will block it - see First-Run Notes below |"
-            echo "| Windows (portable)  | [vectile-windows-amd64-portable.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-portable.zip) | unzip, then run vectile-windows-amd64.exe |"
-            echo "| Windows (older PCs) | [vectile-windows-amd64-legacy-installer.exe](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-legacy-installer.exe) | For PCs from before ~2013 only - read the Older PCs note below |"
-            echo "| Windows (older PCs, portable) | [vectile-windows-amd64-legacy.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-windows-amd64-legacy.zip) | same build, no install step |"
-            echo "| Linux (AppImage)    | [vectile-linux-amd64.AppImage](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-linux-amd64.AppImage) | chmod +x, then run |"
-            echo "| Linux (.deb)        | [vectile-linux-amd64.deb](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-linux-amd64.deb) | sudo apt install ./vectile-linux-amd64.deb |"
-            echo "| macOS (universal)   | [vectile-macos-universal.dmg](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-macos-universal.dmg) | |"
-            echo "| macOS (universal)   | [vectile-macos-universal.zip](https://github.com/${{ github.repository }}/releases/download/${CURR_TAG}/vectile-macos-universal.zip) | |"
-            echo ''
-            echo 'SHA-256 checksums are in `SHA256SUMS.txt` attached below.'
-            echo ''
-            echo '## First-Run Notes'
-            echo ''
-            echo 'vectile is unsigned, so first launch may warn you - it'"'"'s safe and open source.'
-            echo ''
-            echo '- **Windows:** SmartScreen -> **More info** -> **Run anyway** (or unblock the `.exe` in Properties).'
-            echo '- **macOS:** right-click the app -> **Open** (or `xattr -d com.apple.quarantine` on the `.app`).'
-            echo '- **Linux:** the AppImage needs `chmod +x`; the `.deb` pulls GTK4/WebKitGTK 6.0 + `libgomp1` automatically.'
-            echo ''
-            echo '## Older PCs'
-            echo ''
-            echo 'The normal Windows builds need a CPU with AVX2 (Intel Haswell, 2013+, or AMD Excavator, 2015+).'
-            echo 'On anything older use the `legacy` installer or zip, which run on any 64-bit CPU. They are the'
-            echo 'same app, so installing one over the normal build just replaces it; do not install both.'
-            echo ''
-            echo 'It is slower, and mostly on the quantized models: BGE-M3, BGE Small Q4_K_M and all-MiniLM'
-            echo 'Q4_K_M are roughly **17x slower**, because they are K-quant models that need AVX2 to be fast.'
-            echo 'The recommended **BGE Small EN v1.5 Q8_0** is only about half speed, so pick that one in'
-            echo 'Settings on an old machine and expect a slow first index.'
-            echo ''
+            cat <<EOF
+          ## Download
+          
+          Pick your platform:
+          
+          <table>
+          <tr>
+          <td align="center" width="88"><img src="${ICON_BASE}windows" width="64" height="64" alt="Windows" /></td>
+          <td>
+          <h3>Windows</h3>
+          <a href="${REL}/vectile-windows-amd64-installer.exe"><b>Installer (.exe)</b></a> &nbsp;— recommended · ⚠️ SmartScreen will block it, <a href="#first-run-notes">here is the fix</a><br />
+          <a href="${REL}/vectile-windows-amd64-portable.zip"><b>Portable (.zip)</b></a> &nbsp;— unzip, then run <code>vectile-windows-amd64.exe</code><br />
+          <sub>Older PC from before ~2013 (no AVX2)? <a href="${REL}/vectile-windows-amd64-legacy-installer.exe">legacy installer</a> · <a href="${REL}/vectile-windows-amd64-legacy.zip">legacy portable zip</a></sub>
+          </td>
+          </tr>
+          <tr>
+          <td align="center" width="88"><img src="${ICON_BASE}apple" width="64" height="64" alt="macOS" /></td>
+          <td>
+          <h3>macOS <sub>universal · Intel + Apple Silicon</sub></h3>
+          <a href="${REL}/vectile-macos-universal.dmg"><b>Disk image (.dmg)</b></a> &nbsp;— recommended<br />
+          <a href="${REL}/vectile-macos-universal.zip"><b>App bundle (.zip)</b></a>
+          </td>
+          </tr>
+          <tr>
+          <td align="center" width="88"><img src="${ICON_BASE}linux" width="64" height="64" alt="Linux" /></td>
+          <td>
+          <h3>Linux</h3>
+          <a href="${REL}/vectile-linux-amd64.AppImage"><b>AppImage</b></a> &nbsp;— <code>chmod +x</code>, then run<br />
+          <a href="${REL}/vectile-linux-amd64.deb"><b>Debian package (.deb)</b></a> &nbsp;— <code>sudo apt install ./vectile-linux-amd64.deb</code>
+          </td>
+          </tr>
+          </table>
+          
+          SHA-256 checksums are in <code>SHA256SUMS.txt</code>, attached below.
+          
+          ## First-Run Notes
+          
+          vectile is unsigned, so first launch may warn you - it's safe and open source.
+          
+          - **Windows:** SmartScreen → **More info** → **Run anyway** (or unblock the <code>.exe</code> in Properties).
+          - **macOS:** right-click the app → **Open** (or <code>xattr -d com.apple.quarantine</code> on the <code>.app</code>).
+          - **Linux:** the AppImage needs <code>chmod +x</code>; the <code>.deb</code> pulls GTK4/WebKitGTK 6.0 + <code>libgomp1</code> automatically.
+          
+          ## Older PCs
+          
+          The normal Windows builds need a CPU with AVX2 (Intel Haswell, 2013+, or AMD Excavator, 2015+).
+          On anything older use the <code>legacy</code> installer or zip, which run on any 64-bit CPU. They are the
+          same app, so installing one over the normal build just replaces it; do not install both.
+          
+          It is slower, and mostly on the quantized models: BGE-M3, BGE Small Q4_K_M and all-MiniLM
+          Q4_K_M are roughly **17x slower**, because they are K-quant models that need AVX2 to be fast.
+          The recommended **BGE Small EN v1.5 Q8_0** is only about half speed, so pick that one in
+          Settings on an old machine and expect a slow first index.
+          EOF
           } > commit_log.md
 
           # ── Changelog (PRs + commits + contributors) ──────────────────────
