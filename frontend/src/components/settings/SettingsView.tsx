@@ -1,4 +1,5 @@
-import { createEffect, createSignal, createUniqueId, For, Show } from "solid-js";
+import { createEffect, createSignal, createUniqueId, For, Show, type Component } from "solid-js";
+import { Dynamic } from "solid-js/web";
 import { useAppStore } from "../../lib/store";
 import { Button, ViewHeading } from "../ui/primitives";
 import { cloneCfg, sanitizeConfig } from "./config";
@@ -14,6 +15,20 @@ import { OcrSection } from "./sections/OcrSection";
 import { SearchSection } from "./sections/SearchSection";
 import { SourcesSection } from "./sections/SourcesSection";
 import { VexterSection } from "./sections/VexterSection";
+
+const SECTIONS: Record<SectionKey, Component> = {
+  model: ModelSection,
+  ocr: OcrSection,
+  chunking: ChunkingSection,
+  search: SearchSection,
+  cache: CacheSection,
+  sources: SourcesSection,
+  indexing: IndexingSection,
+  vexter: VexterSection,
+  connect: ConnectSection,
+};
+
+const SECTION_ORDER: SectionKey[] = NAV_GROUPS.flatMap((g) => g.items.map((i) => i.key));
 
 export function SettingsView() {
   const store = useAppStore();
@@ -41,6 +56,14 @@ export function SettingsView() {
   const saveAndLeave = async () => {
     await store.saveSettings();
     store.confirmLeave();
+  };
+
+  let lastIndex = SECTION_ORDER.indexOf(section());
+  const paneClass = (key: SectionKey) => {
+    const index = SECTION_ORDER.indexOf(key);
+    const rose = index < lastIndex;
+    lastIndex = index;
+    return rose ? "settings-pane settings-pane-up" : "settings-pane";
   };
 
   return (
@@ -131,32 +154,12 @@ export function SettingsView() {
                 }`}
               >
               <div class="px-4 py-5 md:px-6 md:py-6">
-                <Show when={section() === "model"}>
-                  <ModelSection />
-                </Show>
-                <Show when={section() === "ocr"}>
-                  <OcrSection />
-                </Show>
-                <Show when={section() === "chunking"}>
-                  <ChunkingSection />
-                </Show>
-                <Show when={section() === "search"}>
-                  <SearchSection />
-                </Show>
-                <Show when={section() === "cache"}>
-                  <CacheSection />
-                </Show>
-                <Show when={section() === "sources"}>
-                  <SourcesSection />
-                </Show>
-                <Show when={section() === "indexing"}>
-                  <IndexingSection />
-                </Show>
-                <Show when={section() === "vexter"}>
-                  <VexterSection />
-                </Show>
-                <Show when={section() === "connect"}>
-                  <ConnectSection />
+                <Show when={section()} keyed>
+                  {(key) => (
+                    <div class={paneClass(key)}>
+                      <Dynamic component={SECTIONS[key]} />
+                    </div>
+                  )}
                 </Show>
               </div>
               </div>

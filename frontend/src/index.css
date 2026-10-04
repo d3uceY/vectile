@@ -395,6 +395,29 @@ html[data-theme="dark"] {
   .od-stagger > *:nth-child(7) { animation-delay: 240ms; }
   .od-stagger > *:nth-child(8) { animation-delay: 280ms; }
 
+  /* Settings: picking a destination replays the pane's arrival, from the side
+     of the rail you moved toward — down the list rises, up the list descends.
+     One authored moment for the surface, and it tells you which way you went.
+     The hidden state lives in the keyframe, so reduced motion (which zeroes
+     animation-duration) leaves the pane visible instead of stuck at 0. */
+  .settings-pane {
+    --pane-from: 10px;
+    animation: settings-pane-in 200ms var(--ease-snappy) both;
+  }
+  .settings-pane-up {
+    --pane-from: -10px;
+  }
+  @keyframes settings-pane-in {
+    from {
+      opacity: 0;
+      transform: translateY(var(--pane-from));
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* Accordion: animate height with grid-template-rows 0fr -> 1fr so the
      open/close reads as a slide, not a jump (OpenDesign pattern). */
   .accordion-collapsible {

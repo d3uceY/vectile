@@ -109,6 +109,7 @@ OpenDesign's motion vocabulary. Durations are `100 / 150 / 200 / 250ms`; enter i
 
 - Result lists and idle example chips use `.enter-stagger` / `.od-stagger` (fade + 10px rise, 200ms, 40ms steps).
 - Entrance utilities: `.od-fade-in`, `.od-fade-slide-up`, `.od-popover-in`, `.od-slide-left`, `.od-scale-in`.
+- Settings panes replay their arrival on every destination switch, from the side of the rail you moved toward: `.settings-pane` rises from 10px, `.settings-pane-up` descends from -10px, both 200ms on the same ease. The rail is vertical and the pane follows it, so the motion says which way you went instead of swapping a picture. The pane is keyed per destination (the mascot's trick), so the entrance re-runs on each switch rather than reusing one element.
 - Drawers slide `translateX(18px)` + fade over 220ms; dialogs fade the backdrop at 150ms and scale the panel `0.97 → 1` over 250ms. Never animate from `scale(0)`.
 - Buttons press with `translateY(1px)` over 100ms.
 - Accordions animate `grid-template-rows: 0fr → 1fr` over 200ms.
