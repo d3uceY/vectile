@@ -540,7 +540,7 @@ export function BrowseView() {
                               onClick={() => toggleCheck(d.id)}
                               class={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border transition-colors duration-100 ease-snappy ${
                                 checked().has(d.id)
-                                  ? "border-leaf-deep bg-leaf-deep text-white"
+                                  ? "border-accent bg-accent text-accent-ink"
                                   : "border-line-control bg-paper text-transparent hover:border-leaf/60"
                               }`}
                             >

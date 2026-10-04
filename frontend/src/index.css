@@ -49,6 +49,13 @@
   --color-leaf-deep: #15703e;
   --color-leaf-soft: #46a06c;
 
+  /* Accent = the green that FILLS (primary buttons, checkboxes, switch tracks),
+     paired with its own ink. Splitting fill from ink lets dark mode brighten
+     the fill and flip the label to near-black without breaking contrast;
+     --color-leaf-deep stays the green INK used for links, active rows, focus. */
+  --color-accent: #15703e;
+  --color-accent-ink: #ffffff;
+
   /* Attention / in-progress / unsaved / needs-reindex: warm amber */
   --color-amber: #b45309;
   --color-amber-deep: #92400e;
@@ -66,8 +73,10 @@
   --color-highlighter: #fff1a8;
   --color-highlighter-deep: #f2dc6a;
 
-  /* Functional */
+  /* Functional. danger is the ERROR INK (text, icons); danger-strong is the
+     red that FILLS with --color-accent-ink-like white text (delete buttons). */
   --color-danger: #c13b2f;
+  --color-danger-strong: #c13b2f;
   --color-danger-soft: #fbeae8;
 
   /* Radius (OpenDesign scale: 2 / 4 / 8 / 12 / 16 / pill) */
@@ -88,6 +97,67 @@
   --duration-enter: 200ms;
   --duration-gentle: 250ms;
   --duration-exit: 140ms;
+}
+
+/* ============================================================
+   Dark theme
+   Applied by a single `data-theme="dark"` on <html>. Only the
+   token VALUES change, so every utility class re-themes itself.
+   The green ink brightens (leaf-deep) while the green FILL keeps
+   its own pair (accent + accent-ink); the same split applies to
+   danger. Ground is #1c1c1c, panels #262626, hovers #303030.
+   ============================================================ */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-paper: #1c1c1c;
+  --color-surface: #262626;
+  --color-surface-2: #303030;
+  --color-sidebar: #202020;
+  --color-paper-warm: #303030;
+
+  --color-ink: #fafafa;
+  --color-ink-soft: #d4d4d4;
+  --color-muted: #bdbdbd;
+  --color-faint: #8f8f8f;
+  --color-ghost: #5c5c5c;
+
+  --color-line: #333333;
+  --color-line-strong: #454545;
+  --color-line-control: #7a7a7a;
+
+  --color-leaf: #4ecb8c;
+  --color-leaf-deep: #3bbf7d;
+  --color-leaf-soft: #6fd8a1;
+  --color-mint: #16301f;
+  --color-mint-strong: #1d3d29;
+  --color-mint-deep: #2a5338;
+
+  --color-accent: #3bbf7d;
+  --color-accent-ink: #14201a;
+
+  /* Legacy alias: still green, never a second accent. */
+  --color-indigo: #3bbf7d;
+  --color-indigo-deep: #3bbf7d;
+  --color-indigo-soft: #16301f;
+  --color-indigo-mist: #1d3d29;
+
+  --color-amber: #f0b453;
+  --color-amber-deep: #ffc740;
+  --color-amber-soft: #3a2a12;
+  --color-amber-warm: #7d5a1f;
+
+  --color-highlighter: #6b5a12;
+  --color-highlighter-deep: #8a7418;
+
+  --color-danger: #ff7b72;
+  --color-danger-strong: #c13b2f;
+  --color-danger-soft: #3a1d1d;
+
+  --shadow-xs: 0 1px 0 rgb(0 0 0 / 0.3);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-pop: 0 6px 24px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.35);
+  --shadow-overlay: 0 24px 60px rgb(0 0 0 / 0.6), 0 8px 16px rgb(0 0 0 / 0.4);
 }
 
 @layer base {
@@ -578,16 +648,16 @@
   color: var(--color-ink);
 }
 .driver-popover .setup-next {
-  background: var(--color-leaf-deep);
-  border-color: var(--color-leaf-deep);
+  background: var(--color-accent);
+  border-color: var(--color-accent);
   border-radius: 9999px;
-  color: #fff;
+  color: var(--color-accent-ink);
 }
 .driver-popover .setup-next:hover,
 .driver-popover .setup-next:focus {
   background: var(--color-leaf);
   border-color: var(--color-leaf);
-  color: #fff;
+  color: var(--color-accent-ink);
 }
 .driver-popover .driver-popover-btn-disabled {
   opacity: 0.4;

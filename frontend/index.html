@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#ffffff" />
     <title>vectile</title>
+    <script>
+      /* Resolve the theme before first paint so there is no flash of the wrong
+         one. Mirrors frontend/src/lib/theme.ts: "system" follows the OS. */
+      (function () {
+        try {
+          var pref = localStorage.getItem("vectile.theme");
+          var dark =
+            pref === "dark" ||
+            ((pref === "system" || !pref) &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+        }
+      })();
+    </script>
   </head>
   <body>
     <!--

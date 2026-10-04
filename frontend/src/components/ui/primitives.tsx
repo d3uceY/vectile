@@ -17,7 +17,7 @@ export function Button(props: ButtonProps) {
     size === "sm" ? "h-8 px-3 text-[13px]" : "h-9 px-4 text-[14px]"
   } ${
     variant === "primary"
-      ? "rounded-full bg-leaf-deep text-white hover:bg-leaf shadow-[0_1px_2px_rgb(21_112_62/0.25)]"
+      ? "rounded-full bg-accent text-accent-ink hover:bg-leaf shadow-[0_1px_2px_rgb(21_112_62/0.25)]"
       : variant === "outline"
         ? "border border-line-control bg-paper text-ink-soft hover:border-line-strong hover:bg-surface-2 hover:text-ink"
         : variant === "ghost"
@@ -62,7 +62,7 @@ export function Chip(props: {
     tone === "mint"
       ? "border border-line bg-surface-2 text-ink-soft"
       : tone === "leaf"
-        ? "border border-transparent bg-leaf-deep text-white"
+        ? "border border-transparent bg-accent text-accent-ink"
         : tone === "code"
           ? "border border-line bg-surface-2 font-mono text-muted"
           : tone === "amber"
@@ -322,12 +322,12 @@ export function Switch(props: {
       aria-label={props.label}
       onClick={() => props.onChange(!props.checked)}
       class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-100 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
-        props.checked ? "border-leaf-deep bg-leaf-deep" : "border-line-control bg-surface-2"
+        props.checked ? "border-accent bg-accent" : "border-line-control bg-surface-2"
       }`}
     >
       <span
         class={`absolute left-0.5 top-0.5 h-4.5 w-4.5 rounded-full transition-transform duration-150 ease-snappy ${
-          props.checked ? "translate-x-4 bg-white" : "bg-leaf"
+          props.checked ? "translate-x-4 bg-accent-ink" : "bg-leaf"
         }`}
       />
     </button>
@@ -424,7 +424,7 @@ export function InfoTip(props: { text: string; class?: string }) {
 export const modelStateMeta: Record<ModelState, { dot: string; text: string; pill: string }> = {
   loaded: { dot: "bg-leaf", text: "text-leaf-deep", pill: "border-leaf/40 bg-mint" },
   idle: { dot: "bg-faint", text: "text-muted", pill: "border-line bg-surface-2" },
-  failed: { dot: "bg-danger", text: "text-danger", pill: "border-danger/40 bg-danger-soft" },
+  failed: { dot: "bg-danger-strong", text: "text-danger", pill: "border-danger/40 bg-danger-soft" },
 };
 
 const modelLabel: Record<ModelState, string> = {
@@ -533,23 +533,23 @@ export function ToastStack(props: {
       <For each={props.toasts}>
         {(t) => (
           <div
-            class={`od-fade-slide-up pointer-events-auto flex items-center gap-3 rounded-full border px-4 py-2.5 shadow-overlay ${
+            class={`od-fade-slide-up pointer-events-auto flex items-center gap-3 rounded-full border px-4 py-2.5 text-paper shadow-overlay ${
               t.tone === "danger"
-                ? "border-danger/60 bg-ink/90"
+                ? "border-danger/60 bg-ink"
                 : t.tone === "success"
-                  ? "border-leaf/50 bg-ink/90"
-                  : "border-white/15 bg-ink/90"
+                  ? "border-leaf/50 bg-ink"
+                  : "border-line-strong bg-ink"
             }`}
           >
             <span
               class={`h-2 w-2 shrink-0 rounded-full ${
-                t.tone === "success" ? "bg-leaf-soft" : t.tone === "danger" ? "bg-danger" : "bg-ghost"
+                t.tone === "success" ? "bg-leaf-soft" : t.tone === "danger" ? "bg-danger-strong" : "bg-ghost"
               }`}
             />
-            <p class="text-[13px] font-medium leading-5 text-white">{t.message}</p>
+            <p class="text-[13px] font-medium leading-5">{t.message}</p>
             <Show when={t.action}>
               <button
-                class="shrink-0 text-[12px] font-semibold text-mint-strong hover:underline"
+                class="shrink-0 text-[12px] font-semibold underline"
                 onClick={() => {
                   t.action?.run();
                   props.onDismiss(t.id);
@@ -559,7 +559,7 @@ export function ToastStack(props: {
               </button>
             </Show>
             <button
-              class="shrink-0 text-white/60 transition-colors duration-100 hover:text-white"
+              class="shrink-0 text-paper/60 transition-colors duration-100 hover:text-paper"
               onClick={() => props.onDismiss(t.id)}
               aria-label="Dismiss"
             >
@@ -611,7 +611,7 @@ export function ConfirmDialog(props: {
               type="button"
               onClick={props.onConfirm}
               disabled={props.busy}
-              class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-full bg-danger px-4 text-[13px] font-semibold leading-none text-white transition-[background-color,transform] duration-100 ease-snappy active:translate-y-px disabled:opacity-45 disabled:pointer-events-none"
+              class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-full bg-danger-strong px-4 text-[13px] font-semibold leading-none text-white transition-[background-color,transform] duration-100 ease-snappy active:translate-y-px disabled:opacity-45 disabled:pointer-events-none"
             >
               {props.busy ? (props.busyLabel ?? "Deleting…") : (props.confirmLabel ?? "Delete")}
             </button>

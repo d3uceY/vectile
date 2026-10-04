@@ -10,6 +10,7 @@ import {
   SettingsNavIcon,
 } from "../ui/nav-icons";
 import { Mascot } from "./mascot";
+import { ThemeToggle } from "./ThemeToggle";
 
 const NAV: {
   id: ViewId;
@@ -92,8 +93,9 @@ export function Sidebar() {
         <div class="pointer-events-none absolute inset-x-0 bottom-full hidden justify-center md:flex">
           <Mascot />
         </div>
-        {/* Icon rail (< md): just the state dot, no room for text */}
-        <div class="flex justify-center md:hidden">
+        {/* Icon rail (< md): theme cycle + just the state dot, no room for text */}
+        <div class="flex flex-col items-center gap-2 md:hidden">
+          <ThemeToggle compact />
           <span class="relative flex h-2 w-2 shrink-0">
             <span
               class={`h-2 w-2 rounded-full ${modelStateMeta[store.modelState()].dot} ${
@@ -102,7 +104,8 @@ export function Sidebar() {
             />
           </span>
         </div>
-        <div class="hidden md:block">
+        <div class="hidden md:flex md:flex-col md:gap-2.5">
+          <ThemeToggle />
           <ModelPlate state={store.modelState()} name={store.modelName()} />
         </div>
       </footer>

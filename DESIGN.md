@@ -14,7 +14,7 @@ Operate. Search, browse, and manage are the jobs; the interface stays out of the
 
 ## Color
 
-White ground (`--color-paper: #ffffff`); panel cards sit at `--color-surface: #fafafa` with `--color-line-strong: #dbdbdb` hairlines. No background texture.
+White ground (`--color-paper: #ffffff`); panel cards sit at `--color-surface: #fafafa` with `--color-line-strong: #dbdbdb` hairlines. No background texture. Dark inverts the grounds and raises the ink (see **Themes** below).
 
 One pinned exception sits outside this palette. The **source folder art** in Browse (`frontend/public/folder.svg`) is the user's own asset, and its macOS yellow (`#FFCE00` flap, `#EDAF00` back) is deliberately the loudest hue on that surface. It is artwork the user pinned, not a second interface accent: the chrome around it stays white, panel-grey, and dark green.
 
@@ -47,6 +47,41 @@ One pinned exception sits outside this palette. The **source folder art** in Bro
 - **Publish measured numbers, not eyeballed ones.** Every pair above was gated with `retna contrast` at 4.5:1 for text and 3:1 for non-text (20 pairs, 0 text failures).
 
 One dark-green accent (`leaf-deep`) is the interaction color: active nav, selection, links, and primary buttons all read green, so "you can act here" keeps a single consistent meaning. Warm amber is reserved for things that need attention. The `indigo*` token family is aliased to the green values for legacy class-name compatibility; it is no longer used in new code.
+
+## Themes
+
+Two themes, one set of token names. Light is the `@theme` default; dark is a single `html[data-theme="dark"]` block in `frontend/src/index.css` that overrides only token **values**, so every utility re-themes itself with no component branching. `color-scheme` flips with it so native controls (scrollbars, date pickers) match.
+
+Preference is `system` (default), `light`, or `dark`, stored in `localStorage` under `vectile.theme` and applied as `data-theme="light|dark"` on `<html>`. `frontend/index.html` repeats the same resolution inline before first paint so there is no flash of the wrong theme; `frontend/src/lib/theme.ts` owns the logic and `components/shell/ThemeToggle.tsx` is the control in the sidebar footer (three segments on the rail, one cycling icon on the 64px icon rail).
+
+| Token | Light | Dark |
+|---|---|---|
+| `paper` | `#ffffff` | `#1c1c1c` |
+| `surface` | `#fafafa` | `#262626` |
+| `surface-2` | `#ededed` | `#303030` |
+| `sidebar` | `#fafafa` | `#202020` |
+| `ink` | `#202020` | `#fafafa` |
+| `ink-soft` | `#494949` | `#d4d4d4` |
+| `muted` | `#5c5c5c` | `#bdbdbd` |
+| `faint` | `#848484` | `#8f8f8f` |
+| `ghost` | `#bdbdbd` | `#5c5c5c` |
+| `line` / `line-strong` | `#ededed` / `#dbdbdb` | `#333333` / `#454545` |
+| `line-control` | `#8c8c8c` | `#7a7a7a` |
+| `leaf-deep` (ink) | `#15703e` | `#3bbf7d` |
+| `accent` / `accent-ink` (fill) | `#15703e` / `#ffffff` | `#3bbf7d` / `#14201a` |
+| `leaf` | `#1e8a4e` | `#4ecb8c` |
+| `mint` / `mint-strong` | `#e5f3e8` / `#caecd3` | `#16301f` / `#1d3d29` |
+| `amber` / `amber-deep` / `amber-soft` | `#b45309` / `#92400e` / `#fbeeda` | `#f0b453` / `#ffc740` / `#3a2a12` |
+| `highlighter` | `#fff1a8` | `#6b5a12` |
+| `danger` (ink) / `danger-strong` (fill) | `#c13b2f` / `#c13b2f` | `#ff7b72` / `#c13b2f` |
+
+**The one structural change dark forced: fills and inks are separate tokens.** A single green cannot both sit under white button text and read as a link on a dark ground. So `accent` + `accent-ink` carry the *fill* (primary buttons, checkboxes, switch tracks) and `leaf-deep` carries the *ink* (links, active rows, focus, success text); dark brightens the ink and flips the fill's label to near-black. `danger` (ink) and `danger-strong` (fill) work the same way. Light values are unchanged, so light renders exactly as before.
+
+The toast pill inverts with the theme by construction (`bg-ink` + `text-paper`), rather than hardcoding white text on a dark pill.
+
+Dark pairs were gated with `retna contrast` (20 pairs). Every text pair clears 4.5:1: ink 16.3, ink-soft 11.5, muted 9.1 / 8.1 / 7.0, leaf-deep 7.3 / 6.4 / 6.1, accent-ink on accent 7.1, amber 9.2, amber-deep on amber-soft 8.9, danger 6.8, white on danger-strong 5.3, ink on highlighter 6.5, paper on ink 16.3. `faint` (5.3) is comfortable as text in dark but stays documented as icons-only for parity with light; `ghost` (2.6) and `line-control` (4.0) are non-text and clear the 3:1 rule.
+
+`main.go`'s window `BackgroundColour` matches the light ground; the webview paints the themed ground immediately, so the native colour only shows for a frame on window resize.
 
 ## Typography
 
@@ -96,7 +131,7 @@ OpenDesign's motion vocabulary. Durations are `100 / 150 / 200 / 250ms`; enter i
 ## Direction contract
 
 - THESIS: a local knowledge library that feels like a calm, cool-neutral reference desk — bright, precise, quietly clever; it refuses the dark "AI retrieval" default and the neon-glass dashboard.
-- OWN-WORLD: white ground, panel cards, hairline borders, a five-stop text ladder, Albert Sans type, mono data lines, one dark-green interaction accent for active/selected/action, a warm amber for attention, flat surfaces and OpenDesign motion.
+- OWN-WORLD: white ground, panel cards, hairline borders, a five-stop text ladder, Albert Sans type, mono data lines, one dark-green interaction accent for active/selected/action (brightened to emerald in dark), a warm amber for attention, flat surfaces and OpenDesign motion. Light and dark share one token set; only values swap.
 - STORY: the user's whole private library is searchable in one calm, fast surface; nothing leaves the machine.
 - FIRST VIEWPORT: rail wordmark and nav, 44px chrome strip, one search bar, a filter row, and a centered "Ask your library" idle state with example chips.
 - FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md.
