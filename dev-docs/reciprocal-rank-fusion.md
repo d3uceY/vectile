@@ -46,6 +46,8 @@ Defaults: k = 60, w_vec = 0.7, w_fts = 0.3.
 | B | 2 | not found | 0.7 / 63 = 0.011111 | 0 | 0.011111 |
 | C | not found | 1 | 0 | 0.3 / 62 = 0.004839 | 0.004839 |
 
+Every denominator in that table is `60 + rank + 1`, so rank 0 gives 61, rank 1 gives 62, rank 2 gives 63, rank 4 gives 65. Chunk A, for example, is first in the vector list and fourth in the text list, so it earns `0.7 / 61` there and `0.3 / 65` there, and the two are added. "not found" means that search never returned the chunk, so its term is 0 and only the other list counts.
+
 Chunk A wins: it is first in the vector list and still near the top in the text list, so it collects a little from both. Chunk B is only in the vector list. Chunk C is only in the text list, and at 0.3 weight its contribution is small.
 
 That is the behaviour you want from fusion. A chunk that both searches agree on should beat a chunk that only one search likes.
