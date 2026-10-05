@@ -96,11 +96,14 @@ func (s *MCPService) StartServer(port int, transport string) (string, error) {
 		)
 	} else {
 		// The streamable server serves /mcp by default, matching endpointPath.
-		// The heartbeat keeps an idle GET stream open for clients that take one.
-		srv = server.NewStreamableHTTPServer(
-			mcpServer,
-			server.WithHeartbeatInterval(15*time.Second),
-		)
+		//
+		// Do not set a heartbeat interval here. mcp-go raises heartbeat pings as
+		// JSON-RPC *requests* with empty result objects, and VS Code's MCP client
+		// only routes replies that carry the same id as a request it sent. Every
+		// ping therefore surfaces as "Unexpected 200 response for request:",
+		// once per interval, forever. Clients keep the connection alive on their
+		// own, so the heartbeat buys nothing worth that log spam.
+		srv = server.NewStreamableHTTPServer(mcpServer)
 	}
 
 	addr := fmt.Sprintf("127.0.0.1:%d", port)

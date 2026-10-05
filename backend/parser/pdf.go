@@ -49,6 +49,7 @@ func initPDFPool() {
 	})
 }
 
+// my stupid ass was thinking of shipping stdout and stderr with the full build
 // logWriter routes a child process's output into the app log at debug level,
 // so pdfium diagnostics are visible with VECTILE_DEBUG=1 rather than lost.
 //
