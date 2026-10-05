@@ -13,15 +13,15 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 
 ## Features
 
-- **Fully local and private.** Searches run on your machine against an in-process embedding model. No server, no cloud, no telemetry, no account.
-- **Hybrid search.** Vector and full-text results are fused with Reciprocal Rank Fusion, so a query can find a note that never uses your exact words.
-- **Index what you keep.** Obsidian vaults, project folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, XML, SQL, shell, XLSX, PPTX, Jupyter notebooks, EPUB), Calibre libraries, and code repositories including their commit history.
-- **Built-in model manager.** Import your own `.gguf`, pick the active model, or download one from the curated catalog in Settings with a live progress bar.
-- **Reads scanned PDFs (optional).** One click in Settings installs a Tesseract OCR plugin, and PDFs that are photos of pages become searchable text. The card shows the version, the size, and the exact address the download comes from, and a run tells you when it hits pages it could not read.
-- **Keyboard-first desktop UI.** Jump to search from anywhere with ⌘K / Ctrl K, and move between Search, Library, Browse, Index, and Settings from the sidebar.
-- **Manage your library.** Expand a collection to its files, page through individual chunks, and delete stale sources, selected chunks, or a whole library in place.
-- **AI assistant access (MCP).** Serve search, reading, and collection tools to Claude Desktop or any MCP client over a local server, with index and prune tools available behind an Allow write tools toggle.
-- **A little company.** Vexter, the pixel dinosaur, pokes up in the sidebar while you search, index, or come up empty. Settings → Vexter controls each moment.
+- **Private by default:** searches run on your own machine against a model loaded inside the app. No server, no cloud, no tracking, no account.
+- **Search by meaning:** two searches run at once and their results are combined, so a note about blue-green deploys can match the query "how do we ship changes safely" even though it never uses those words.
+- **Index what you already have:** Obsidian vaults, folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, XML, SQL, shell scripts, XLSX, PPTX, Jupyter notebooks, EPUB), Calibre libraries, and code repositories, including their commit history.
+- **Bring your own model:** import a `.gguf` file, choose which model is active, or download one from the list built into Settings with a live progress bar.
+- **Read scanned PDFs (optional):** one click in Settings installs a Tesseract OCR plugin, and PDFs that are photos of pages become searchable text. The install card shows the version, the size, and where the download comes from, and a run tells you when it finds pages it could not read.
+- **Keyboard-first:** press ⌘K on macOS or Ctrl K on Windows and Linux to jump to search from anywhere, and move between Search, Library, Browse, Index, and Settings from the sidebar.
+- **Manage your library:** open a collection to see its files, page through individual chunks, and delete old sources, selected chunks, or a whole library in place.
+- **Reach it from an AI assistant (MCP):** hand search, reading, and collection tools to Claude Desktop or any MCP client through a local server. Indexing and deleting stay off until you turn on Allow write tools.
+- **A little company:** Vexter, the pixel dinosaur, pops up in the sidebar while you search or index, or when a search finds nothing. Settings → Vexter controls each moment.
 
 ## Documentation
 
@@ -37,7 +37,7 @@ task docs:build  # build the static site into website/build
 ![Latest release](https://img.shields.io/github/v/release/d3uceY/vectile?style=for-the-badge&label=Release&logo=github&color=%23e8442e)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 
-**Click your platform to download the latest version:**
+Pick your platform to download the latest version:
 
 [![Windows](https://img.shields.io/github/v/release/d3uceY/vectile?style=for-the-badge&logo=windows&label=Windows&color=0078D4&logoColor=white)](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-installer.exe) - ⚠️ SmartScreen will block it · [how to fix](#first-run-notes)<br>
 [![Windows portable](https://img.shields.io/badge/Windows%20portable-download-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-portable.zip)<br>
@@ -47,15 +47,16 @@ task docs:build  # build the static site into website/build
 
 > Windows 10/11 · Linux (AppImage + deb) · macOS (universal arm64 + amd64) · **app is not code-signed, [see first-run notes below](#first-run-notes)**
 
-On a Windows PC from before about 2013 the normal builds will not start (they need AVX2). Use the
+On a Windows PC built before about 2013, the normal builds will not start: they need a CPU feature
+called AVX2 that older processors do not have. Use the
 [legacy installer](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-legacy-installer.exe)
-(or the [legacy portable zip](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-legacy.zip))
-there, and pick the **BGE Small EN v1.5 Q8_0** model in Settings: the quantized models are much slower
+(or the [legacy portable zip](https://github.com/d3uceY/vectile/releases/latest/download/vectile-windows-amd64-legacy.zip)),
+and pick the **BGE Small EN v1.5 Q8_0** model in Settings. The smaller quantized models are much slower
 without AVX2.
 
 ### First-Run Notes
 
-vectile is not code-signed, so your OS may warn you on first launch. The app is safe and fully open source — you can read every line of code here.
+vectile is not code-signed, so your OS may warn you the first time you open it. The app is safe and open source, and you can read every line of the code.
 
 **Windows - SmartScreen**
 
@@ -70,7 +71,7 @@ Right-click the app -> **Open** (once), or run `xattr -d com.apple.quarantine /p
 
 **Linux**
 
-The `.deb` pulls GTK4/WebKitGTK 6.0 + `libgomp1` automatically; the AppImage needs `chmod +x` before running.
+The `.deb` installs the system libraries it needs (GTK4, WebKitGTK 6.0, and `libgomp1`) for you. The AppImage needs `chmod +x` before it will run.
 
 ## Screenshots
 
@@ -108,20 +109,20 @@ Screenshots show sample data.
 | Code repositories | code | Git repos: tree-sitter splits each function and class into its own chunk (cAST split-then-merge); commit history is indexed as its own source |
 | Calibre | system | Ebook metadata + content: title, author, tags, series, publisher, description, and EPUB/PDF text |
 
-A PDF that is photos of pages rather than text needs the optional OCR plugin (Settings → OCR). A run reports the pages it could not read, so you find out instead of wondering why a document is missing from your results.
+If a PDF is photos of pages instead of text, turn on the optional OCR plugin in Settings → OCR. When a run finds a page it cannot read, it tells you, so a missing document never comes as a surprise.
 
 ## Installation
 
 ### From source
 
-Prerequisites:
+To build vectile yourself, install:
 
-- Go 1.26+
-- Node.js + npm
-- the `wails3` CLI
-- Windows only: MinGW-w64 on `PATH`, with `LIBRARY_PATH` and `C_INCLUDE_PATH` pointing at `third_party/llama-go` (the Windows build task sets these)
+- Go 1.26 or newer
+- Node.js with npm
+- the `wails3` command-line tool (the desktop framework vectile is built on)
+- on Windows only: MinGW-w64 on your `PATH`, with `LIBRARY_PATH` and `C_INCLUDE_PATH` pointing at `third_party/llama-go` (the Windows build task sets these for you)
 
-From the project root:
+Then, from the project root:
 
 ```
 task dev          # run in development mode
@@ -131,7 +132,7 @@ task package      # package an installer for the current OS
 
 ### Installing the model
 
-Drop a `.gguf` file into the `models/` folder inside the app data directory, import one from Settings (a native file dialog copies it into `models/`), or grab one from the curated catalog right in the app — Settings → Model → **Get a model** downloads an embedding model with a click, with a live progress bar. The default model is bge-m3.
+The embedding model is a `.gguf` file, and there are three ways to add one: import a file you already have from Settings (a file picker copies it into the `models/` folder), drop a `.gguf` into that `models/` folder yourself, or open Settings → Model → **Get a model** and download one from the built-in list with a live progress bar. The default is bge-m3.
 
 ## Quick start
 
@@ -143,46 +144,52 @@ On a fresh install, a short tour walks you through it: add a folder, index it, t
 4. Open the Index view and index a collection, or everything at once. Unchanged files are skipped, so re-indexing is fast.
 5. Press ⌘K / Ctrl K and search.
 
-## GUI
+## The app
 
-Five views, keyboard-first:
+There are five screens. Press ⌘K (macOS) or Ctrl K (Windows and Linux) to jump to Search from anywhere.
 
-- **Search** (home): a large search bar, a filter row, and results as cards with title, snippet, rank, collection, and source path. Expand a card to read the whole passage, open the file, or reveal it in the file manager. A small toggle switches each result between its rank (#1) and the blended score (%). Jump in from anywhere with ⌘K / Ctrl K.
-- **Library**: every collection with its file and chunk counts and the last time it was indexed; expand one to list its files, and remove a source or its documents in place.
-- **Browse**: the chunks of one library, paged in as you scroll and grouped under their file. Select chunks to delete them, or remove a whole library. Old pages drop out of memory and come back if you scroll up again.
-- **Index**: run "Index new" (only changed files) or "Re-index all" (re-embed everything) per collection, or index all collections at once, with live progress.
-- **Settings**: sources, model (download an embedding model from the curated catalog, or import your own), OCR (an optional plugin that reads scanned PDFs), chunking, search defaults, auto-reindex, start-on-login, Vexter (the sidebar mascot), and a Connect section that runs a local MCP server for AI assistants.
+- **Search** (the home screen): a large search bar, a row of filters, and results as cards showing the title, a snippet, the rank, the collection, and the file path. Open a card to read the whole passage, open the file, or reveal it in your file manager. A small toggle switches each result between its rank (#1) and the combined score from both searches (%).
+- **Library**: every collection with how many files it holds, how many chunks (the smaller pieces each file is split into for searching) it has, and when it was last indexed. Open one to list its files and remove a source or its documents.
+- **Browse**: the chunks of one library, loaded as you scroll and grouped under the file they came from. Select chunks to delete them, or remove the whole library. Pages you scroll past are dropped from memory and come back if you scroll up again.
+- **Index**: run "Index new" (only files that changed) or "Re-index all" (rebuild everything) for one collection, or index everything at once, with live progress.
+- **Settings**: sources, model (download one from the built-in list or import your own), OCR (an optional plugin that reads scanned PDFs), chunking, search defaults, auto-reindex, start-on-login, Vexter (the sidebar mascot), and a Connect section that runs the local MCP server for AI assistants.
 
-The sidebar shows the model state: idle, loaded, or failed. If the model file is missing or corrupt, vector search falls back to full-text search, so exact-word matches still work.
+The sidebar shows the model state: idle, loaded, or failed. If the model file is missing or damaged, vector search falls back to full-text search, so exact-word matches still work.
 
-A little pixel dinosaur called **Vexter** lives in the sidebar and pokes up while your library works — while a query runs, while it indexes, and when a search comes up empty. It's purely decorative, and Settings → Vexter lets you turn each of those moments on or off independently.
+A little pixel dinosaur called **Vexter** lives in the sidebar and pops up while your library works: while a query runs, while it indexes, and when a search finds nothing. It is purely decorative, and Settings → Vexter lets you turn each moment on or off.
 
-Files you delete get pruned automatically, so results don't go stale. Auto-reindex, if enabled, re-indexes everything on a timer. Start-on-login launches the app with your session. The status strip shows when the library was last indexed; when auto-reindex is off and that date is more than a day old, Search quietly suggests a re-index.
+Files you delete are removed from the index automatically, so results do not go stale. Auto-reindex, if you turn it on, rebuilds everything on a timer. Start-on-login opens the app with your session. The status strip shows when the library was last indexed; if auto-reindex is off and that date is more than a day old, Search suggests a re-index.
 
-### AI assistants (MCP)
+### Let an AI assistant search your library (MCP)
 
-Settings → Connect runs a local MCP (Model Context Protocol) server on `127.0.0.1:31123`. It exposes search, reading, and collection tools, plus index and prune tools that stay off until you enable **Allow write tools** in Settings. The server binds to loopback only, so nothing leaves the machine.
+Settings → Connect starts a small server on your own computer at `127.0.0.1:31123`. It speaks MCP (Model Context Protocol), a standard that lets AI assistants call tools. The server only accepts connections from your machine, so nothing leaves it.
 
-Search hands the assistant a short snippet and a chunk id rather than the whole passage. It reads more with `vectile_get_chunk` or `vectile_read_source`, finds exact strings with `vectile_grep`, and can list what a collection holds, so its context stays small.
+The server offers tools for searching, reading, and listing collections, plus tools for indexing and deleting that stay off until you turn on **Allow write tools** in Settings.
 
-Point Claude Desktop, Claude Code, or any MCP client at `http://127.0.0.1:31123/mcp` to search your library from the assistant. Streamable HTTP is the default transport; switch to SSE in Settings if a client needs the older one. The Settings section shows the live server status, the tools it serves, and per-client setup directions.
+Search gives the assistant a short snippet and a chunk id instead of a whole passage. The assistant can ask for more with `vectile_get_chunk` or `vectile_read_source`, find exact text with `vectile_grep`, and list what a collection holds, so it never has to load your whole library.
+
+Point Claude Desktop, Claude Code, or any other MCP client at `http://127.0.0.1:31123/mcp` to search from the assistant. The default connection type is Streamable HTTP; switch to SSE in Settings if a client needs the older one. The Settings section shows whether the server is running, which tools it offers, and how to set up each client.
 
 ## How search works
 
-A query runs two searches at once.
+Each query runs two searches at the same time.
 
-- Full-text search matches the exact words against an FTS5 index. Fast, precise, literal.
-- Vector search embeds the query and finds stored vectors that point the same way. That's how a query like "how do we ship changes safely" can match a note about blue-green deploys that never uses those words.
+- Full-text search looks for the exact words in an FTS5 index. It is fast and literal.
+- Vector search turns your query into a list of numbers (an embedding) and finds stored passages whose numbers point the same way. That is how a query like "how do we ship changes safely" can match a note about blue-green deploys that never uses those words.
 
-The vector path is two-stage: a cheap binary-quantized index finds a pool of candidates, then the exact float vectors are fetched and reranked by distance. The two result lists are merged with Reciprocal Rank Fusion, which blends ranks rather than scores.
+The vector search runs in two steps: a small, fast index finds a pool of candidates, then their full vectors are compared and re-sorted by distance. The two result lists are then combined by rank rather than by score, a method called Reciprocal Rank Fusion.
 
-Filters narrow results: collection, source type, path substring, sender or author, and date range. Top-k controls how many results come back.
+Filters narrow the results: collection, source type, path text, sender or author, and date range. Top-k sets how many results come back.
 
-Query embeddings are cached per model in the local database, so searching the same text twice skips the model entirely. Results are always ranked fresh against the index. The cache empties when you reindex, prune, or switch the active model, and Settings has a Cache section that shows what it holds and clears it.
+Query embeddings are cached in the local database per model, so searching the same text twice skips the model. Results are always ranked fresh against the index. The cache clears when you reindex, prune, or switch the active model, and Settings has a Cache section that shows what it holds and clears it.
 
 ## Configuration
 
-Config file: `<os.UserConfigDir()>/vectile/config.json`
+Config file: `config.json`, in your system's per-user config folder.
+
+- **Windows:** `%AppData%\vectile\config.json`
+- **macOS:** `~/Library/Application Support/vectile/config.json`
+- **Linux:** `~/.config/vectile/config.json`
 
 | Key | Default | Description |
 |---|---|---|
@@ -236,18 +243,15 @@ Config file: `<os.UserConfigDir()>/vectile/config.json`
 
 ## Building and developing
 
-```
-task dev        # run in development mode
-task build      # build the binary to bin/
-task package    # package an installer for the current OS
-```
+Use the same `task dev`, `task build`, and `task package` commands as above.
 
-Tests: `go test ./backend/...`. Model-dependent tests skip when the model is not in `models/`.
+Tests: `go test ./backend/...`. Tests that need the model are skipped when it is not in `models/`.
 
-vectile links llama.cpp in-process through the vendored `third_party/llama-go`, whose static archives
-are committed per-OS/per-arch under `third_party/llama-go/{windows,linux,darwin}/<arch>`. A build only
-needs a C/C++ compiler on `PATH`; see [`docs/BUILD-AND-PACKAGING.md`](docs/BUILD-AND-PACKAGING.md) for
-the full cross-platform build, packaging and release notes.
+vectile includes llama.cpp (a C++ library that runs the embedding model) through the bundled
+`third_party/llama-go`, whose prebuilt archives are committed per OS and CPU under
+`third_party/llama-go/{windows,linux,darwin}/<arch>`. You only need a C/C++ compiler on your `PATH`;
+see [`docs/BUILD-AND-PACKAGING.md`](docs/BUILD-AND-PACKAGING.md) for the full cross-platform build,
+packaging, and release notes.
 
 - **Windows (amd64):** needs MinGW-w64 on `PATH`, with `LIBRARY_PATH`/`C_INCLUDE_PATH` pointing at
   `third_party/llama-go` (the Windows build task sets these). The built exe needs five MinGW runtime
