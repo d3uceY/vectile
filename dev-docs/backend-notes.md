@@ -4,7 +4,7 @@ How the vectile backend came together: the choices behind it, and the problems f
 
 ## What the backend does
 
-vectile indexes a person's files into one SQLite database, then lets them search it. The search is hybrid: exact-word matching over a full-text index, plus meaning matching over embeddings. The two result lists are blended with Reciprocal Rank Fusion.
+vectile indexes a person's files into one SQLite database, then lets them search it. The search is hybrid: exact-word matching over a full-text index, plus meaning matching over embeddings. The two result lists are blended with Reciprocal Rank Fusion, explained step by step in [`reciprocal-rank-fusion.md`](reciprocal-rank-fusion.md).
 
 The engine is inspired by local-rag. local-rag calls an Ollama server over HTTP; vectile runs llama.go, a vendored llama.cpp binding, in-process.
 

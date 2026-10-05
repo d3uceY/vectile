@@ -102,7 +102,7 @@ Type a query in the search box. The backend runs two searches at once.
 
 The vector path is two-stage. A cheap binary-quantized index finds a pool of candidates, then the exact float vectors are fetched and reranked by distance. That keeps searches fast on big libraries.
 
-Both result lists are merged with Reciprocal Rank Fusion, which blends ranks rather than scores. The frontend shows them as cards with title, snippet, rank, collection, and path; a small toggle switches each result to the blended score. Expanding a card shows the whole passage plus "Open file" and "Reveal in folder" actions.
+Both result lists are merged with Reciprocal Rank Fusion, which blends ranks rather than scores (see [`reciprocal-rank-fusion.md`](reciprocal-rank-fusion.md) for how the maths works). The frontend shows them as cards with title, snippet, rank, collection, and path; a small toggle switches each result to the blended score. Expanding a card shows the whole passage plus "Open file" and "Reveal in folder" actions.
 
 Filters narrow the search: collection, file type, path substring, sender or author (from metadata), and date range. The results count comes from your top-k setting.
 
