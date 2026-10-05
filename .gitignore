@@ -6,6 +6,7 @@ frontend/node_modules
 build/linux/appimage/build
 build/windows/nsis/MicrosoftEdgeWebview2Setup.exe
 references/
+.impeccable/
 # Recording project for docs/vectile-demo.gif: local only. It holds a browser
 # profile, multi-hundred-MB captures and a node_modules junction, and the whole
 # take can be re-recorded from walkthrough/walkthrough.config.mjs at any time.
