@@ -41,10 +41,7 @@ export function CatalogModelCard(props: {
           <Show
             when={!installed()}
             fallback={
-              <div class="flex items-center gap-2">
-                <span class="rounded-full border border-line bg-surface-2 px-[7px] py-[1px] text-[11px] font-semibold text-muted">
-                  installed
-                </span>
+              <div class="flex items-center gap-2">              
                 <Button size="sm" variant="danger" onClick={() => props.onUninstall(m().file)}>
                   Uninstall
                 </Button>
