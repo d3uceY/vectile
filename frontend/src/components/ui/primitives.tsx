@@ -579,17 +579,32 @@ export function ConfirmDialog(props: {
   title: string;
   body: JSX.Element;
   confirmLabel?: string;
+  confirmIcon?: JSX.Element;
   cancelLabel?: string;
   busyLabel?: string;
   busy?: boolean;
+  confirmTone?: "danger" | "primary";
+  confirmDisabled?: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
   const titleId = createUniqueId();
+  const blocked = () => props.busy || props.confirmDisabled;
+
+  // Escape cancels: the one key every dialog owes the keyboard.
+  createEffect(() => {
+    if (!props.open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !props.busy) props.onCancel();
+    };
+    document.addEventListener("keydown", onKey);
+    onCleanup(() => document.removeEventListener("keydown", onKey));
+  });
+
   return (
     <Show when={props.open}>
       <div
-        class="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
+        class="od-fade-in fixed inset-0 z-50 flex items-center justify-center bg-ink/30 p-4"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -607,14 +622,24 @@ export function ConfirmDialog(props: {
             <Button size="sm" variant="ghost" class="rounded-full" onClick={props.onCancel} disabled={props.busy}>
               {props.cancelLabel ?? "Keep"}
             </Button>
-            <button
-              type="button"
-              onClick={props.onConfirm}
-              disabled={props.busy}
-              class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-full bg-danger-strong px-4 text-[13px] font-semibold leading-none text-white transition-[background-color,transform] duration-100 ease-snappy active:translate-y-px disabled:opacity-45 disabled:pointer-events-none"
+            <Show
+              when={props.confirmTone === "primary"}
+              fallback={
+                <button
+                  type="button"
+                  onClick={props.onConfirm}
+                  disabled={blocked()}
+                  class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-full bg-danger-strong px-4 text-[13px] font-semibold leading-none text-white transition-[background-color,transform] duration-100 ease-snappy active:translate-y-px disabled:opacity-45 disabled:pointer-events-none"
+                >
+                  {props.busy ? (props.busyLabel ?? "Deleting…") : (props.confirmLabel ?? "Delete")}
+                </button>
+              }
             >
-              {props.busy ? (props.busyLabel ?? "Deleting…") : (props.confirmLabel ?? "Delete")}
-            </button>
+              <Button size="sm" onClick={props.onConfirm} disabled={blocked()}>
+                {props.confirmIcon}
+                {props.confirmLabel ?? "Save"}
+              </Button>
+            </Show>
           </div>
         </div>
       </div>
