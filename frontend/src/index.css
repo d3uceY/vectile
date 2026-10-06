@@ -38,7 +38,7 @@
   --color-ghost: #bdbdbd; /* decoration only, never text */
   --color-line: #ededed; /* decorative hairline: card edges, dividers */
   --color-line-strong: #dbdbdb; /* standard card / section border */
-  --color-line-control: #8c8c8c; /* control boundary: 3:1+ on every plate */
+  --color-line-control: var(--color-line-strong); /* controls sit on the card edge; no separate 3:1 box */
 
   /* Brand + primary action + success: leaf green (single job). The mint fills
      hold the leaf hue so the green family reads as one coherent scale. */
@@ -124,7 +124,7 @@ html[data-theme="dark"] {
 
   --color-line: #333333;
   --color-line-strong: #454545;
-  --color-line-control: #7a7a7a;
+  --color-line-control: var(--color-line-strong);
 
   --color-leaf: #4ecb8c;
   --color-leaf-deep: #3bbf7d;

@@ -34,7 +34,6 @@ function ModelPlate(props: { state: ModelState; name?: string }) {
       </span>
       <span class={`shrink-0 text-[12px] font-semibold ${m().text}`}>{props.state}</span>
       <span class="min-w-0 truncate text-[12px] font-medium text-muted">{props.name ?? "…"}</span>
-      <span class="shrink-0 text-[11px] font-medium text-muted">local</span>
     </span>
   );
 }
