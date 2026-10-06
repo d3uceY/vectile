@@ -23,15 +23,6 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 - **Reach it from an AI assistant (MCP):** hand search, reading, and collection tools to Claude Desktop or any MCP client through a local server. Indexing and deleting stay off until you turn on Allow write tools.
 - **A little company:** Vexter, the pixel dinosaur, pops up in the sidebar while you search or index, or when a search finds nothing. Settings → Vexter controls each moment.
 
-## Documentation
-
-The full documentation site lives in [`website/`](website). It covers what vectile does, install and first run, every supported source, how search is ranked, the settings reference, and how the backend is put together.
-
-```
-task docs        # serve it locally
-task docs:build  # build the static site into website/build
-```
-
 ## Download
 
 ![Latest release](https://img.shields.io/github/v/release/d3uceY/vectile?style=for-the-badge&label=Release&logo=github&color=%23e8442e)
