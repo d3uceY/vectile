@@ -149,6 +149,9 @@ Each query runs two searches at the same time.
 - Vector search turns your query into a list of numbers (an embedding) and finds stored passages whose numbers point the same way. That is how a query like "how do we ship changes safely" can match a note about blue-green deploys that never uses those words.
 
 The vector search runs in two steps: a small, fast index finds a pool of candidates, then their full vectors are compared and re-sorted by distance. The two result lists are then combined by rank rather than by score, a method called Reciprocal Rank Fusion.
+
+
+
 <img width="615" height="866" alt="image" src="https://github.com/user-attachments/assets/b5c8ae01-24e0-4faa-a3c8-299f3a024f7d" />
 
 
