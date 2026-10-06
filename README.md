@@ -1,8 +1,8 @@
 # vectile: your private library
 
-A fully local, privacy-preserving RAG (Retrieval Augmented Generation) system for Windows, macOS, and Linux. It indexes personal knowledge from several sources into a single SQLite database with hybrid vector + full-text search, then lets you find things by meaning, not just by exact words, from a fast keyboard-first desktop app. Everything runs on your machine. No server, no cloud, no network calls.
+A fully local, privacy-preserving RAG (Retrieval Augmented Generation) system for Windows, macOS, and Linux. It indexes personal knowledge from several sources into a single SQLite database with hybrid vector + full-text search and Reciprocal Rank fusion, then lets you find things by meaning, not just by exact words, from a fast keyboard-first desktop app. Everything runs on your machine.
 
-Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embedding model runs in-process from a `.gguf` file: import one of your own, or download one from the built-in catalog. Either way, nothing leaves your machine.
+Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embedding model runs in-process from a `.gguf` file: import one of your own, or download one from the built-in catalog.
 
 <p align="center">
   <img src="docs/vectile-banner.svg" alt="vectile: your private library" width="100%">
@@ -13,15 +13,13 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 
 ## Features
 
-- **Private by default:** searches run on your own machine against a model loaded inside the app. No server, no cloud, no tracking, no account.
+- **Private by default:** searches run on your own machine against a model loaded inside the app.
 - **Search by meaning:** two searches run at once and their results are combined, so a note about blue-green deploys can match the query "how do we ship changes safely" even though it never uses those words.
 - **Index what you already have:** Obsidian vaults, folders of documents (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, XML, SQL, shell scripts, XLSX, PPTX, Jupyter notebooks, EPUB), Calibre libraries, and code repositories, including their commit history.
-- **Bring your own model:** import a `.gguf` file, choose which model is active, or download one from the list built into Settings with a live progress bar.
-- **Read scanned PDFs (optional):** one click in Settings installs a Tesseract OCR plugin, and PDFs that are photos of pages become searchable text. The install card shows the version, the size, and where the download comes from, and a run tells you when it finds pages it could not read.
-- **Keyboard-first:** press ⌘K on macOS or Ctrl K on Windows and Linux to jump to search from anywhere, and move between Search, Library, Browse, Index, and Settings from the sidebar.
+- **Bring your own model:** import a `.gguf` file, choose which model is active, or download one from the list built into Settings.
+- **Read scanned PDFs (optional):** one click in Settings installs a Tesseract OCR plugin, and PDFs that are photos of pages become searchable text.
 - **Manage your library:** open a collection to see its files, page through individual chunks, and delete old sources, selected chunks, or a whole library in place.
-- **Reach it from an AI assistant (MCP):** hand search, reading, and collection tools to Claude Desktop or any MCP client through a local server. Indexing and deleting stay off until you turn on Allow write tools.
-- **A little company:** Vexter, the pixel dinosaur, pops up in the sidebar while you search or index, or when a search finds nothing. Settings → Vexter controls each moment.
+- **Reach it from an AI assistant (MCP):** hand search, reading, and collection tools to Claude Desktop or any MCP client through a local server.
 
 ## Download
 
@@ -66,8 +64,6 @@ The `.deb` installs the system libraries it needs (GTK4, WebKitGTK 6.0, and `lib
 
 ## Screenshots
 
-Screenshots show sample data.
-
 <p align="center">
   <img src="docs/screenshots/search.png" alt="Searching your library for 'kubernetes rollout'" width="100%">
 </p>
@@ -100,7 +96,7 @@ Screenshots show sample data.
 | Code repositories | code | Git repos: tree-sitter splits each function and class into its own chunk (cAST split-then-merge); commit history is indexed as its own source |
 | Calibre | system | Ebook metadata + content: title, author, tags, series, publisher, description, and EPUB/PDF text |
 
-If a PDF is photos of pages instead of text, turn on the optional OCR plugin in Settings → OCR. When a run finds a page it cannot read, it tells you, so a missing document never comes as a surprise.
+If a PDF is photos of pages instead of text, turn on the optional OCR plugin in Settings → OCR. When a run finds a page it cannot read, it tells you.
 
 ## Installation
 
@@ -123,11 +119,9 @@ task package      # package an installer for the current OS
 
 ### Installing the model
 
-The embedding model is a `.gguf` file, and there are three ways to add one: import a file you already have from Settings (a file picker copies it into the `models/` folder), drop a `.gguf` into that `models/` folder yourself, or open Settings → Model → **Get a model** and download one from the built-in list with a live progress bar. The default is bge-m3.
+The embedding model is a `.gguf` file, and there are three ways to add one: import a file you already have from Settings (a file picker copies it into the `models/` folder), drop a `.gguf` into that `models/` folder yourself, or open Settings → Model → **Get a model** and download one from the built-in list.
 
 ## Quick start
-
-On a fresh install, a short tour walks you through it: add a folder, index it, then search.
 
 1. Launch vectile.
 2. Download or import an embedding model in Settings, or drop a `.gguf` into `models/`.
@@ -135,21 +129,7 @@ On a fresh install, a short tour walks you through it: add a folder, index it, t
 4. Open the Index view and index a collection, or everything at once. Unchanged files are skipped, so re-indexing is fast.
 5. Press ⌘K / Ctrl K and search.
 
-## The app
-
-There are five screens. Press ⌘K (macOS) or Ctrl K (Windows and Linux) to jump to Search from anywhere.
-
-- **Search** (the home screen): a large search bar, a row of filters, and results as cards showing the title, a snippet, the rank, the collection, and the file path. Open a card to read the whole passage, open the file, or reveal it in your file manager. A small toggle switches each result between its rank (#1) and the combined score from both searches (%).
-- **Library**: every collection with how many files it holds, how many chunks (the smaller pieces each file is split into for searching) it has, and when it was last indexed. Open one to list its files and remove a source or its documents.
-- **Browse**: the chunks of one library, loaded as you scroll and grouped under the file they came from. Select chunks to delete them, or remove the whole library. Pages you scroll past are dropped from memory and come back if you scroll up again.
-- **Index**: run "Index new" (only files that changed) or "Re-index all" (rebuild everything) for one collection, or index everything at once, with live progress.
-- **Settings**: sources, model (download one from the built-in list or import your own), OCR (an optional plugin that reads scanned PDFs), chunking, search defaults, auto-reindex, start-on-login, Vexter (the sidebar mascot), and a Connect section that runs the local MCP server for AI assistants.
-
-The sidebar shows the model state: idle, loaded, or failed. If the model file is missing or damaged, vector search falls back to full-text search, so exact-word matches still work.
-
-A little pixel dinosaur called **Vexter** lives in the sidebar and pops up while your library works: while a query runs, while it indexes, and when a search finds nothing. It is purely decorative, and Settings → Vexter lets you turn each moment on or off.
-
-Files you delete are removed from the index automatically, so results do not go stale. Auto-reindex, if you turn it on, rebuilds everything on a timer. Start-on-login opens the app with your session. The status strip shows when the library was last indexed; if auto-reindex is off and that date is more than a day old, Search suggests a re-index.
+Files you delete are removed from the index automatically, so results do not go stale. Auto-reindex, if you turn it on, rebuilds everything on a timer. Start-on-login opens the app with your session.
 
 ### Let an AI assistant search your library (MCP)
 
