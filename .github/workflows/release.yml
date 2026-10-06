@@ -512,14 +512,32 @@ jobs:
           # Numbers at the point of failure. hdiutil stages a temp image sized
           # from the source and copies the .app into it, so "No space left on
           # device" here means either the host volume ran out or the staged image
-          # was sized too small. These lines are what tell the two apart, and the
-          # step has failed twice without them being recorded here.
+          # was sized too small. These lines are what tell the two apart.
           echo "==> .app"
           du -sh build/bin/vectile.app
           echo "==> free space"
           df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+          # The staged image is the culprit, never the host volume. The step has
+          # died here with 106 GB free and a 115 MB .app, which no amount of
+          # freeing disk could have fixed. hdiutil auto-sizes that temp image and
+          # has mis-estimated it since Big Sur, so the copy into the mounted
+          # volume fails with ENOSPC (actions/runner-images#4288). The documented
+          # fix is to pin the temporary filesystem: -fs HFS+ works, -size alone
+          # does not. Retried because the same bug also shows up at random, and a
+          # failed attempt can leave the volume mounted.
           echo "==> hdiutil create"
-          hdiutil create -volname "vectile" -srcfolder build/bin/vectile.app -ov -format UDZO dist/vectile-macos-universal.dmg
+          for attempt in 1 2 3; do
+            hdiutil detach "/Volumes/vectile" -force >/dev/null 2>&1 || true
+            echo "--- attempt $attempt"
+            if hdiutil create -volname "vectile" -srcfolder build/bin/vectile.app \
+                 -ov -format UDZO -fs HFS+ dist/vectile-macos-universal.dmg; then
+              echo "==> created on attempt $attempt"
+              exit 0
+            fi
+            rm -f dist/vectile-macos-universal.dmg
+          done
+          echo "hdiutil create failed on all 3 attempts" >&2
+          exit 1
 
       - name: Create .app zip
         run: |
