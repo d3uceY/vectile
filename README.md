@@ -24,7 +24,7 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys. The embeddin
 ## Download
 
 ![Latest release](https://img.shields.io/github/v/release/d3uceY/vectile?style=for-the-badge&label=Release&logo=github&color=%23e8442e)
-![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue?style=for-the-badge)
 
 Pick your platform to download the latest version:
 
@@ -256,4 +256,7 @@ frontend/src/lib/api.ts     the only place the UI touches the bindings
 
 ## License
 
-MIT License, copyright (c) 2026 d3uceY.
+Apache License 2.0, copyright (c) 2026 d3uceY. See [`LICENSE`](LICENSE).
+
+Bundled third-party code keeps its own license: the vendored `third_party/llama-go` bindings and
+the llama.cpp sources they wrap are MIT.

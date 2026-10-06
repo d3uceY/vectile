@@ -121,11 +121,11 @@ const config: Config = {
             {label: 'GitHub', href: REPO},
             {label: 'Releases', href: `${REPO}/releases`},
             {label: 'How it is built', to: '/docs/architecture'},
-            {label: 'License (MIT)', href: `${REPO}/blob/main/LICENSE`},
+            {label: 'License (Apache 2.0)', href: `${REPO}/blob/main/LICENSE`},
           ],
         },
       ],
-      copyright: 'MIT licensed. vectile runs on your machine and talks to no one.',
+      copyright: 'Apache 2.0 licensed. vectile runs on your machine and talks to no one.',
     },
     prism: {
       theme: prismThemes.oneLight,

@@ -114,7 +114,7 @@ function Hero() {
           </div>
 
           <p className={styles.heroMicro} style={delay(500)}>
-            MIT licensed · Windows · macOS · Linux
+            Apache 2.0 licensed · Windows · macOS · Linux
           </p>
         </div>
 

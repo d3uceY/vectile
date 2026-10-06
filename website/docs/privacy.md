@@ -54,7 +54,7 @@ See [AI assistants](/docs/mcp).
 
 ## Checking for yourself
 
-The source is public and MIT licensed. Rather than take the claims above on trust, read the two
+The source is public and Apache 2.0 licensed. Rather than take the claims above on trust, read the two
 places that use the network: `frontend/src/lib/update.ts` for the release check, and
 `backend/services/model_download.go` for catalog downloads. Everything else in `backend/` and
 `frontend/` works against local files and a local database.
