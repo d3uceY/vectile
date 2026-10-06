@@ -362,11 +362,19 @@ export function createAppStore() {
   };
 
   const downloadModelByKey = async (key: string) => {
+    setDownloadState({
+      active: true, key, status: "downloading",
+      downloaded: 0, total: 0, percent: 0, speed: 0, error: "",
+    });
     try {
       const started = await api.downloadModel(key);
-      if (!started) pushToast("A download is already running", "neutral");
+      if (!started) {
+        pushToast("A download is already running", "neutral");
+        setDownloadState((s) => (s?.key === key ? null : s));
+      }
     } catch (err) {
       pushToast(`Download failed: ${err}`, "danger");
+      setDownloadState((s) => (s?.key === key ? null : s));
     }
   };
 
@@ -421,11 +429,18 @@ export function createAppStore() {
   };
 
   const installOCRPlugin = async () => {
+    setOCRState((s) =>
+      s ? { ...s, installing: true, downloaded: 0, total: 0, percent: 0, speed: 0 } : s,
+    );
     try {
       const started = await api.installOCR();
-      if (!started) pushToast("An OCR install is already running", "neutral");
+      if (!started) {
+        pushToast("An OCR install is already running", "neutral");
+        void loadOCRState();
+      }
     } catch (err) {
       pushToast(`OCR install failed: ${err}`, "danger");
+      void loadOCRState();
     }
   };
 
