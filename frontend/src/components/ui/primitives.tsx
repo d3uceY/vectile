@@ -512,7 +512,7 @@ export function ViewHeading(props: { title: string; note?: string; children?: JS
         </h1>
         {props.note && <p class="mt-1.5 text-[13px] font-medium text-muted">{props.note}</p>}
       </div>
-      {props.children && <div class="flex items-center gap-2">{props.children}</div>}
+      {props.children && <div class="flex w-full items-center justify-between gap-2">{props.children}</div>}
     </div>
   );
 }

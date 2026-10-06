@@ -1,8 +1,8 @@
 import { createSignal, For, Show, type JSX } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import type { AppConfig } from "../../lib/types";
-import { Button, Chip, ConfirmDialog, EmptyState, Toggle, ViewHeading } from "../ui/primitives";
-import { CodeIcon, FileIcon, FolderOpenIcon, IndexIcon, LibraryIcon } from "../ui/icons";
+import { Button, Chip, ConfirmDialog, EmptyState, Switch, ViewHeading } from "../ui/primitives";
+import { CodeIcon, FileIcon, FolderOpenIcon, IndexIcon, LibraryIcon, PruneIcon, ReindexIcon } from "../ui/icons";
 import { IndexProgressBar } from "./IndexProgressBar";
 
 type Configured = { name: string; type: string; enabled: boolean };
@@ -65,20 +65,24 @@ export function IndexView() {
           <FolderOpenIcon size={15} />
           Add sources
         </Button>
-        <Button
-          id="setup-index-all"
-          onClick={() => store.startIndexAll(false)}
-          disabled={store.indexing() || !store.canIndex()}
-        >
-          Index all
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => store.startIndexAll(true)}
-          disabled={store.indexing() || !store.canIndex()}
-        >
-          Re-index all
-        </Button>
+        <div class="flex items-center gap-2">
+          <Button
+            id="setup-index-all"
+            onClick={() => store.startIndexAll(false)}
+            disabled={store.indexing() || !store.canIndex()}
+          >
+            <IndexIcon size={15} />
+            Index all
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => store.startIndexAll(true)}
+            disabled={store.indexing() || !store.canIndex()}
+          >
+            <ReindexIcon size={15} />
+            Re-index all
+          </Button>
+        </div>
       </ViewHeading>
 
       <Show when={configured().length > 0 && !store.canIndex()}>
@@ -153,22 +157,29 @@ export function IndexView() {
                         disabled={store.indexing() || !item.enabled || !store.canIndex()}
                         onClick={() => store.startIndex(item.name, false)}
                       >
+                        <IndexIcon size={14} />
                         Index new
                       </Button>
                       <Show when={col()}>
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           disabled={store.indexing() || !item.enabled || !store.canIndex()}
                           onClick={() => store.startIndex(item.name, true)}
                         >
+                          <ReindexIcon size={14} />
                           Re-index all
                         </Button>
                       </Show>
                       <Button size="sm" variant="ghost" disabled={store.indexing()} onClick={() => store.runPrune(item.name)}>
+                        <PruneIcon size={14} />
                         Prune
                       </Button>
-                      <Toggle checked={item.enabled} onChange={(v) => store.toggleCollection(item.name, v)} label="Enabled" />
+                      <Switch
+                        checked={item.enabled}
+                        onChange={(v) => store.toggleCollection(item.name, v)}
+                        label={`Index ${item.name}`}
+                      />
                     </div>
                   </div>
 
