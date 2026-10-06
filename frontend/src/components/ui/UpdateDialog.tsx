@@ -1,5 +1,6 @@
 import { Show } from "solid-js";
 import { DOWNLOAD_URL, openExternal } from "../../lib/update";
+import { DownloadIcon } from "./icons";
 import { Button } from "./primitives";
 
 /** Update prompt shown once per launch when a NEWER STABLE release exists
@@ -58,6 +59,7 @@ export function UpdateDialog(props: {
                 props.onDismiss();
               }}
             >
+              <DownloadIcon size={14} />
               Download update
             </Button>
           </div>

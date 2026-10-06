@@ -3,7 +3,7 @@ import { useAppStore } from "../../lib/store";
 import { daysSince } from "../../lib/time";
 import type { SearchFilters } from "../../lib/types";
 import { exampleQueries, termsOf } from "../../lib/mock";
-import { SearchIcon, CloseIcon, BoltIcon } from "../ui/icons";
+import { SearchIcon, CloseIcon, BoltIcon, ReindexIcon } from "../ui/icons";
 import { EmptyState, Button, Chip, Kbd, Select, Skeleton } from "../ui/primitives";
 import { ResultCard } from "./ResultCard";
 
@@ -363,6 +363,7 @@ function FreshnessBar(props: { days: number; disabled?: boolean; onReindex: () =
         disabled={props.disabled}
         onClick={props.onReindex}
       >
+        <ReindexIcon size={14} />
         Re-index
       </Button>
     </div>

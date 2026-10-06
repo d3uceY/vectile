@@ -3,12 +3,8 @@ import { openExternal } from "../../lib/update";
 import type { CatalogModel, ModelDownloadState, ModelInfo } from "../../lib/types";
 import { Button } from "./primitives";
 import { CatalogModelCard } from "./CatalogModelCard";
+import { ExternalLinkIcon, UploadIcon } from "./icons";
 
-/**
- * Onboarding sheet shown on launch when no embedding model is installed. Offers
- * the curated catalog with an in-app download, or an escape hatch to import a
- * .gguf / browse Hugging Face. Matches the UpdateDialog notebook world.
- */
 export function ModelDownloadDialog(props: {
   open: boolean;
   recommended: CatalogModel[];
@@ -56,6 +52,7 @@ export function ModelDownloadDialog(props: {
 
           <div class="mt-5 flex flex-wrap items-center justify-between gap-2">
             <Button size="sm" variant="outline" onClick={props.onImport}>
+              <UploadIcon size={14} />
               Import my own .gguf
             </Button>
             <div class="flex gap-2">
@@ -64,6 +61,7 @@ export function ModelDownloadDialog(props: {
                 variant="outline"
                 onClick={() => openExternal("https://huggingface.co/models?search=embedding")}
               >
+                <ExternalLinkIcon size={14} />
                 Browse Hugging Face
               </Button>
               <Button size="sm" variant="outline" onClick={props.onDismiss}>

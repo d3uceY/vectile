@@ -3,7 +3,7 @@ import { useAppStore } from "../../../lib/store";
 import { importModel, pickModelFile } from "../../../lib/api";
 import type { ModelInfo } from "../../../lib/types";
 import { Button, ConfirmDialog, InfoTip, Select, StatusPill } from "../../ui/primitives";
-import { CloseIcon } from "../../ui/icons";
+import { CloseIcon, UploadIcon } from "../../ui/icons";
 import { ModelNavIcon } from "../../ui/nav-icons";
 import { CatalogModelCard } from "../../ui/CatalogModelCard";
 import { openExternal } from "../../../lib/update";
@@ -126,6 +126,7 @@ export function ModelSection() {
           <div class="flex items-center justify-between gap-4 py-3.5">
             <span class="text-[13px] font-medium text-ink">Add a model file</span>
             <Button size="sm" variant="outline" onClick={() => void importModelFlow()}>
+              <UploadIcon size={14} />
               Import model…
             </Button>
           </div>

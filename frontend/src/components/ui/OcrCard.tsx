@@ -3,6 +3,7 @@ import { fmtBytes } from "../../lib/format";
 import type { OCRState } from "../../lib/types";
 import { openExternal } from "../../lib/update";
 import { DownloadProgressBar } from "./DownloadProgressBar";
+import { DownloadIcon, ExternalLinkIcon } from "./icons";
 import { Button } from "./primitives";
 
 /**
@@ -78,6 +79,7 @@ export function OcrCard(props: {
       <div class="mt-3 flex flex-wrap items-center gap-2">
         <Show when={ready()}>
           <Button size="sm" onClick={props.onInstall}>
+            <DownloadIcon size={14} />
             Install
           </Button>
         </Show>
@@ -88,6 +90,7 @@ export function OcrCard(props: {
         </Show>
         <Show when={s()?.releaseUrl}>
           <Button size="sm" variant="ghost" onClick={() => openExternal(s()!.releaseUrl)}>
+            <ExternalLinkIcon size={14} />
             Open release page
           </Button>
         </Show>

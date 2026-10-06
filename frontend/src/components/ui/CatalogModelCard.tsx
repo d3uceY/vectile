@@ -2,6 +2,7 @@ import { Show } from "solid-js";
 import { baseName, fmtBytes } from "../../lib/format";
 import type { CatalogModel, ModelDownloadState, ModelInfo } from "../../lib/types";
 import { Button } from "./primitives";
+import { DownloadIcon } from "./icons";
 import { DownloadProgressBar } from "./DownloadProgressBar";
 
 /** One catalog model row: name + recommended badge, spec line, description, and
@@ -49,6 +50,7 @@ export function CatalogModelCard(props: {
             }
           >
             <Button size="sm" onClick={() => props.onDownload(m().key)}>
+              <DownloadIcon size={14} />
               Download
             </Button>
           </Show>

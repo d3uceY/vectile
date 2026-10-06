@@ -3,6 +3,7 @@ import { useAppStore } from "../../../lib/store";
 import { Button, ConfirmDialog, Toggle } from "../../ui/primitives";
 import { OcrNavIcon } from "../../ui/nav-icons";
 import { OcrCard } from "../../ui/OcrCard";
+import { ReindexIcon } from "../../ui/icons";
 import { FieldList, Section } from "../fields";
 import { useSettings } from "../context";
 
@@ -58,6 +59,7 @@ export function OcrSection() {
               again, this time with OCR.
             </p>
             <Button size="sm" variant="outline" onClick={() => setConfirmReindex(true)}>
+              <ReindexIcon size={14} />
               Re-index everything
             </Button>
           </div>

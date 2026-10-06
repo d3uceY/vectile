@@ -185,6 +185,7 @@ export function ChipList(props: {
           spellcheck={false}
         />
         <Button size="sm" onClick={addInput}>
+          <PlusIcon size={14} />
           Add
         </Button>
       </div>
