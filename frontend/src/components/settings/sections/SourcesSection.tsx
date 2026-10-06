@@ -252,8 +252,12 @@ export function SourcesSection() {
               values={draft()!.obsidian_vaults}
               onAdd={(v) => addPath("obsidian_vaults", v)}
               onRemove={(v) => removePath("obsidian_vaults", v)}
-              title="Choose an Obsidian vault"
-              placeholder="path to a vault…"
+              label="Vaults"
+              noun="vault"
+              nounPlural="vaults"
+              dialogTitle="obsidian"
+              pathLabel="Vault path"
+              pickerTitle="Choose an Obsidian vault"
               empty="No vaults yet. Add one and its notes become searchable."
             />
           </div>
@@ -277,8 +281,12 @@ export function SourcesSection() {
               values={draft()!.calibre_libraries}
               onAdd={(v) => addPath("calibre_libraries", v)}
               onRemove={(v) => removePath("calibre_libraries", v)}
-              title="Choose a Calibre library"
-              placeholder="path to a library…"
+              label="Libraries"
+              noun="library"
+              nounPlural="libraries"
+              dialogTitle="calibre"
+              pathLabel="Library path"
+              pickerTitle="Choose a Calibre library"
               empty="No libraries yet. Add a Calibre library to search its books."
             />
           </div>

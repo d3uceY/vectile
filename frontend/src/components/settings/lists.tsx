@@ -1,76 +1,133 @@
-import { createEffect, createSignal, createUniqueId, For, Show } from "solid-js";
+import { createEffect, createSignal, createUniqueId, For, Show, type JSX } from "solid-js";
 import { Button, ConfirmDialog } from "../ui/primitives";
 import { ChevronDown, CloseIcon, FolderOpenIcon, PlusIcon } from "../ui/icons";
 import { pickFolder } from "../../lib/api";
 
-export function PathList(props: {
-  values: string[];
-  onAdd: (v: string) => void;
-  onRemove: (v: string) => void;
-  title?: string;
-  placeholder?: string;
-  empty?: string;
+/* One row of a source list: a chevron that unfolds what it holds, the name, and
+   how much is inside. */
+function AccordionToggle(props: {
+  label: string;
+  count: string;
+  open: boolean;
+  controls: string;
+  onToggle: () => void;
 }) {
-  const [input, setInput] = createSignal("");
-
-  const addInput = () => {
-    if (input().trim()) {
-      props.onAdd(input().trim());
-      setInput("");
-    }
-  };
-
-  const browse = async () => {
-    const dir = await pickFolder(props.title);
-    if (dir) props.onAdd(dir);
-  };
-
   return (
-    <div class="flex flex-col gap-2">
+    <button
+      type="button"
+      class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1.5 text-left transition-colors duration-100 ease-snappy hover:bg-surface-2"
+      onClick={props.onToggle}
+      aria-expanded={props.open}
+      aria-controls={props.controls}
+    >
+      <ChevronDown
+        size={14}
+        class={`shrink-0 text-faint transition-transform duration-150 ease-snappy ${
+          props.open ? "rotate-0" : "-rotate-90"
+        }`}
+      />
+      <span class="min-w-0 truncate text-[13px] font-semibold text-ink">{props.label}</span>
+      <span class="shrink-0 rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] tabular-nums text-muted">
+        {props.count}
+      </span>
+    </button>
+  );
+}
+
+/* The accordion body: 0fr -> 1fr, the app's one documented height animation. */
+function AccordionBody(props: { id: string; open: boolean; children: JSX.Element }) {
+  return (
+    <div
+      id={props.id}
+      class={`accordion-collapsible ${props.open ? "open" : ""}`}
+      inert={props.open ? undefined : true}
+    >
+      <div class="accordion-collapsible-inner">{props.children}</div>
+    </div>
+  );
+}
+
+/* The paths inside a row, each removable on hover. Rows rise in as they arrive,
+   so an added path is impossible to miss. */
+function PathRows(props: { values: string[]; onRemove: (v: string) => void; empty: string }) {
+  return (
+    <div class="pb-1.5 pl-6 pr-1 pt-1.5">
       {props.values.length === 0 ? (
-        <p class="rounded-[8px] border border-dashed border-line-strong px-3 py-2.5 text-[13px] font-medium leading-5 text-muted">
-          {props.empty ?? "Nothing here yet. Add a path below."}
-        </p>
+        <p class="py-1 font-mono text-[12px] text-muted">{props.empty}</p>
       ) : (
-        <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
+        <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-paper">
           <For each={props.values}>
             {(v) => (
-              <li class="group flex items-center gap-2 px-3 py-2">
-                <span class="min-w-0 flex-1 truncate font-mono text-[12px] text-muted" title={v}>
+              <li class="od-fade-slide-up group/row flex items-center gap-2 px-3 py-1.5">
+                <span class="min-w-0 flex-1 truncate font-mono text-[12px] text-ink-soft" title={v}>
                   {v}
                 </span>
                 <button
-                  class="shrink-0 text-faint opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100 hover:text-danger"
+                  class="shrink-0 text-faint opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 focus-visible:opacity-100 hover:text-danger"
                   onClick={() => props.onRemove(v)}
                   aria-label={`Remove ${v}`}
                 >
-                  <CloseIcon size={14} />
+                  <CloseIcon size={13} />
                 </button>
               </li>
             )}
           </For>
         </ul>
       )}
-      <div class="flex gap-2">
-        <input
-          value={input()}
-          onInput={(e) => setInput(e.currentTarget.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") addInput();
-          }}
-          placeholder={props.placeholder ?? "/absolute/path"}
-          class="h-9 min-w-0 flex-1 rounded-control border border-line-control bg-paper px-3 text-[13px] placeholder:text-muted transition-colors duration-100 focus:border-ink"
-          spellcheck={false}
+    </div>
+  );
+}
+
+/** A flat path list (every vault lands in one collection), folded into the same
+    accordion as the collections so a machine with a dozen of them leaves the
+    section the same height. */
+export function PathList(props: {
+  values: string[];
+  onAdd: (v: string) => void;
+  onRemove: (v: string) => void;
+  label: string;
+  noun: string;
+  nounPlural: string;
+  dialogTitle: string;
+  pathLabel: string;
+  pickerTitle?: string;
+  empty?: string;
+}) {
+  const [open, setOpen] = createSignal(false);
+  const [adding, setAdding] = createSignal(false);
+  const bodyId = createUniqueId();
+  const count = () => props.values.length;
+  const countLabel = () => `${count()} ${count() === 1 ? props.noun : props.nounPlural}`;
+
+  return (
+    <div class="overflow-hidden rounded-[8px] border border-line bg-surface">
+      <div class="flex items-center gap-1.5 px-3 py-2">
+        <AccordionToggle
+          label={props.label}
+          count={countLabel()}
+          open={open()}
+          controls={bodyId}
+          onToggle={() => setOpen(!open())}
         />
-        <Button size="sm" variant="outline" onClick={() => void browse()} aria-label="Browse for folder">
-          <FolderOpenIcon size={15} />
-          Browse
-        </Button>
-        <Button size="sm" onClick={addInput}>
+        <Button size="sm" variant="ghost" onClick={() => setAdding(true)}>
           <PlusIcon size={14} />
-          Add
+          Add {props.noun}
         </Button>
       </div>
+      <AccordionBody id={bodyId} open={open()}>
+        <PathRows
+          values={props.values}
+          onRemove={props.onRemove}
+          empty={props.empty ?? "Nothing here yet."}
+        />
+      </AccordionBody>
+      <AddPathDialog
+        title={adding() ? props.dialogTitle : null}
+        label={props.pathLabel}
+        pickerTitle={props.pickerTitle}
+        onAdd={props.onAdd}
+        onClose={() => setAdding(false)}
+      />
     </div>
   );
 }
@@ -135,8 +192,12 @@ export function ChipList(props: {
   );
 }
 
-function AddFolderDialog(props: {
-  collection: string | null;
+/* Adding a path is its own protected step: the title names the collection it
+   lands in, and Browse fills the field instead of adding, so a path is confirmed
+   once and cannot land in the list twice. */
+function AddPathDialog(props: {
+  title: string | null;
+  label: string;
   pickerTitle?: string;
   onAdd: (v: string) => void;
   onClose: () => void;
@@ -146,7 +207,7 @@ function AddFolderDialog(props: {
   let field: HTMLInputElement | undefined;
 
   createEffect(() => {
-    if (props.collection) queueMicrotask(() => field?.focus());
+    if (props.title) queueMicrotask(() => field?.focus());
   });
 
   const close = () => {
@@ -168,8 +229,8 @@ function AddFolderDialog(props: {
 
   return (
     <ConfirmDialog
-      open={props.collection !== null}
-      title={props.collection ?? ""}
+      open={props.title !== null}
+      title={props.title ?? ""}
       confirmLabel="Add"
       confirmIcon={<PlusIcon size={14} />}
       confirmTone="primary"
@@ -180,7 +241,7 @@ function AddFolderDialog(props: {
       body={
         <div>
           <label for={fieldId} class="block text-[12px] font-semibold text-ink-soft">
-            Folder path
+            {props.label}
           </label>
           <div class="mt-1.5 flex gap-2">
             <input
@@ -225,24 +286,13 @@ export function GroupItem(props: {
   return (
     <li class="px-3 py-1.5">
       <div class="flex items-center gap-1.5">
-        <button
-          type="button"
-          class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1.5 text-left transition-colors duration-100 ease-snappy hover:bg-surface-2"
-          onClick={props.onToggle}
-          aria-expanded={props.open}
-          aria-controls={bodyId}
-        >
-          <ChevronDown
-            size={14}
-            class={`shrink-0 text-faint transition-transform duration-150 ease-snappy ${
-              props.open ? "rotate-0" : "-rotate-90"
-            }`}
-          />
-          <span class="min-w-0 truncate text-[13px] font-semibold text-ink">{props.name}</span>
-          <span class="shrink-0 rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] tabular-nums text-muted">
-            {props.paths.length} {props.paths.length === 1 ? "folder" : "folders"}
-          </span>
-        </button>
+        <AccordionToggle
+          label={props.name}
+          count={`${props.paths.length} ${props.paths.length === 1 ? "folder" : "folders"}`}
+          open={props.open}
+          controls={bodyId}
+          onToggle={props.onToggle}
+        />
         <Button size="sm" variant="ghost" onClick={() => setAdding(true)}>
           <PlusIcon size={14} />
           Add folder
@@ -256,44 +306,17 @@ export function GroupItem(props: {
         </button>
       </div>
 
-      <div
-        id={bodyId}
-        class={`accordion-collapsible ${props.open ? "open" : ""}`}
-        inert={props.open ? undefined : true}
-      >
-        <div class="accordion-collapsible-inner">
-          <div class="pb-1 pl-6 pr-0.5 pt-1.5">
-            {props.paths.length === 0 ? (
-              <p class="py-1 font-mono text-[12px] text-muted">No folders yet.</p>
-            ) : (
-              <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-paper">
-                <For each={props.paths}>
-                  {(v) => (
-                    <li class="od-fade-slide-up group/row flex items-center gap-2 px-3 py-1.5">
-                      <span
-                        class="min-w-0 flex-1 truncate font-mono text-[12px] text-ink-soft"
-                        title={v}
-                      >
-                        {v}
-                      </span>
-                      <button
-                        class="shrink-0 text-faint opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 focus-visible:opacity-100 hover:text-danger"
-                        onClick={() => props.onRemovePath(props.name, v)}
-                        aria-label={`Remove ${v}`}
-                      >
-                        <CloseIcon size={13} />
-                      </button>
-                    </li>
-                  )}
-                </For>
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
+      <AccordionBody id={bodyId} open={props.open}>
+        <PathRows
+          values={props.paths}
+          onRemove={(v) => props.onRemovePath(props.name, v)}
+          empty="No folders yet."
+        />
+      </AccordionBody>
 
-      <AddFolderDialog
-        collection={adding() ? props.name : null}
+      <AddPathDialog
+        title={adding() ? props.name : null}
+        label="Folder path"
         pickerTitle={props.title}
         onAdd={(v) => props.onAddPath(props.name, v)}
         onClose={() => setAdding(false)}
