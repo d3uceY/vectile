@@ -150,6 +150,11 @@ Each query runs two searches at the same time.
 
 The vector search runs in two steps: a small, fast index finds a pool of candidates, then their full vectors are compared and re-sorted by distance. The two result lists are then combined by rank rather than by score, a method called Reciprocal Rank Fusion.
 
+
+
+<img width="615" height="866" alt="image" src="https://github.com/user-attachments/assets/b5c8ae01-24e0-4faa-a3c8-299f3a024f7d" />
+
+
 Filters narrow the results: collection, source type, path text, sender or author, and date range. Top-k sets how many results come back.
 
 Query embeddings are cached in the local database per model, so searching the same text twice skips the model. Results are always ranked fresh against the index. The cache clears when you reindex, prune, or switch the active model, and Settings has a Cache section that shows what it holds and clears it.
