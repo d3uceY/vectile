@@ -55,8 +55,8 @@ const MODEL_PATH = "C:\\Users\\you\\AppData\\Roaming\\vectile\\models\\bge-m3-Q4
 
 const status = {
   collections: 4,
-  sources: 20,
-  chunks: 7029,
+  sources: 23,
+  chunks: 7065,
   dbSize: 20971520, // ~20 MB
   modelState: "loaded",
   modelName: MODEL_NAME,
@@ -181,7 +181,7 @@ let downloadState = { active: false, key: "", status: "", downloaded: 0, total: 
 const collections = [
   { id: 1, name: "calibre", type: "system", description: "ebook library — titles, authors, and text, chunked for search", sources: 2, chunks: 1130, created: "2025-11-02", enabled: true, lastIndexed: "2025-11-02" },
   { id: 2, name: "obsidian", type: "system", description: "Obsidian vault — daily notes, zettels, project journals", sources: 8, chunks: 812, created: "2025-06-30", enabled: true, lastIndexed: "2026-08-24" },
-  { id: 3, name: "field-notes", type: "project", description: "project folder — runbooks, retrospectives, working notes", sources: 4, chunks: 256, created: "2026-05-18", enabled: true, lastIndexed: "2026-08-24" },
+  { id: 3, name: "field-notes", type: "project", description: "project folder — runbooks, retrospectives, working notes", sources: 7, chunks: 292, created: "2026-05-18", enabled: true, lastIndexed: "2026-08-24" },
   { id: 4, name: "vectile", type: "code", description: "this repo — backend, frontend, and git history", sources: 6, chunks: 4831, created: "2026-08-24", enabled: true, lastIndexed: "2026-08-24" },
 ];
 
@@ -198,11 +198,17 @@ let sources = [
   { id: 26, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\reading", chunks: 39, lastIndexed: "2026-08-15" },
   { id: 27, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\work", chunks: 26, lastIndexed: "2026-08-12" },
   { id: 28, collectionId: 2, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\notes\\travel", chunks: 23, lastIndexed: "2026-08-09" },
-  // field-notes (project folder)
+  // field-notes (project folder) — a small working folder. Ten files in total,
+  // which is what the demo's index run reports: few enough that the progress
+  // bar is not constantly rewriting the filename, many enough that it never
+  // sits still (the tick is shorter than the fill's width transition).
   { id: 31, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\deploy-runbook.md", chunks: 64, lastIndexed: "2026-08-24" },
   { id: 32, collectionId: 3, sourceType: "plaintext", path: "C:\\Users\\you\\Documents\\field-notes\\backup-checklist.txt", chunks: 18, lastIndexed: "2026-08-24" },
   { id: 33, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\retro-2026-06.md", chunks: 33, lastIndexed: "2026-08-24" },
   { id: 34, collectionId: 3, sourceType: "pdf", path: "C:\\Users\\you\\Documents\\field-notes\\team-handbook.pdf", chunks: 141, lastIndexed: "2026-08-24" },
+  { id: 35, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\access-review-2026-q2.md", chunks: 12, lastIndexed: "2026-08-24" },
+  { id: 36, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\api-notes.md", chunks: 9, lastIndexed: "2026-08-24" },
+  { id: 37, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\cost-review-2026-q1.md", chunks: 15, lastIndexed: "2026-08-24" },
   // vectile (code)
   { id: 41, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\search", chunks: 402, lastIndexed: "2026-08-24" },
   { id: 42, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\backend\\indexer", chunks: 611, lastIndexed: "2026-08-24" },
@@ -211,6 +217,39 @@ let sources = [
   { id: 45, collectionId: 4, sourceType: "code", path: "C:\\Users\\you\\code\\vectile\\third_party\\llama-go", chunks: 204, lastIndexed: "2026-08-24" },
   { id: 46, collectionId: 4, sourceType: "commit", path: "C:\\Users\\you\\code\\vectile\\.git", chunks: 2794, lastIndexed: "2026-08-24" },
 ];
+
+/* The demo's Index scene indexes the field-notes project folder, and the scene
+   after it opens that folder in the Library to show what the run picked up.
+   These are the three files that were not in the index before; they are added
+   to the stub the moment the run is asked for, so the Library has something new
+   to show. They are named to sort ahead of the rest of the folder, which is
+   what keeps them on screen without scrolling. The other seven files are
+   already indexed, which is why the run reports them as skipped. */
+const NEWLY_INDEXED = [
+  { id: 91, collectionId: 3, sourceType: "xlsx", path: "C:\\Users\\you\\Documents\\field-notes\\2026-09-budget.xlsx", chunks: 41, lastIndexed: "2026-10-07" },
+  { id: 92, collectionId: 3, sourceType: "plaintext", path: "C:\\Users\\you\\Documents\\field-notes\\2026-09-vendor-contacts.txt", chunks: 12, lastIndexed: "2026-10-07" },
+  { id: 93, collectionId: 3, sourceType: "markdown", path: "C:\\Users\\you\\Documents\\field-notes\\2026-q3-weekly-review.md", chunks: 27, lastIndexed: "2026-10-07" },
+];
+
+let newlyIndexed = false;
+
+/** Add the files an index run would have picked up, once. */
+function addNewlyIndexed(name) {
+  if (newlyIndexed) return;
+  const col = collections.find((c) => c.name === name);
+  if (!col) return;
+  const rows = NEWLY_INDEXED.filter((r) => r.collectionId === col.id);
+  if (!rows.length) return;
+  const chunks = rows.reduce((n, r) => n + r.chunks, 0);
+  newlyIndexed = true;
+  sources = sources.concat(rows);
+  col.sources += rows.length;
+  col.chunks += chunks;
+  col.lastIndexed = "2026-10-07";
+  status.sources += rows.length;
+  status.chunks += chunks;
+  status.lastIndexed = "2026-10-07";
+}
 
 const SAMPLE_DOCS = [
   // calibre — epub
@@ -503,8 +542,11 @@ export async function stub(request) {
     // Index runs return a bool (started or already-running). The dev-stub
     // simulates the indexing events client-side (see dev-stub.mjs), so the
     // middleware only needs to answer the boolean; screenshots never click
-    // these buttons.
+    // these buttons. Asking for a run is also what reveals the files that run
+    // would have picked up (see NEWLY_INDEXED).
     case M.IndexCollection:
+      addNewlyIndexed(post.args?.args?.[0]);
+      return { body: true };
     case M.IndexAll:
     case M.CancelIndexing:
       return { body: true };

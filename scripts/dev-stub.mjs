@@ -76,56 +76,76 @@ const indexSimPlugin = {
 
     const stop = () => { if (sim) { clearTimeout(sim.timer); sim = null; } };
 
+    // The walkthrough indexes one project folder, and its real file names are
+    // what stream past in the progress bar. Ten files, listed in the order the
+    // Library sorts them, with the three new ones first.
+    //
+    // The tick is deliberately just under the bar's 480 ms width transition:
+    // the fill is then always mid-glide, so it reads as continuous. Going much
+    // faster only makes the filename churn (which looks like flicker, not
+    // progress); going much slower reintroduces the stall between steps.
+    const FOLDER_FILES = {
+      "field-notes": [
+        "2026-09-budget.xlsx", "2026-09-vendor-contacts.txt", "2026-q3-weekly-review.md",
+        "access-review-2026-q2.md", "api-notes.md", "backup-checklist.txt",
+        "cost-review-2026-q1.md", "deploy-runbook.md", "retro-2026-06.md",
+        "team-handbook.pdf",
+      ],
+    };
+
+    const filesFor = (collection) => {
+      const real = FOLDER_FILES[collection];
+      return real || Array.from({ length: 60 }, (_, i) => collection + "/doc-" + (i + 1) + ".md");
+    };
+
     const start = (all, collection) => {
       stop();
-      sim = {
-        // Same order as the real backend's configuredCollections: obsidian,
-        // calibre, then repos, then projects.
-        all,
-        names: all ? ["obsidian", "calibre", "vectile", "field-notes"] : [collection || "notes"],
-        colIdx: 0,
-        collection: all ? "obsidian" : collection || "notes",
-        total: 60,
-        indexed: 0,
-      };
+      // Same order as the real backend's configuredCollections: obsidian,
+      // calibre, then repos, then projects.
+      const names = all
+        ? ["obsidian", "calibre", "vectile", "field-notes"]
+        : [collection || "field-notes"];
+      sim = { all, names, colIdx: 0, collection: names[0], files: filesFor(names[0]), indexed: 0 };
       tick();
     };
 
     const tick = () => {
       if (!sim) return;
-      if (sim.indexed >= sim.total) {
-        // The first collection stands in for a PDF-heavy library, so the
-        // "pages had no readable text" offer has something to report.
-        const noText = sim.colIdx === 0 ? 12 : 0;
+      if (sim.indexed >= sim.files.length) {
+        // A single folder reports only the files that were not indexed before;
+        // the rest of the folder was unchanged, which is what "Index new"
+        // means. Nothing reports pages without text, so the OCR offer stays out
+        // of the take.
+        const fresh = sim.all ? sim.indexed : 3;
         emit("indexing:complete", {
           collection: sim.collection,
-          indexed: sim.indexed,
-          skipped: 0,
+          indexed: fresh,
+          skipped: sim.indexed - fresh,
           failed: 0,
           errors: 0,
           messages: [],
-          pdfNoTextPages: noText,
+          pdfNoTextPages: 0,
         });
         sim.colIdx++;
-        sim.noText = (sim.noText || 0) + noText;
         if (sim.all && sim.colIdx < sim.names.length) {
           sim.collection = sim.names[sim.colIdx];
+          sim.files = filesFor(sim.collection);
           sim.indexed = 0;
           sim.timer = setTimeout(tick, 80);
           return;
         }
-        if (sim.all) emit("indexing:all-done", { pdfNoTextPages: sim.noText || 0, failed: 0 });
+        if (sim.all) emit("indexing:all-done", { pdfNoTextPages: 0, failed: 0 });
         sim = null;
         return;
       }
-      sim.indexed++;
       emit("indexing:file", {
         collection: sim.collection,
-        file: sim.collection + "/doc-" + sim.indexed + ".md",
-        indexed: sim.indexed,
-        total: sim.total,
+        file: sim.files[sim.indexed],
+        indexed: sim.indexed + 1,
+        total: sim.files.length,
       });
-      sim.timer = setTimeout(tick, 30);
+      sim.indexed++;
+      sim.timer = setTimeout(tick, sim.all ? 30 : 440);
     };
 
     const cancel = () => {

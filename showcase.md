@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/d3uceY/vectile/main/docs/vectile-demo.gif" alt="Vectile demo" width="100%">
+  <img src="https://raw.githubusercontent.com/d3uceY/vectile/main/docs/vectile-demo.gif" alt="Vectile demo: indexing with live progress, the indexed files in the Library, a chunk read in Browse, and a semantic search" width="100%">
 </p>
 
 I built something i genuinely think is cool and useful for managing personal knowledge locally.
