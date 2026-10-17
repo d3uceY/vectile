@@ -199,7 +199,7 @@ func codeFileToItem(conn *sql.DB, cfg *config.Config, repoPath, relPath string, 
 
 	mtime := ""
 	if info, err := os.Stat(absPath); err == nil {
-		mtime = info.ModTime().UTC().Format(time.RFC3339)
+		mtime = info.ModTime().UTC().Format(time.RFC3339Nano)
 	}
 
 	return &indexItem{
