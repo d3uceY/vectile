@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"path/filepath"
 	"sync"
@@ -188,5 +189,49 @@ func TestEmbedFallbackDropsOnlyTheBadItem(t *testing.T) {
 	}
 	if result.Errors != 1 {
 		t.Fatalf("expected 1 error for the dropped item, got %d (%v)", result.Errors, result.ErrorMessages)
+	}
+}
+
+// A cancelled git run must not save HEAD as the repo's watermark. Cancelling
+// is not an error, so the clean-run check alone would record the run as
+// complete, and the next incremental run at the same HEAD would see no new
+// commits and never index the files the cancel skipped.
+func TestCancelledGitRunKeepsWatermark(t *testing.T) {
+	dir := writeTree(t, map[string]string{
+		"main.go": "package main\n\nfunc main() {}\n",
+		"util.go": "package main\n\nfunc helper() {}\n",
+	})
+	git := func(args ...string) { gitInTest(t, dir, args...) }
+	git("init", "-q")
+	git("add", "-A")
+	git("commit", "-qm", "init")
+
+	if err := db.Open(filepath.Join(t.TempDir(), "watermark.db")); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	cfg := &config.Config{EmbeddingBatchSize: 32, ChunkSizeTokens: 500, ChunkOverlapTokens: 50}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // cancelled before any file is embedded
+	result := IndexGitRepo(ctx, db.DB, cfg, dir, "repo-test", false, false, nil, &stubEmbedder{})
+	if result.Indexed != 0 {
+		t.Fatalf("cancelled run indexed %d files, want 0", result.Indexed)
+	}
+
+	var desc sql.NullString
+	if err := db.DB.QueryRow("SELECT description FROM collections WHERE name = ?", "repo-test").Scan(&desc); err != nil {
+		t.Fatal(err)
+	}
+	abs, _ := filepath.Abs(dir)
+	if sha := parseWatermarks(desc.String)[abs]; sha != "" {
+		t.Fatalf("cancelled run saved watermark %s, want none", truncateSHA(sha))
+	}
+
+	// The next run must still index everything.
+	result = IndexGitRepo(context.Background(), db.DB, cfg, dir, "repo-test", false, false, nil, &stubEmbedder{})
+	if result.Indexed != 2 {
+		t.Fatalf("follow-up run indexed %d files, want 2", result.Indexed)
 	}
 }

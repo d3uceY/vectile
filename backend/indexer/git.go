@@ -147,12 +147,16 @@ func IndexGitRepo(ctx context.Context, conn *sql.DB, cfg *config.Config, repoPat
 		func(i int) *indexItem { return codeFileToItem(conn, cfg, repoPath, indexable[i], collectionID, force) },
 		embedder, result, progress, cleared)
 
-	// Advance the watermark only on a clean run, so a failed file is retried
-	// next run instead of being skipped forever.
-	if result.Errors == 0 {
+	// Advance the watermark only on a clean, complete run, so a failed file is
+	// retried next run instead of being skipped forever. A cancelled run is not
+	// an error but did not reach every file, so it must not advance it either.
+	if result.Errors == 0 && (ctx == nil || ctx.Err() == nil) {
 		watermarks[repoPath] = headSHA
 		_, _ = conn.Exec("UPDATE collections SET description = ? WHERE id = ?",
 			makeWatermarks(watermarks), collectionID)
+	} else if result.Errors == 0 {
+		slog.Info("not advancing watermark: run was cancelled, files will be indexed next run",
+			"repo", repoPath)
 	} else {
 		slog.Warn("not advancing watermark: run had errors, files will be retried next run",
 			"errors", result.Errors, "repo", repoPath)
