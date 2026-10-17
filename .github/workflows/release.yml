@@ -13,7 +13,9 @@
 #   - CGO_ENABLED=1 (vectile links llama.cpp), not CGO=0.
 #   - The 5 MinGW runtime DLLs ship beside the exe and in the installer
 #     (committed under build/windows/runtime).
-#   - The version is injected into main.go's `Version` var (with the `v`).
+#   - The pushed tag is the only source of the version: ldflags stamps
+#     main.Version, and scripts/stamp-version.mjs stamps the Windows metadata,
+#     the NSIS installer, the .deb, and the macOS bundle.
 
 name: Release
 
@@ -27,7 +29,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is_stable: ${{ steps.check.outputs.is_stable }}
-      version: ${{ steps.check.outputs.version }}
     steps:
       - name: Validate stable release tag
         id: check
@@ -35,10 +36,8 @@ jobs:
           TAG="${GITHUB_REF_NAME}"
           if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "is_stable=true" >> "$GITHUB_OUTPUT"
-            echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
           else
             echo "is_stable=false" >> "$GITHUB_OUTPUT"
-            echo "version=" >> "$GITHUB_OUTPUT"
           fi
 
   build-windows-amd64:
@@ -140,14 +139,9 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-      - name: Inject version into Windows metadata
+      - name: Stamp version from tag
         shell: bash
-        run: |
-          VERSION="${{ needs.validate-tag.outputs.version }}"
-          sed -i "s/\"ProductVersion\": \"[^\"]*\"/\"ProductVersion\": \"${VERSION}\"/" build/windows/info.json
-          sed -i "s/\"file_version\": \"[^\"]*\"/\"file_version\": \"${VERSION}\"/" build/windows/info.json
-          sed -i "/assemblyIdentity/s/version=\"[^\"]*\"/version=\"${VERSION}\"/" build/windows/wails.exe.manifest
-          sed -i "s/!define INFO_PRODUCTVERSION \"[^\"]*\"/!define INFO_PRODUCTVERSION \"${VERSION}\"/" build/windows/nsis/wails_tools.nsh
+        run: node scripts/stamp-version.mjs "${{ github.ref_name }}"
 
       - name: Generate .syso resource
         working-directory: build
@@ -164,7 +158,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p build/bin
-          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -X main.Version=v${{ needs.validate-tag.outputs.version }}" -o build/bin/vectile-windows-amd64.exe
+          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -X main.Version=${{ github.ref_name }}" -o build/bin/vectile-windows-amd64.exe
           rm -f wails_windows_amd64.syso
 
       - name: Copy MinGW runtime DLLs beside the exe
@@ -208,7 +202,7 @@ jobs:
           # the libs it resolves via -L, so with identical ldflags this step would
           # reuse the AVX2 link and ship the wrong binary twice. A different
           # -buildid forces a real re-link (verified locally).
-          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -buildid=vectile-legacy-sse2 -X main.Version=v${{ needs.validate-tag.outputs.version }}" -o build/bin/vectile-windows-amd64-legacy.exe
+          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -buildid=vectile-legacy-sse2 -X main.Version=${{ github.ref_name }}" -o build/bin/vectile-windows-amd64-legacy.exe
 
       - name: Build legacy NSIS installer
         shell: cmd
@@ -302,10 +296,8 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-      - name: Inject version into nfpm config
-        run: |
-          VERSION="${{ needs.validate-tag.outputs.version }}"
-          sed -i "s/^version: .*/version: \"${VERSION}\"/" build/linux/nfpm/nfpm.yaml
+      - name: Stamp version from tag
+        run: node scripts/stamp-version.mjs "${{ github.ref_name }}"
 
       - name: Generate .desktop file
         run: wails3 generate .desktop -name "vectile" -exec "vectile" -icon "vectile" -outputfile "${{ github.workspace }}/build/linux/vectile.desktop" -categories "Development;"
@@ -327,7 +319,7 @@ jobs:
           C_INCLUDE_PATH: ${{ github.workspace }}/third_party/llama-go
         run: |
           mkdir -p bin
-          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -X main.Version=v${{ needs.validate-tag.outputs.version }}" -o bin/vectile
+          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -X main.Version=${{ github.ref_name }}" -o bin/vectile
 
       - name: Build .deb package
         env:
@@ -421,15 +413,8 @@ jobs:
         run: npm run build
         working-directory: frontend
 
-      - name: Inject version into Info.plist
-        run: |
-          VERSION="${{ needs.validate-tag.outputs.version }}"
-          # Target the two version keys directly (not a hardcoded old value), so
-          # this keeps working as the version bumps.
-          sed -i '' \
-            -e "/<key>CFBundleVersion<\/key>/{n;s|<string>[^<]*</string>|<string>${VERSION}</string>|;}" \
-            -e "/<key>CFBundleShortVersionString<\/key>/{n;s|<string>[^<]*</string>|<string>${VERSION}</string>|;}" \
-            build/darwin/Info.plist
+      - name: Stamp version from tag
+        run: node scripts/stamp-version.mjs "${{ github.ref_name }}"
 
       # third_party/llama-go/darwin/{arm64,amd64} is NOT committed. Build both
       # archive sets here (the runner is ARM64, so amd64 is cross-built).
@@ -450,7 +435,7 @@ jobs:
           C_INCLUDE_PATH: ${{ github.workspace }}/third_party/llama-go
         run: |
           mkdir -p build/bin
-          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -X main.Version=v${{ needs.validate-tag.outputs.version }}" -o build/bin/vectile-arm64
+          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -X main.Version=${{ github.ref_name }}" -o build/bin/vectile-arm64
 
       - name: Build macOS AMD64 binary
         env:
@@ -463,7 +448,7 @@ jobs:
           LIBRARY_PATH: ${{ github.workspace }}/third_party/llama-go/darwin/amd64
           C_INCLUDE_PATH: ${{ github.workspace }}/third_party/llama-go
         run: |
-          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -X main.Version=v${{ needs.validate-tag.outputs.version }}" -o build/bin/vectile-amd64
+          go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -X main.Version=${{ github.ref_name }}" -o build/bin/vectile-amd64
 
       - name: Create universal binary
         run: |
