@@ -73,13 +73,16 @@ GOARCH=amd64 ./scripts/build-llamago-archives.sh
 LLAMA_GO_REF=<commit-or-tag> ./scripts/build-llamago-archives.sh
 ```
 
-> **`LLAMA_GO_REF` is optional.** The script must use the llama-go commit/tag whose `wrapper.h` is
-> vendored in `third_party/llama-go` (the Go<->C++ ABI depends on it), but when the variable is
-> unset the script auto-detects it: it clones upstream, tries `HEAD`, then every tag (newest first),
-> and takes the first whose `wrapper.h` matches the vendored copy. When set, it verifies the ref
-> matches (ABI guard) and aborts if not. The produced `.a` files can be committed, or left for the
-> CI runner to build each release (only `bin/` is gitignored, `*.a` is not). `GOARCH` overrides the
-> detected arch so you can cross-build (e.g. an ARM64 runner producing the x86_64 macOS archives).
+> **`LLAMA_GO_REF` is optional.** The script must use the llama-go commit/tag whose `wrapper.h` and
+> `cgo_headers/llama.cpp` tree are vendored in `third_party/llama-go` (the Go<->C++ ABI depends on
+> both), but when the variable is unset the script auto-detects it: it clones upstream, tries
+> `HEAD`, then every tag (newest first), and takes the first whose `wrapper.h` and
+> `cgo_headers/llama.cpp` match the vendored copy. When set, it verifies the ref matches (ABI guard)
+> and aborts if not. `wrapper.h` alone is not a sufficient guard: several llama-go tags share it
+> while pinning different llama.cpp commits, and the C++ side then fails to link. The produced `.a`
+> files can be committed, or left for the CI runner to build each release (only `bin/` is
+> gitignored, `*.a` is not). `GOARCH` overrides the detected arch so you can cross-build (e.g. an
+> ARM64 runner producing the x86_64 macOS archives).
 
 Requirements: `gcc`/`g++` + `cmake` + `make` (or `ninja`) + `git` + `ar` on Linux; Xcode Command
 Line Tools on macOS. Linux builds configure with `GGML_OPENMP=ON` (that's why `libgomp` is needed
@@ -226,8 +229,13 @@ Adding, removing or reordering a flag starts a third, empty cache set. To keep b
   `third_party/llama-go/<os>/<arch>/`. Build them with `scripts/build-llamago-archives.sh` (set
   `GOARCH` to cross-build), or commit the produced archives. On the release runners the workflow
   builds them automatically before `go build`.
-- **`LLAMA_GO_REF` mismatch** - the script aborts because the fetched `wrapper.h` differs from the
-  vendored one. Find the llama-go ref that matches (usually the release the vendored copy came from).
+- **`LLAMA_GO_REF` mismatch** - the script aborts because the fetched `wrapper.h` or
+  `cgo_headers/llama.cpp` differs from the vendored copy. Find the llama-go ref that matches
+  (usually the release the vendored copy came from).
+- **Undefined `common_batch_add` / `common_chat_parse` at link time** - the archives were built
+  from a llama.cpp that no longer matches the vendored headers, so the auto-detected ref was wrong
+  (a newer tag sharing the same `wrapper.h`). Update `scripts/build-llamago-archives.sh`, or pin
+  `LLAMA_GO_REF` to the matching tag.
 - **Windows exe exits `0xC0000135`** - a MinGW DLL is missing next to the exe (usually `libdl.dll`).
 - **Linux binary fails to start in a container** - `libgomp.so.1` is not installed. Install
   `libgomp1` (or remove it from a rebuilt AppImage's need).

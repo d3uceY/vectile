@@ -17,12 +17,14 @@
 #   ./scripts/build-llamago-archives.sh            # auto-detect the ref
 #   LLAMA_GO_REF=<commit-or-tag> ./scripts/build-llamago-archives.sh   # pin it
 #
-#   LLAMA_GO_REF  (optional) - the llama-go commit/tag whose wrapper.h and
-#     cgo_headers are vendored in third_party/llama-go. When unset the script
-#     auto-detects the ref by trying HEAD, then every tag (newest-first), and
-#     picking the first whose wrapper.h matches the vendored copy. When set it
-#     verifies the ref matches (ABI guard) and aborts if not. The right ref is
-#     the one whose wrapper.h is byte-identical to third_party/llama-go/wrapper.h.
+#   LLAMA_GO_REF  (optional) - the llama-go commit/tag whose wrapper.h,
+#     cgo_headers, and llama.cpp headers are vendored in third_party/llama-go.
+#     When unset the script auto-detects the ref by trying HEAD, then every tag
+#     (newest-first), and picking the first whose wrapper.h AND
+#     cgo_headers/llama.cpp tree match the vendored copy. When set it verifies
+#     the ref matches (ABI guard) and aborts if not. Matching wrapper.h alone is
+#     not enough: several tags share it while pinning different llama.cpp
+#     commits, and a newer llama.cpp can drop the C++ helpers wrapper.cpp calls.
 #
 #   Run it once per OS/arch you need to support:
 #     - Linux amd64  -> writes third_party/llama-go/linux/amd64/
@@ -75,11 +77,27 @@ trap 'rm -rf "$TMP"' EXIT
 echo "==> Cloning llama-go (sources only)"
 git clone https://github.com/tcpipuk/llama-go "$TMP/llama-go"
 
-# Determine the llama-go ref whose wrapper.h matches the vendored one. The
+# Determine the llama-go ref whose headers match the vendored ones. The
 # Go<->C++ ABI depends on this being exactly right, so pick it by ABI guard
 # rather than guessing. If LLAMA_GO_REF is set, verify it; otherwise
 # auto-detect by trying HEAD, then all tags (newest-first), and taking the
-# first ref whose wrapper.h matches the vendored copy.
+# first ref that matches.
+#
+# wrapper.h alone is NOT enough. It is a stable C facade that barely changes,
+# so several llama-go tags share it while pinning different llama.cpp commits.
+# A newer llama.cpp can drop or move the C++ helpers wrapper.cpp calls
+# (common_batch_add, common_chat_parse, ...), and the only symptom is an
+# undefined reference at the very end of `go build`.
+#
+# The vendored third_party/llama-go/llama.cpp/ tree is a copy of llama-go's
+# cgo_headers/llama.cpp, so compare that whole tree: it is exactly what
+# wrapper.cpp is compiled against. (It does not track the llama.cpp submodule
+# one-for-one, so diffing the submodule's own headers gives false matches.)
+matches_vendored() {
+  diff -q "$TMP/llama-go/wrapper.h" "$LLAMA_GO_ROOT/wrapper.h" >/dev/null 2>&1 || return 1
+  diff -r "$TMP/llama-go/cgo_headers/llama.cpp" "$LLAMA_GO_ROOT/llama.cpp" >/dev/null 2>&1
+}
+
 find_matching_ref() {
   local refs=()
   refs+=("HEAD")
@@ -91,7 +109,7 @@ find_matching_ref() {
     if ! git -C "$TMP/llama-go" checkout --force "$ref" >/dev/null 2>&1; then
       continue
     fi
-    if diff -q "$TMP/llama-go/wrapper.h" "$LLAMA_GO_ROOT/wrapper.h" >/dev/null 2>&1; then
+    if matches_vendored; then
       echo "$ref"
       return 0
     fi
@@ -106,15 +124,17 @@ if [ -n "$LLAMA_GO_REF" ]; then
     exit 1
   }
   # ABI guard: the fetched source must match the vendored headers.
-  if ! diff -q "$TMP/llama-go/wrapper.h" "$LLAMA_GO_ROOT/wrapper.h" >/dev/null 2>&1; then
-    echo "ERROR: llama-go $LLAMA_GO_REF wrapper.h does not match the vendored" >&2
-    echo "       third_party/llama-go/wrapper.h. Choose a different LLAMA_GO_REF." >&2
+  if ! matches_vendored; then
+    echo "ERROR: llama-go $LLAMA_GO_REF does not match the vendored tree in" >&2
+    echo "       third_party/llama-go (wrapper.h or llama.cpp/). Pick the ref" >&2
+    echo "       whose cgo_headers/llama.cpp is byte-identical to it." >&2
     exit 1
   fi
 else
   REF="$(find_matching_ref)" || {
-    echo "ERROR: could not find a llama-go ref whose wrapper.h matches the" >&2
-    echo "       vendored third_party/llama-go/wrapper.h." >&2
+    echo "ERROR: could not find a llama-go ref whose wrapper.h and" >&2
+    echo "       cgo_headers/llama.cpp match third_party/llama-go. The vendored" >&2
+    echo "       copy may be from a commit that is not tagged." >&2
     exit 1
   }
   echo "==> Auto-detected llama-go ref: $REF"
