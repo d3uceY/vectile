@@ -47,8 +47,7 @@ export function OcrCard(props: {
       </div>
 
       <p class="mt-2 text-[13px] font-medium leading-5 text-muted">
-        Reads PDFs that are photos of pages. PDFs with real text do not need it, and it never runs
-        for a page that already came back with text.
+        Reads PDFs that are photos of pages. Pages with a text layer are skipped.
       </p>
 
       <Show when={s()?.error}>

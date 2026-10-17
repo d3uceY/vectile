@@ -69,7 +69,7 @@ export function SettingsView() {
   return (
     <div class="relative flex h-full flex-col">
       <div class="px-5 pt-6 md:px-8">
-        <ViewHeading title="Settings" note="Model, chunking, search, and sources. Everything stays on this machine." />
+        <ViewHeading title="Settings" note="Everything stays on this machine." />
       </div>
 
       <Show when={draft()} fallback={<p class="px-6 text-[13px] font-medium text-muted">Loading settings…</p>}>

@@ -30,7 +30,7 @@ export function OcrSection() {
     <Section
       icon={<OcrNavIcon size={16} />}
       title="OCR"
-      note="Read PDFs that are photos of pages instead of text."
+      note="Optional plugin for PDFs that are photos of pages."
     >
       <div class="space-y-6">
         <OcrCard
@@ -55,8 +55,7 @@ export function OcrSection() {
         <Show when={store.ocrState()?.installed}>
           <div class="flex flex-wrap items-center justify-between gap-3">
             <p class="max-w-[46ch] text-[12px] font-medium leading-4 text-muted">
-              PDFs you already indexed keep the text they have. Re-indexing reads them
-              again, this time with OCR.
+              Indexed PDFs keep their current text. Re-index to read them with OCR.
             </p>
             <Button size="sm" variant="outline" onClick={() => setConfirmReindex(true)}>
               <ReindexIcon size={14} />

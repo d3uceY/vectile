@@ -31,8 +31,7 @@ export function OcrSetupDialog(props: {
           <p class="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Optional</p>
           <h2 class="mt-1 text-[20px] font-semibold leading-tight tracking-[-0.015em] text-ink">Read scanned PDFs</h2>
           <p class="mt-2 text-[13px] font-medium leading-[1.7] text-ink-soft">
-            Some PDFs are photos of pages instead of text. Nothing in them can be searched until it
-            is read as text, which is what this does.
+            Scanned pages have no text layer, so search can't see them. This plugin reads them.
           </p>
 
           <div class="mt-4">

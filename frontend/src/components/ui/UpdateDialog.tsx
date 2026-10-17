@@ -31,10 +31,6 @@ export function UpdateDialog(props: {
             update
           </p>
           <h3 class="mt-2 text-[17px] font-semibold tracking-[-0.01em] text-ink">A new version is here</h3>
-          <p class="mt-2.5 text-[13px] font-medium leading-[1.7] text-muted">
-            <span class="font-semibold text-ink">{props.latest}</span> is available. You're on{" "}
-            <span class="font-semibold text-ink">{props.current}</span>.
-          </p>
 
           <div class="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line">
             <div class="bg-surface-2 px-3.5 py-2.5">

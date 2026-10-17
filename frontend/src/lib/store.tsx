@@ -482,7 +482,7 @@ export function createAppStore() {
     const st = ocrState();
     if (noTextPages <= 0 || !st || !st.supported || st.installed) return;
     const what = noTextPages === 1 ? "1 page had" : `${noTextPages} pages had`;
-    pushToast(`${what} no readable text, which usually means scans.`, "neutral", {
+    pushToast(`${what} no readable text, likely scans.`, "neutral", {
       label: "Set up OCR",
       run: () => openSettings("ocr"),
     });

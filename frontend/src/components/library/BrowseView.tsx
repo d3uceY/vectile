@@ -356,7 +356,7 @@ export function BrowseView() {
                 when={grid.items().length > 0}
                 fallback={
                   <p class="px-3 py-12 text-center text-[13px] font-medium text-muted">
-                    No files in this collection yet. Index it, or pick another collection.
+                    No files yet. Index this collection, or pick another.
                   </p>
                 }
               >

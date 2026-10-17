@@ -263,7 +263,7 @@ function AddPathDialog(props: {
             </Button>
           </div>
           <p class="mt-2 text-[12px] font-medium leading-4">
-            Browse fills the path in; nothing is added until you confirm.
+            Nothing is added until you confirm.
           </p>
         </div>
       }

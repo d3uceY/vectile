@@ -302,7 +302,7 @@ const MCP_TOOLS: { name: string; desc: string; kind: "read" | "write" }[] = [
   },
   {
     name: "vectile_facets",
-    desc: "Metadata keys and common values, so search filters are not guesswork.",
+    desc: "Metadata keys and common values for search filters.",
     kind: "read",
   },
   {
@@ -368,7 +368,7 @@ export function ConnectSection() {
         : "text-muted";
   const mcpStateNote = () => {
     if (mcpStopping()) return "Still running. Save settings to stop the server.";
-    if (running()) return "AI tools on this machine can connect now.";
+    if (running()) return "Local AI tools can connect now.";
     if (mcpPending()) return "Switched on. Save settings to start the server.";
     if (!draft()?.mcp.enabled) return "Turn on Share your library below, then save settings.";
     return "Not running. Save settings to start it again.";
@@ -437,7 +437,7 @@ export function ConnectSection() {
           </Show>
           <p class="mt-2 text-[12px] font-medium leading-4 text-muted">{mcpStateNote()}</p>
           <p class="mt-2.5 text-[12px] font-medium leading-4 text-ink-soft">
-            {mcpScope()}. Binds to 127.0.0.1, so nothing leaves this machine.
+            {mcpScope()}. Binds to 127.0.0.1 only.
           </p>
         </div>
 
@@ -447,7 +447,7 @@ export function ConnectSection() {
             onChange={(v) => setMCP({ enabled: v })}
             label="Share your library with AI tools"
             description="Serve search tools over MCP on 127.0.0.1."
-            hint="Starts a local MCP server that AI assistants on this machine can connect to. Applies when you save settings. The server answers only on your machine."
+            hint="Starts a local MCP server for AI assistants on this machine. Applies when you save settings."
           />
           <Show when={draft()!.mcp.enabled}>
             <div class="py-3.5">
@@ -483,7 +483,7 @@ export function ConnectSection() {
         </FieldList>
 
         <div>
-          <SubHeading>What your AI can do</SubHeading>
+          <SubHeading>Tools</SubHeading>
           <p class="mb-2 mt-0.5 text-[12px] font-medium leading-4 text-muted">
             {mcpWriteAllowed()
               ? "Search, plus index and prune, scoped to your library."
@@ -517,8 +517,7 @@ export function ConnectSection() {
           </p>
           <Show when={mcpTransport() === "streamable-http"}>
             <p class="mb-2.5 text-[12px] font-medium leading-4 text-muted">
-              Set vectile up before? Paste the setup again once. The address changed
-              from /sse to /mcp.
+              Connected before? Paste the setup again: the address changed from /sse to /mcp.
             </p>
           </Show>
           <div class="overflow-hidden rounded-[8px] border border-line bg-surface">

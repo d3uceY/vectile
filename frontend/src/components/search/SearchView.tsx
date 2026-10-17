@@ -255,7 +255,7 @@ function IdleState(props: { onPick: (q: string) => void }) {
           Ask your library
         </h2>
         <p class="od-fade-slide-up mt-2 max-w-[44ch] text-[14px] font-medium leading-6 text-muted">
-          Searches meaning and exact words together.
+          Meaning and exact words, ranked together.
         </p>
         <div class="od-stagger mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
           <For each={exampleQueries}>
@@ -310,7 +310,7 @@ function ResultList() {
           <p class="flex items-center gap-2 text-[12px] font-medium text-muted">
             {results().length} result{results().length === 1 ? "" : "s"} · hybrid ranked
             <Show when={store.searchCached()}>
-              <span title="This query's embedding was reused from the cache. Results are still ranked fresh.">
+              <span title="Embedding reused from cache. Ranking is still fresh.">
                 <Chip tone="mint">cached</Chip>
               </span>
             </Show>

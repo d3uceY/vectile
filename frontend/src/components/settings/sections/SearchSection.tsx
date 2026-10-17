@@ -20,7 +20,7 @@ export function SearchSection() {
               label="Top results"
               value={draft()!.search_defaults.top_k}
               onChange={(n) => setSearch("top_k", n)}
-              hint="How many matches a search returns by default. Raise it for a longer list, lower it for a shorter one. Set a different number per search under Filters."
+              hint="Results a search returns by default. Override it per search under Filters."
               min={STATIC_BOUNDS.top_k.min}
               max={STATIC_BOUNDS.top_k.max}
               step={STATIC_BOUNDS.top_k.step}
@@ -35,16 +35,13 @@ export function SearchSection() {
               label="RRF constant (k)"
               value={draft()!.search_defaults.rrf_k}
               onChange={(n) => setSearch("rrf_k", n)}
-              hint="A smoothing value in the math that merges the two search lists. Bigger k flattens the gap between high- and low-ranked matches, so entries further down still get a fair shot. 60 is the usual value."
-              min={STATIC_BOUNDS.rrf_k.min}
-              max={STATIC_BOUNDS.rrf_k.max}
-              step={STATIC_BOUNDS.rrf_k.step}
+              hint="Smoothing constant for merging the two result lists. Higher k flattens rank gaps, giving lower matches a fairer shot. 60 is standard."
             />
             <RangeField
               label="Vector weight"
               value={draft()!.search_defaults.vector_weight}
               onChange={(n) => setSearch("vector_weight", n)}
-              hint="How much the meaning-based ranking counts when the two search lists are blended. It works against the full-text weight like a seesaw: raise it and results lean toward semantic matches, even when the words don't line up exactly."
+              hint="Weight of meaning-based ranking. Raise it and results lean semantic, even when the words don't line up."
               min={STATIC_BOUNDS.vector_weight.min}
               max={STATIC_BOUNDS.vector_weight.max}
               step={STATIC_BOUNDS.vector_weight.step}
@@ -53,7 +50,7 @@ export function SearchSection() {
               label="Full-text weight"
               value={draft()!.search_defaults.fts_weight}
               onChange={(n) => setSearch("fts_weight", n)}
-              hint="How much exact-word matches count in the final blend. Raise it when you're hunting a precise phrase or a name and want literal hits to win. Lower it and meaning takes over from wording."
+              hint="Weight of exact-word matches. Raise it for precise phrases and names."
               min={STATIC_BOUNDS.fts_weight.min}
               max={STATIC_BOUNDS.fts_weight.max}
               step={STATIC_BOUNDS.fts_weight.step}

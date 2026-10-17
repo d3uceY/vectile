@@ -80,7 +80,7 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
         class="flex w-full items-start justify-between gap-4 text-left"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open()}
-        aria-label={`${r().title}, ${open() ? "close" : "read"} the full passage`}
+        aria-label={`${r().title}, ${open() ? "collapse" : "expand"}`}
       >
         <h3 class="min-w-0 flex-1 text-[14px] font-semibold leading-[1.4] tracking-[-0.01em] text-ink">
           <Highlighted text={r().title} terms={props.terms} />
@@ -137,7 +137,7 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open()}
         >
-          <span>{open() ? "Close" : "Read full passage"}</span>
+          <span>{open() ? "Close" : "Read"}</span>
           <ChevronDown
             size={13}
             class={`transition-transform duration-100 ease-snappy ${open() ? "rotate-180" : ""}`}

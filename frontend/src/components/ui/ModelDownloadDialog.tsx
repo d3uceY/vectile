@@ -32,7 +32,7 @@ export function ModelDownloadDialog(props: {
          
           <h3 class="mt-2 text-[17px] font-semibold tracking-[-0.01em] text-ink">Add an embedding model</h3>
           <p class="mt-2.5 text-[13px] font-medium leading-[1.7] text-muted">
-            Vectile searches by meaning. It needs one of these, or bring your own.
+            Pick one, or bring your own.
           </p>
 
           <div class="mt-4 max-h-76 space-y-2 overflow-y-auto pr-1">

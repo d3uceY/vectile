@@ -59,7 +59,7 @@ export function IndexView() {
     <div class="relative flex h-full flex-col">
       <ViewHeading
         title="Index"
-        note="Index new adds only changed files; Re-index all re-embeds everything. Deleted files are pruned automatically."
+        note="Index all picks up changed files. Re-index all re-embeds everything. Deleted files are pruned automatically."
       >
         <Button variant="outline" onClick={() => store.openSettings("sources")}>
           <FolderOpenIcon size={15} />
@@ -121,7 +121,7 @@ export function IndexView() {
             <EmptyState
               icon={<IndexIcon size={20} />}
               title="No sources yet"
-              note="Add a folder, vault, or library in Settings. Each one becomes a collection you can index here."
+              note="Add a folder, vault, or library in Settings. Each becomes a collection."
             >
               <Button onClick={() => store.openSettings("sources")}>Add sources</Button>
             </EmptyState>

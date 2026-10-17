@@ -61,7 +61,7 @@ export function SetupTour() {
           popover: {
             title: "Add a folder",
             description:
-              "Point vectile at a folder of notes, books, or project files. It joins your My Library collection, which you'll find here under Project folders.",
+              "A folder of notes, books, or project files. It lands in the My Library collection, under Project folders.",
             nextBtnText: "Choose a folder",
             onNextClick: async (_el, _step, opts) => {
               const dir = await pickFolder("Choose a folder to index");

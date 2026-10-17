@@ -50,7 +50,7 @@ export function VexterSection() {
           onChange={(v) => setMascotAll(v)}
           label="Disable Vexter"
           description="Hide the mascot for every moment at once."
-          hint="Vexter is the small pixel dinosaur in the sidebar. When this is on, it never appears, whether you're searching, indexing, or turning up nothing."
+          hint="Hides the sidebar mascot in every state."
         />
         <div class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
           <For each={MASCOT_STATES}>

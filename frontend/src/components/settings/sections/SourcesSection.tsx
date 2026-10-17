@@ -27,14 +27,14 @@ const SOURCE_KINDS: SourceKind[] = [
     id: "projects",
     label: "Project folders",
     icon: FolderOpenIcon,
-    blurb: "Folders you work in. Every file type vectile reads is parsed, subfolders included.",
+    blurb: "Folders you work in, subfolders included. Every supported file type is parsed.",
     count: (c) => Object.keys(c.projects).length,
   },
   {
     id: "repositories",
     label: "Code repositories",
     icon: CodeIcon,
-    blurb: "Git repositories: the current file tree, plus commit history. Nested repos included.",
+    blurb: "Git repositories: the file tree plus commit history, nested repos included.",
     count: (c) => Object.keys(c.repositories).length,
   },
   {
@@ -48,7 +48,7 @@ const SOURCE_KINDS: SourceKind[] = [
     id: "calibre",
     label: "Calibre libraries",
     icon: LibraryIcon,
-    blurb: "Book text and metadata, read straight from the library folder.",
+    blurb: "Book text and metadata, read from the library folder.",
     count: (c) => c.calibre_libraries.length,
   },
 ];
@@ -164,7 +164,7 @@ export function SourcesSection() {
     <Section
       icon={<SourcesNavIcon size={16} />}
       title="Sources"
-      note="Choose your sources for indexing."
+      note="Choose what gets indexed."
     >
       <SourceTabs value={sourceKind()} counts={sourceCounts()} onChange={setSourceKind} />
 
@@ -210,7 +210,7 @@ export function SourcesSection() {
             values={draft()!.project_exclude_folders}
             onAdd={(v) => addPath("project_exclude_folders", v)}
             onRemove={(v) => removePath("project_exclude_folders", v)}
-            hint="Names skipped anywhere inside a project folder, at any depth. node_modules is always skipped; add any other folder or file you never want in search results."
+            hint="node_modules is always skipped. Add any other name you never want in results."
             note="Names skipped at any depth, inside every project collection."
             empty="None. Only node_modules is skipped."
           />
@@ -236,7 +236,7 @@ export function SourcesSection() {
             values={draft()!.repository_exclude_folders}
             onAdd={(v) => addPath("repository_exclude_folders", v)}
             onRemove={(v) => removePath("repository_exclude_folders", v)}
-            hint="Names skipped anywhere inside a repository, at any depth. Build output and lock files are already skipped. This filters the file tree only; commit history is still indexed in full."
+            hint="Build output and lock files are already skipped. Filters the file tree only; commit history is indexed in full."
             note="Names skipped at any depth, inside every repository."
             empty="None. Only the built-in list is skipped."
           />
@@ -265,7 +265,7 @@ export function SourcesSection() {
             values={draft()!.obsidian_exclude_folders}
             onAdd={(v) => addPath("obsidian_exclude_folders", v)}
             onRemove={(v) => removePath("obsidian_exclude_folders", v)}
-            hint="Names listed here are skipped when vaults are indexed. Handy for hiding attachments, templates, .trash, or a stray file you don't want in search results."
+            hint="Hides attachments, templates, .trash, or a stray file from results."
             note="Names skipped at any depth, inside every vault."
             empty="None. Every folder inside a vault is indexed."
           />
@@ -294,7 +294,7 @@ export function SourcesSection() {
             values={draft()!.calibre_exclude_folders}
             onAdd={(v) => addPath("calibre_exclude_folders", v)}
             onRemove={(v) => removePath("calibre_exclude_folders", v)}
-            hint="Names listed here are skipped when a library is read. A book's folder is its author and title, so one entry can drop a whole author or a single book folder."
+            hint="A book's folder is its author and title, so one entry drops a whole author or a single book."
             note="Names skipped at any depth, inside every library."
             empty="None. Every book in the library is indexed."
           />

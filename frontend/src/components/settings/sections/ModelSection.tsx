@@ -190,7 +190,7 @@ export function ModelSection() {
                   label="Embedding batch size"
                   value={modelBatch()}
                   onChange={setModelBatch}
-                  hint="How many chunks get fed to the model at once. A bigger number finishes indexing faster but uses more memory while it runs. If a large library makes the app stall, drop it to something like 16."
+                  hint="Chunks fed to the model at once. Higher finishes indexing faster but uses more memory; drop it to ~16 if a large library stalls the app."
                   min={STATIC_BOUNDS.embedding_batch_size.min}
                   max={STATIC_BOUNDS.embedding_batch_size.max}
                   step={STATIC_BOUNDS.embedding_batch_size.step}
@@ -199,7 +199,7 @@ export function ModelSection() {
                   label="CPU threads"
                   value={modelThreads()}
                   onChange={setModelThreads}
-                  hint={`0 = auto, which uses all ${cpuCount()} logical cores. Drag to reserve some for the rest of the system. Lower it if indexing starves other apps.`}
+                  hint={`0 = auto, which uses all ${cpuCount()} logical cores. Lower it to reserve headroom for other apps.`}
                   min={0}
                   max={cpuCount()}
                   step={1}

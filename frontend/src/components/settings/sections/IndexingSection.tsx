@@ -19,7 +19,7 @@ export function IndexingSection() {
           label="Commit history (months)"
           value={draft()!.git_history_in_months}
           onChange={(n) => setNumber("git_history_in_months", n)}
-          hint="How many months of git history get indexed for a repository. Each commit becomes a searchable document, so this controls how far back you can dig through your changelog. 6 months is the default."
+          hint="Months of git history to index for a repository. Each commit becomes a searchable document."
           min={STATIC_BOUNDS.git_history_in_months.min}
           max={STATIC_BOUNDS.git_history_in_months.max}
           step={STATIC_BOUNDS.git_history_in_months.step}
@@ -29,14 +29,14 @@ export function IndexingSection() {
           onChange={(v) => setGui({ auto_reindex: v })}
           label="Auto-reindex"
           description="Re-index all enabled collections on a timer."
-          hint="Re-index all your collections on a timer, so files you add or edit show up in search without running anything manually. Off by default: a full pass uses your CPU and model for a while. Turn it on if you add files often."
+          hint="Re-indexes every enabled collection on a timer, so new and edited files show up without a manual run. A full pass uses CPU for a while, so it is off by default."
         />
         <Show when={draft()!.gui.auto_reindex}>
           <NumField
             label="Interval (minutes)"
             value={draft()!.gui.auto_reindex_interval_minutes}
             onChange={(n) => setGui({ auto_reindex_interval_minutes: n })}
-            hint="How often the auto-reindex timer fires. 60 means once an hour. Only matters when Auto-reindex is switched on."
+            hint="How often the auto-reindex timer fires. 60 means once an hour. Only matters when Auto-reindex is on."
             min={STATIC_BOUNDS.auto_reindex_interval_minutes.min}
             max={STATIC_BOUNDS.auto_reindex_interval_minutes.max}
             step={STATIC_BOUNDS.auto_reindex_interval_minutes.step}
@@ -47,7 +47,7 @@ export function IndexingSection() {
           onChange={(v) => setGui({ start_on_login: v })}
           label="Start on login"
           description="Launch vectile when you sign in."
-          hint="Launch vectile when you sign in, so it's already open and indexing before you need it."
+          hint="Opens vectile when you sign in, already indexing before you need it."
         />
       </FieldList>
     </Section>
