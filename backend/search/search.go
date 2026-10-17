@@ -299,6 +299,9 @@ func squaredL2(a, b []float32) float64 {
 }
 
 // escapeFTSQuery wraps each token in double quotes for safe FTS5 queries.
+// A quote inside a token is doubled, which is how FTS5 escapes it inside a
+// string; left as is, it would end the string early and make the whole
+// expression a syntax error.
 func escapeFTSQuery(query string) string {
 	tokens := strings.Fields(query)
 	if len(tokens) == 0 {
@@ -306,7 +309,7 @@ func escapeFTSQuery(query string) string {
 	}
 	quoted := make([]string, len(tokens))
 	for i, t := range tokens {
-		quoted[i] = `"` + t + `"`
+		quoted[i] = `"` + strings.ReplaceAll(t, `"`, `""`) + `"`
 	}
 	return strings.Join(quoted, " ")
 }

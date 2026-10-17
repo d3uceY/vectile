@@ -119,3 +119,50 @@ type failingEmbedder struct{}
 func (failingEmbedder) Embed(string) ([]float32, error) {
 	return nil, sql.ErrNoRows
 }
+
+func TestEscapeFTSQuery(t *testing.T) {
+	cases := []struct {
+		name, in, want string
+	}{
+		{"empty", "", ""},
+		{"plain tokens", "quick fox", `"quick" "fox"`},
+		{"embedded quote", `foo"bar`, `"foo""bar"`},
+		{"quoted word", `"hello"`, `"""hello"""`},
+		{"lone quote", `"`, `""""`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := escapeFTSQuery(tc.in); got != tc.want {
+				t.Fatalf("escapeFTSQuery(%q) = %q, want %q", tc.in, got, tc.want)
+			}
+		})
+	}
+}
+
+// A query containing a double quote must still reach FTS as a valid
+// expression. Before quotes were doubled, `say"hello` produced a syntax error
+// that ftsSearch swallowed as an empty result.
+func TestFTSQueryWithQuotesStillMatches(t *testing.T) {
+	conn := newTestDB(t)
+	if err := db.InitSchema(conn, db.EmbeddingDim); err != nil {
+		t.Fatal(err)
+	}
+	collID, _ := db.GetOrCreateCollection(conn, "test", "project", nil, nil)
+	srcRes, _ := conn.Exec(
+		"INSERT INTO sources (collection_id, source_type, source_path) VALUES (?,?,?)",
+		collID, "markdown", "/tmp/note.md",
+	)
+	sourceID, _ := srcRes.LastInsertId()
+	seedDoc(t, conn, collID, sourceID, 0, "Greeting", `then say "hello" to everyone`, make([]float32, db.EmbeddingDim))
+
+	sd := config.SearchDefaults{TopK: 10, RRFK: 60, VectorWeight: 0.7, FTSWeight: 0.3}
+	for _, q := range []string{`"hello"`, `say"hello`} {
+		resp, err := Search(conn, q, Filters{}, failingEmbedder{}, sd)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(resp.Results) == 0 || resp.Results[0].Title != "Greeting" {
+			t.Fatalf("query %q: expected FTS to find Greeting, got %+v", q, resp.Results)
+		}
+	}
+}
