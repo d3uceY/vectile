@@ -69,24 +69,9 @@ The `.deb` installs the system libraries it needs (GTK4, WebKitGTK 6.0, and `lib
   <img src="docs/screenshots/search.png" alt="Searching your library for 'kubernetes rollout'" width="100%">
 </p>
 
-<table>
-  <tr>
-    <td><img src="docs/screenshots/library.png" alt="Library view: collections with sources and chunk counts" width="100%"></td>
-    <td><img src="docs/screenshots/browse.png" alt="Browse view: a paged chunk stream grouped by file, with a preview pane" width="100%"></td>
-    <td><img src="docs/screenshots/settings.png" alt="Settings view: download an embedding model, chunking, and search options" width="100%"></td>
-  </tr>
-</table>
-
 <p align="center">
   <img src="docs/screenshots/settings-mascot.png" alt="Settings → Vexter: show the sidebar mascot while searching, indexing, or on no results" width="100%">
 </p>
-
-<table>
-  <tr>
-    <td><img src="docs/screenshots/ocr-setup.png" alt="The one-time offer to install the OCR plugin, showing the version, the size, and the download address" width="100%"></td>
-    <td><img src="docs/screenshots/settings-ocr.png" alt="Settings → OCR: plugin status, where it downloads from, an Install button, and a switch for using OCR on pages with no text" width="100%"></td>
-  </tr>
-</table>
 
 ## Supported sources
 
