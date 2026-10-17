@@ -42,6 +42,8 @@ start. Use the [legacy installer](https://github.com/d3uceY/vectile/releases/lat
 and pick the **BGE Small EN v1.5 Q8_0** model in Settings. The other quantized models are much slower
 without AVX2.
 
+To build vectile from source, or to package your own release, see [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ### First-Run Notes
 
 vectile is not code-signed, so your OS may warn you the first time you open it. The code is open source.
@@ -97,26 +99,7 @@ The `.deb` installs the system libraries it needs (GTK4, WebKitGTK 6.0, and `lib
 
 If a PDF is photos of pages instead of text, turn on the OCR plugin in Settings → OCR. Pages a run cannot read are reported.
 
-## Installation
-
-### From source
-
-To build vectile yourself, install:
-
-- Go 1.26 or newer
-- Node.js with npm
-- the `wails3` command-line tool (the desktop framework vectile is built on)
-- on Windows only: MinGW-w64 on your `PATH`, with `LIBRARY_PATH` and `C_INCLUDE_PATH` pointing at `third_party/llama-go` (the Windows build task sets these for you)
-
-Then, from the project root:
-
-```
-task dev          # run in development mode
-task build        # build the binary to bin/
-task package      # package an installer for the current OS
-```
-
-### Installing the model
+## Installing the model
 
 The embedding model is a `.gguf` file. Add one by importing it in Settings (copied into `models/`), dropping a `.gguf` into `models/` yourself, or downloading one from Settings → Model → **Get a model**.
 
@@ -215,48 +198,6 @@ Config file: `config.json`, in your system's per-user config folder.
 | DOCX | archive/zip + encoding/xml | Word document extraction (.docx, .dotx) |
 | XLSX | excelize | Spreadsheets, one `## Sheet` section per worksheet |
 | PPTX | archive/zip + encoding/xml | Slides, one `## Slide` section per slide |
-
-## Building and developing
-
-Use the same `task dev`, `task build`, and `task package` commands as above.
-
-Tests: `go test ./backend/...`. Tests that need the model are skipped when it is not in `models/`.
-
-vectile includes llama.cpp (a C++ library that runs the embedding model) through the bundled
-`third_party/llama-go`, whose prebuilt archives are committed per OS and CPU under
-`third_party/llama-go/{windows,linux,darwin}/<arch>`. You only need a C/C++ compiler on your `PATH`;
-see [`docs/BUILD-AND-PACKAGING.md`](docs/BUILD-AND-PACKAGING.md) for the full cross-platform build,
-packaging, and release notes.
-
-- **Windows (amd64):** needs MinGW-w64 on `PATH`, with `LIBRARY_PATH`/`C_INCLUDE_PATH` pointing at
-  `third_party/llama-go` (the Windows build task sets these). The built exe needs five MinGW runtime
-  DLLs beside it (`libgcc_s_seh-1.dll`, `libgomp-1.dll`, `libstdc++-6.dll`, `libwinpthread-1.dll`,
-  `libdl.dll`). Missing `libdl.dll` causes a silent `0xC0000135` exit at launch.
-- **Linux (amd64):** needs `gcc`/`g++`, `pkg-config`, `libgtk-4-dev`, `libwebkitgtk-6.0-dev` and
-  `libayatana-appindicator3-dev`. The binary depends on `libgomp.so.1` at runtime (bundled in the
-  AppImage, `Depends: libgomp1` in the `.deb`). `task linux:package` yields AppImage + `.deb`
-  (+ `.rpm`/AUR).
-- **macOS (universal):** needs Xcode Command Line Tools. `task darwin:build:universal` builds
-  arm64 + amd64 and `lipo`s them together; `task darwin:package:dmg` wraps the `.app` in a DMG. The
-  Metal/Accelerate frameworks are OS-provided, so nothing extra ships.
-
-## Architecture
-
-```
-main.go                     app startup, window, services, auto-reindex loop
-backend/appdata             the data directory and the model path
-backend/config              config.json load, save, defaults
-backend/db                  SQLite schema and helpers (modernc + vec0 + FTS5)
-backend/embeddings          the llama.go embedder (bge-m3)
-backend/chunker             word-window and markdown chunking
-backend/parser              file parsers: md, docx, html, epub, pdf, xlsx, pptx, ipynb, xml, sql, shell, csv/json, calibre, code
-backend/search              hybrid search: vector + FTS + RRF
-backend/indexer             obsidian, project, git, calibre indexers; prune
-backend/services            Wails services the UI calls
-backend/startup             launch-at-login per OS
-third_party/llama-go        vendored llama.cpp bindings
-frontend/src/lib/api.ts     the only place the UI touches the bindings
-```
 
 ## License
 

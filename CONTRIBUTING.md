@@ -31,28 +31,48 @@ This guide covers how the repo is organized, how to build and test, and what a g
 
 ```bash
 task dev        # run with hot reload (wails3 dev)
+task build      # production binary in bin/
+task package    # package an installer for the current OS
+task run        # run the built binary
 go test ./backend/...
-task build       # production build
-task run         # run the built binary
 ```
+
+vectile includes llama.cpp (a C++ library that runs the embedding model) through the bundled
+`third_party/llama-go`, whose prebuilt archives are committed per OS and CPU under
+`third_party/llama-go/{windows,linux,darwin}/<arch>`. You only need a C/C++ compiler on your `PATH`;
+see [`docs/BUILD-AND-PACKAGING.md`](docs/BUILD-AND-PACKAGING.md) for the full cross-platform build,
+packaging, and release notes.
+
+- **Windows (amd64):** needs MinGW-w64 on `PATH`, with `LIBRARY_PATH`/`C_INCLUDE_PATH` pointing at
+  `third_party/llama-go` (the Windows build task sets these). The built exe needs five MinGW runtime
+  DLLs beside it (`libgcc_s_seh-1.dll`, `libgomp-1.dll`, `libstdc++-6.dll`, `libwinpthread-1.dll`,
+  `libdl.dll`). Missing `libdl.dll` causes a silent `0xC0000135` exit at launch.
+- **Linux (amd64):** needs `gcc`/`g++`, `pkg-config`, `libgtk-4-dev`, `libwebkitgtk-6.0-dev` and
+  `libayatana-appindicator3-dev`. The binary depends on `libgomp.so.1` at runtime (bundled in the
+  AppImage, `Depends: libgomp1` in the `.deb`). `task linux:package` yields AppImage + `.deb`
+  (+ `.rpm`/AUR).
+- **macOS (universal):** needs Xcode Command Line Tools. `task darwin:build:universal` builds
+  arm64 + amd64 and `lipo`s them together; `task darwin:package:dmg` wraps the `.app` in a DMG. The
+  Metal/Accelerate frameworks are OS-provided, so nothing extra ships.
 
 ## Where things live
 
 ```
-backend/            Go backend
-  chunker/          text chunking strategies (markdown, code, plain text)
-  config/           settings loading/validation
-  db/               sqlite schema + queries (sqlite-vec, FTS5)
-  embeddings/       bge-m3 embedding via llama.go
-  indexer/          per-source indexing (obsidian, calibre, git, ...)
-  parser/           per-format parsing (pdf, epub, docx, markdown, code, ...)
-  search/           hybrid vector + FTS search with RRF
-  services/         Wails service layer exposed to the frontend
-frontend/           SolidJS + TypeScript + Vite UI
-  src/App.tsx       app shell
-  src/components/   UI components
-  src/lib/          frontend helpers and bindings glue
-third_party/llama-go/  vendored llama.cpp Go bindings (do not edit casually)
+main.go                     app startup, window, services, auto-reindex loop
+backend/appdata             the data directory and the model path
+backend/config              config.json load, save, defaults
+backend/db                  SQLite schema and helpers (modernc + vec0 + FTS5)
+backend/embeddings          the llama.go embedder (bge-m3)
+backend/chunker             word-window and markdown chunking
+backend/parser              file parsers: md, docx, html, epub, pdf, xlsx, pptx, ipynb, xml, sql, shell, csv/json, calibre, code
+backend/search              hybrid search: vector + FTS + RRF
+backend/indexer             obsidian, project, git, calibre indexers; prune
+backend/services            Wails services the UI calls
+backend/startup             launch-at-login per OS
+third_party/llama-go        vendored llama.cpp bindings (do not edit casually)
+frontend/src/App.tsx        app shell
+frontend/src/components/    UI components
+frontend/src/lib/api.ts     the only place the UI touches the bindings
 ```
 
 Backend services are the contract with the frontend. When you change one, regenerate the bindings so the TypeScript side stays in sync (`wails3 generate bindings`, or see `dev-docs/backend-notes.md`).
@@ -116,4 +136,4 @@ Include:
 
 ## License
 
-By contributing, you agree that your contributions are licensed under the same [MIT License](LICENSE) that covers the project.
+By contributing, you agree that your contributions are licensed under the same [Apache License 2.0](LICENSE) that covers the project.
