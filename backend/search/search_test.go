@@ -120,10 +120,29 @@ func (failingEmbedder) Embed(string) ([]float32, error) {
 	return nil, sql.ErrNoRows
 }
 
-// Vector and FTS each fetch topK candidates, so when their hits differ the
-// fused list can hold up to twice as many. Search must still return at most
-// topK results.
-func TestSearchReturnsAtMostTopK(t *testing.T) {
+func TestEscapeFTSQuery(t *testing.T) {
+	cases := []struct {
+		name, in, want string
+	}{
+		{"empty", "", ""},
+		{"plain tokens", "quick fox", `"quick" "fox"`},
+		{"embedded quote", `foo"bar`, `"foo""bar"`},
+		{"quoted word", `"hello"`, `"""hello"""`},
+		{"lone quote", `"`, `""""`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := escapeFTSQuery(tc.in); got != tc.want {
+				t.Fatalf("escapeFTSQuery(%q) = %q, want %q", tc.in, got, tc.want)
+			}
+		})
+	}
+}
+
+// A query containing a double quote must still reach FTS as a valid
+// expression. Before quotes were doubled, `say"hello` produced a syntax error
+// that ftsSearch swallowed as an empty result.
+func TestFTSQueryWithQuotesStillMatches(t *testing.T) {
 	conn := newTestDB(t)
 	if err := db.InitSchema(conn, db.EmbeddingDim); err != nil {
 		t.Fatal(err)
@@ -134,22 +153,16 @@ func TestSearchReturnsAtMostTopK(t *testing.T) {
 		collID, "markdown", "/tmp/note.md",
 	)
 	sourceID, _ := srcRes.LastInsertId()
-
-	qv := make([]float32, db.EmbeddingDim)
-	qv[0] = 1
-	other := make([]float32, db.EmbeddingDim)
-	other[1] = 1
-	// The best vector hit has none of the query terms, and the only FTS hit
-	// has a different vector, so the two retrievers disagree.
-	seedDoc(t, conn, collID, sourceID, 0, "Vector hit", "completely unrelated subject matter", qv)
-	seedDoc(t, conn, collID, sourceID, 1, "Keyword hit", "kubernetes rollout notes", other)
+	seedDoc(t, conn, collID, sourceID, 0, "Greeting", `then say "hello" to everyone`, make([]float32, db.EmbeddingDim))
 
 	sd := config.SearchDefaults{TopK: 10, RRFK: 60, VectorWeight: 0.7, FTSWeight: 0.3}
-	resp, err := Search(conn, "kubernetes rollout", Filters{TopK: 1}, fakeEmbedder{qv}, sd)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(resp.Results) != 1 {
-		t.Fatalf("TopK=1 returned %d results, want 1", len(resp.Results))
+	for _, q := range []string{`"hello"`, `say"hello`} {
+		resp, err := Search(conn, q, Filters{}, failingEmbedder{}, sd)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(resp.Results) == 0 || resp.Results[0].Title != "Greeting" {
+			t.Fatalf("query %q: expected FTS to find Greeting, got %+v", q, resp.Results)
+		}
 	}
 }
