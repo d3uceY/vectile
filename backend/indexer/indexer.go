@@ -473,9 +473,11 @@ func fileToItem(ctx context.Context, conn *sql.DB, cfg *config.Config, filePath 
 	absPath, _ := filepath.Abs(filePath)
 
 	info, statErr := os.Stat(filePath)
+	// Keep sub-second precision: isSourceCurrent compares this string before
+	// hashing, so a coarser format would hide an edit made in the same second.
 	mtime := ""
 	if statErr == nil {
-		mtime = info.ModTime().UTC().Format(time.RFC3339)
+		mtime = info.ModTime().UTC().Format(time.RFC3339Nano)
 	}
 
 	if !force && isSourceCurrent(conn, collectionID, absPath, mtime) {

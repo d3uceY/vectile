@@ -198,6 +198,14 @@ func Load(path string) (*Config, error) {
 		slog.Error("failed to parse config, using defaults", "path", path, "err", err)
 		return cfg, nil
 	}
+	// A hand-edited "projects": null (or "repositories": null) unmarshals to a
+	// nil map, and every later write into it would panic.
+	if cfg.Projects == nil {
+		cfg.Projects = map[string][]string{}
+	}
+	if cfg.Repositories == nil {
+		cfg.Repositories = map[string][]string{}
+	}
 	expandConfigPaths(cfg)
 
 	// First-run shape: an empty library (existing file included) gets one
@@ -223,6 +231,9 @@ func Save(cfg *Config, path string) error {
 	existing := make(map[string]any)
 	if data, err := os.ReadFile(path); err == nil {
 		_ = json.Unmarshal(data, &existing)
+	}
+	if existing == nil { // the file held the JSON value null
+		existing = make(map[string]any)
 	}
 	// Overlay current values, keeping any keys this build doesn't know about.
 	existing["embedding_model"] = cfg.EmbeddingModel

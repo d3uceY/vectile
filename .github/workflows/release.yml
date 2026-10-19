@@ -642,6 +642,11 @@ jobs:
           } > commit_log.md
 
           # ── Changelog (PRs + commits + contributors) ──────────────────────
+          #
+          # Credit the PR's own author (.user.login), not the commit author.
+          # A maintainer pushing a fix onto a contributor's branch would take
+          # their credit otherwise. Commit lines credit the commit author, so
+          # direct pushes still show who made them.
           COMMITS_FILE=$(mktemp)
           USERS_FILE=$(mktemp)
           PR_FILE=$(mktemp)
@@ -653,8 +658,16 @@ jobs:
             COMMIT_JSON=$(curl -sf -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${REPO}/commits/${HASH}" 2>/dev/null || echo "{}")
             GH_LOGIN=$(echo "$COMMIT_JSON" | jq -r '.author.login // empty' 2>/dev/null || echo "")
             PR_JSON=$(curl -sf -H "Authorization: Bearer ${GH_TOKEN}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${REPO}/commits/${HASH}/pulls" 2>/dev/null || echo "[]")
-            PR_LINE=$(echo "$PR_JSON" | jq -r --arg repo "$REPO" --arg author "${GH_LOGIN}" '.[0] | select(. != null) | "- \(.title) [#\(.number)](https://github.com/\($repo)/pull/\(.number))" + (if $author != "" then " - @\($author)" else "" end)' 2>/dev/null || echo "")
-            if [ -n "$PR_LINE" ]; then echo "$PR_LINE" >> "$PR_FILE"; PR_FOUND=true; fi
+            PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.[0].user.login // empty' 2>/dev/null || echo "")
+            [ -z "$PR_AUTHOR" ] && PR_AUTHOR="$GH_LOGIN"
+            PR_LINE=$(echo "$PR_JSON" | jq -r --arg repo "$REPO" --arg author "$PR_AUTHOR" '.[0] | select(. != null) | "- \(.title) [#\(.number)](https://github.com/\($repo)/pull/\(.number))" + (if $author != "" then " - @\($author)" else "" end)' 2>/dev/null || echo "")
+            if [ -n "$PR_LINE" ]; then
+              echo "$PR_LINE" >> "$PR_FILE"
+              PR_FOUND=true
+              # Credit the PR author even when the commits were authored by
+              # someone else (e.g. a maintainer pushing onto their branch).
+              [ -n "$PR_AUTHOR" ] && echo "$PR_AUTHOR" >> "$USERS_FILE"
+            fi
             if [ -n "$GH_LOGIN" ]; then
               echo "$GH_LOGIN" >> "$USERS_FILE"
               echo "- ${MSG} - @${GH_LOGIN}" >> "$COMMITS_FILE"
@@ -686,6 +699,17 @@ jobs:
             done
             echo "</tr></table>" >> commit_log.md
             echo "" >> commit_log.md
+            # Handles inside raw HTML do not reliably notify. This plain-text
+            # line is what actually pings every contributor. paste is given a
+            # single delimiter on purpose: with -s it cycles through the whole
+            # -d string, so ", " would alternate comma and space.
+            MENTIONS=$(sort -u "$USERS_FILE" | sed 's/^/@/' | paste -sd ',' - | sed 's/,/, /g')
+            echo "Thanks: ${MENTIONS}" >> commit_log.md
+            echo "" >> commit_log.md
+          fi
+          if [ -n "$PREV_TAG" ]; then
+            echo "**Full Changelog**: https://github.com/${REPO}/compare/${PREV_TAG}...${CURR_TAG}" >> commit_log.md
+            echo "" >> commit_log.md
           fi
 
           rm -f "$COMMITS_FILE" "$USERS_FILE" "$PR_FILE"
@@ -713,7 +737,11 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          # The body above is the single changelog: PRs (credited to the PR
+          # author), commits (credited to the commit author), contributors,
+          # and a full-changelog link. GitHub's generator would append a second
+          # PR list, so it stays off.
+          generate_release_notes: false
           append_body: true
           body_path: commit_log.md
           files: artifacts/*

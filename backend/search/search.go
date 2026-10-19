@@ -111,8 +111,13 @@ func Search(conn *sql.DB, query string, filters Filters, embedder QueryEmbedder,
 
 	merged := RRFMerge(vecResults, ftsResults, sd.RRFK, sd.VectorWeight, sd.FTSWeight)
 
-	results := make([]SearchResult, 0, len(merged))
+	// Each retriever fetched topK candidates, so the fused list can be up to
+	// twice as long. Stop at topK, skipping rows that could not be fetched.
+	results := make([]SearchResult, 0, min(len(merged), topK))
 	for _, r := range merged {
+		if len(results) == topK {
+			break
+		}
 		if res, err := fetchResult(conn, r.docID, r.score); err == nil {
 			results = append(results, *res)
 		}

@@ -14,8 +14,15 @@ older version, please upgrade to the latest release before reporting an issue.
 ## Reporting a Vulnerability
 
 If you believe you have found a security vulnerability in vectile, please **do
-not** open a public issue. Instead, report it privately so we can assess and
-address it before it is disclosed.
+not** open a public issue. Report it privately through GitHub's private
+vulnerability reporting form:
+
+https://github.com/d3uceY/vectile/security/advisories/new
+
+The same form is available from the repository's **Security** tab via **Report
+a vulnerability**. Reports arrive as a draft security advisory that only the
+maintainers can see, so we can assess, discuss, and prepare a fix before any
+public disclosure. You can request a CVE from the advisory once it is published.
 
 Please include as much of the following information as possible:
 

@@ -163,3 +163,41 @@ func TestCollectionNameConflicts(t *testing.T) {
 		t.Fatalf("expected one conflict on 'shared', got %v", conflicts)
 	}
 }
+
+// A hand-edited config.json can set a map to null, or be the bare value null.
+// Load and Save must recover instead of panicking on a nil map.
+func TestLoadAndSaveSurviveNullValues(t *testing.T) {
+	cases := []struct{ name, raw string }{
+		{"null projects", `{"projects": null}`},
+		{"null repositories", `{"repositories": null}`},
+		{"null document", `null`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "config.json")
+			if err := os.WriteFile(path, []byte(tc.raw), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			cfg, err := Load(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.Projects == nil || cfg.Repositories == nil {
+				t.Fatalf("maps left nil: projects=%v repositories=%v", cfg.Projects, cfg.Repositories)
+			}
+			cfg.Repositories["code"] = []string{"/tmp/repo"} // must not panic
+
+			if err := Save(cfg, path); err != nil {
+				t.Fatal(err)
+			}
+			again, err := Load(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(again.Repositories["code"]) != 1 {
+				t.Fatalf("saved repositories not reloaded: %v", again.Repositories)
+			}
+		})
+	}
+}
