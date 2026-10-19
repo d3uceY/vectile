@@ -119,3 +119,37 @@ type failingEmbedder struct{}
 func (failingEmbedder) Embed(string) ([]float32, error) {
 	return nil, sql.ErrNoRows
 }
+
+// Vector and FTS each fetch topK candidates, so when their hits differ the
+// fused list can hold up to twice as many. Search must still return at most
+// topK results.
+func TestSearchReturnsAtMostTopK(t *testing.T) {
+	conn := newTestDB(t)
+	if err := db.InitSchema(conn, db.EmbeddingDim); err != nil {
+		t.Fatal(err)
+	}
+	collID, _ := db.GetOrCreateCollection(conn, "test", "project", nil, nil)
+	srcRes, _ := conn.Exec(
+		"INSERT INTO sources (collection_id, source_type, source_path) VALUES (?,?,?)",
+		collID, "markdown", "/tmp/note.md",
+	)
+	sourceID, _ := srcRes.LastInsertId()
+
+	qv := make([]float32, db.EmbeddingDim)
+	qv[0] = 1
+	other := make([]float32, db.EmbeddingDim)
+	other[1] = 1
+	// The best vector hit has none of the query terms, and the only FTS hit
+	// has a different vector, so the two retrievers disagree.
+	seedDoc(t, conn, collID, sourceID, 0, "Vector hit", "completely unrelated subject matter", qv)
+	seedDoc(t, conn, collID, sourceID, 1, "Keyword hit", "kubernetes rollout notes", other)
+
+	sd := config.SearchDefaults{TopK: 10, RRFK: 60, VectorWeight: 0.7, FTSWeight: 0.3}
+	resp, err := Search(conn, "kubernetes rollout", Filters{TopK: 1}, fakeEmbedder{qv}, sd)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(resp.Results) != 1 {
+		t.Fatalf("TopK=1 returned %d results, want 1", len(resp.Results))
+	}
+}
