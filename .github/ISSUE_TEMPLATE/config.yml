@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability
-    url: https://github.com/d3uceY/vectile/security/policy
-    about: Please report security vulnerabilities privately. Do not open a public issue.
+    url: https://github.com/d3uceY/vectile/security/advisories/new
+    about: Report vulnerabilities privately through GitHub's advisory form. Do not open a public issue.
