@@ -140,3 +140,24 @@ func TestChunkMarkdownUnterminatedFence(t *testing.T) {
 		t.Fatal("content after an unterminated fence was lost")
 	}
 }
+
+// A fence closes only on a run of the same character at least as long as the
+// one that opened it, so a ``` example inside a ```` block stays inside it.
+func TestChunkMarkdownNestedFenceLengths(t *testing.T) {
+	src := "# Doc\n\nIntro.\n\n````markdown\n```\n# inside outer fence\n```\n````\n\n## Outside\n\nBody.\n"
+	chunks := ChunkMarkdown(src, "note.md", 500, 50)
+
+	var paths []string
+	for _, c := range chunks {
+		if path, ok := c.Metadata["heading_path"].(string); ok {
+			paths = append(paths, path)
+		}
+	}
+	joined := strings.Join(paths, " | ")
+	if strings.Contains(joined, "inside outer fence") {
+		t.Fatalf("a heading inside the outer fence became a section: %s", joined)
+	}
+	if !strings.Contains(joined, "Outside") {
+		t.Fatalf("the real heading after the fence was lost: %s", joined)
+	}
+}

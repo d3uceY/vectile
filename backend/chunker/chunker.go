@@ -84,13 +84,25 @@ func codeFenceStart(line string) bool {
 	return n >= 3
 }
 
-// codeFenceClose reports whether a line closes a fence opened with char c.
-func codeFenceClose(line string, c byte) bool {
+// fenceRun returns how many times line repeats its first character.
+func fenceRun(line string) int {
 	n := 0
-	for n < len(line) && line[n] == c {
+	for n < len(line) && line[n] == line[0] {
 		n++
 	}
-	return n >= 3
+	return n
+}
+
+// codeFenceClose reports whether a line closes a fence opened with a run of
+// size characters c. As in CommonMark, the closing run must be the same
+// character, at least as long as the opener, and followed only by
+// whitespace, so a ``` example inside a ```` block does not end it.
+func codeFenceClose(line string, c byte, size int) bool {
+	if line == "" || line[0] != c {
+		return false
+	}
+	n := fenceRun(line)
+	return n >= size && strings.TrimSpace(line[n:]) == ""
 }
 
 // maskFencedBlocks replaces fenced code blocks with placeholder tokens so
@@ -101,11 +113,13 @@ func maskFencedBlocks(text string) (masked string, blocks []string) {
 	var out strings.Builder
 	var fence strings.Builder
 	open := byte(0)
+	openSize := 0
 	for _, line := range strings.Split(text, "\n") {
 		trimmed := strings.TrimLeft(line, " \t")
 		if open == 0 {
 			if codeFenceStart(trimmed) {
 				open = trimmed[0]
+				openSize = fenceRun(trimmed)
 				fence.WriteString(line)
 				fence.WriteByte('\n')
 				continue
@@ -116,7 +130,7 @@ func maskFencedBlocks(text string) (masked string, blocks []string) {
 		}
 		fence.WriteString(line)
 		fence.WriteByte('\n')
-		if codeFenceClose(trimmed, open) {
+		if codeFenceClose(trimmed, open, openSize) {
 			flushCodeFence(&out, &fence, &blocks)
 			open = 0
 		}
