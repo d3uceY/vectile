@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/mark3labs/mcp-go/mcp"
@@ -207,6 +208,73 @@ func TestGrepFindsLiteralAndRegex(t *testing.T) {
 	out = call(t, handleGrep(core), map[string]any{"pattern": "alpha", "source_type": "code"})
 	if len(out["matches"].([]any)) != 0 {
 		t.Fatal("source_type filter did not apply")
+	}
+}
+
+// TestGrepOffsetsSurviveCaseFolding guards the case-insensitive literal path.
+// Matching used to run against strings.ToLower(content), whose byte length can
+// differ from content's: U+023A (Ⱥ) is 2 bytes and lowercases to U+2C65 (ⱥ),
+// which is 3. Enough of them before a match pushed the offset past the end of
+// the chunk and the handler sliced out of range.
+func TestGrepOffsetsSurviveCaseFolding(t *testing.T) {
+	core := testCore(t)
+
+	coll, err := db.GetOrCreateCollection(db.DB, "notes", "project", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := strings.Repeat("\u023A", 6) + "\nsecond hello"
+	src := insertSource(t, db.DB, coll, "markdown", "/vault/strokes.md", "2026-03-01 00:00:00")
+	insertDocument(t, db.DB, src, coll, 0, "strokes.md", content, `{}`)
+
+	out := call(t, handleGrep(core), map[string]any{"pattern": "hello"})
+	matches, ok := out["matches"].([]any)
+	if !ok || len(matches) != 1 {
+		t.Fatalf("expected 1 match, got %v", out["matches"])
+	}
+	m := matches[0].(map[string]any)
+	if m["line"] != float64(2) {
+		t.Fatalf("line = %v, want 2", m["line"])
+	}
+	if got := m["context"].(string); !strings.HasSuffix(got, "second hello") {
+		t.Fatalf("context = %q", got)
+	}
+}
+
+// TestGrepFindsNonASCIICaseVariants guards the SQL prefilter that narrows the
+// rows before the Go-side match runs. It used to be instr(lower(...)), and
+// SQLite's lower() folds ASCII only, so a row whose only match differed in case
+// outside ASCII was dropped before anything looked at it.
+func TestGrepFindsNonASCIICaseVariants(t *testing.T) {
+	core := testCore(t)
+
+	coll, err := db.GetOrCreateCollection(db.DB, "notes", "project", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := insertSource(t, db.DB, coll, "markdown", "/vault/cafe.md", "2026-03-02 00:00:00")
+	insertDocument(t, db.DB, src, coll, 0, "cafe.md", "Treffpunkt: ZÜRICH CAFÉ", `{}`)
+	src = insertSource(t, db.DB, coll, "markdown", "/vault/stroke.md", "2026-03-03 00:00:00")
+	insertDocument(t, db.DB, src, coll, 0, "stroke.md", "value Ⱥⱥ end", `{}`)
+
+	for _, tc := range []struct{ pattern, want string }{
+		{"zürich café", "Treffpunkt: ZÜRICH CAFÉ"},
+		{"ⱥ", "value Ⱥⱥ end"},
+	} {
+		out := call(t, handleGrep(core), map[string]any{"pattern": tc.pattern})
+		matches, ok := out["matches"].([]any)
+		if !ok || len(matches) != 1 {
+			t.Fatalf("pattern %q: expected 1 match, got %v", tc.pattern, out["matches"])
+		}
+		if got := matches[0].(map[string]any)["context"].(string); got != tc.want {
+			t.Fatalf("pattern %q: context = %q, want %q", tc.pattern, got, tc.want)
+		}
+	}
+
+	// The path filter folds the same way.
+	out := call(t, handleGrep(core), map[string]any{"pattern": "end", "path": "STROKE"})
+	if matches, ok := out["matches"].([]any); !ok || len(matches) != 1 {
+		t.Fatalf("path filter: expected 1 match, got %v", out["matches"])
 	}
 }
 

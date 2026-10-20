@@ -274,11 +274,23 @@ func handleGrep(core *services.Core) server.ToolHandlerFunc {
 		isRegex := request.GetBool("regex", false)
 		limit := clampInt(request.GetInt("limit", 0), 20, 1, 200)
 
+		// Both modes match with a regexp against the original text, so the
+		// offsets we report index the same string they were found in. A
+		// literal pattern is escaped and compiled with (?i) instead of being
+		// matched against strings.ToLower(content): lowercasing changes the
+		// byte length of some runes (U+023A Ⱥ is 2 bytes, its lowercase
+		// U+2C65 ⱥ is 3), so every offset after them shifts and a slice can
+		// run past the end of the chunk.
 		var re *regexp.Regexp
 		if isRegex {
 			re, err = regexp.Compile(pattern)
 			if err != nil {
 				return mcp.NewToolResultError(fmt.Sprintf("bad regex: %v", err)), nil
+			}
+		} else {
+			re, err = regexp.Compile("(?i)" + regexp.QuoteMeta(pattern))
+			if err != nil {
+				return mcp.NewToolResultError(fmt.Sprintf("bad pattern: %v", err)), nil
 			}
 		}
 
@@ -293,11 +305,15 @@ func handleGrep(core *services.Core) server.ToolHandlerFunc {
 			args = append(args, st)
 		}
 		if p := request.GetString("path", ""); p != "" {
-			where = append(where, "instr(lower(s.source_path), lower(?)) > 0")
+			where = append(where, "instr(vfold(s.source_path), vfold(?)) > 0")
 			args = append(args, p)
 		}
 		if !isRegex {
-			where = append(where, "instr(lower(d.content), lower(?)) > 0")
+			// vfold(), not lower(): SQLite's lower() folds ASCII only, so it
+			// would drop rows whose only match differs in case outside ASCII
+			// before the match below ever sees them. vfold folds exactly the
+			// way (?i) matches, so this filter never hides a real match.
+			where = append(where, "instr(vfold(d.content), vfold(?)) > 0")
 			args = append(args, pattern)
 		}
 
@@ -337,16 +353,12 @@ func handleGrep(core *services.Core) server.ToolHandlerFunc {
 				return mcp.NewToolResultError(fmt.Sprintf("scan match: %v", err)), nil
 			}
 
-			start, end := -1, -1
 			if isRegex {
 				scanned++
-				if loc := re.FindStringIndex(content); loc != nil {
-					start, end = loc[0], loc[1]
-				}
-			} else {
-				if i := strings.Index(strings.ToLower(content), strings.ToLower(pattern)); i >= 0 {
-					start, end = i, i+len(pattern)
-				}
+			}
+			start, end := -1, -1
+			if loc := re.FindStringIndex(content); loc != nil {
+				start, end = loc[0], loc[1]
 			}
 			if start < 0 {
 				continue
@@ -461,7 +473,7 @@ func handleListSources(core *services.Core) server.ToolHandlerFunc {
 			WHERE s.collection_id = ?`
 		args := []any{id}
 		if match != "" {
-			query += " AND instr(lower(s.source_path), lower(?)) > 0"
+			query += " AND instr(vfold(s.source_path), vfold(?)) > 0"
 			args = append(args, match)
 		}
 		query += " ORDER BY s.source_path LIMIT ?"

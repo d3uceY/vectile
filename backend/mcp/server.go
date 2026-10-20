@@ -20,6 +20,9 @@ func CreateServer(core *services.Core) *server.MCPServer {
 	s := server.NewMCPServer(
 		"vectile",
 		"1.1.0",
+		// A panicking tool handler must fail one call, not the whole app: the
+		// HTTP transports run handlers on goroutines that recover nothing.
+		server.WithRecovery(),
 		server.WithInstructions(
 			"Search and read a private, local knowledge library: Obsidian vaults, "+
 				"books, code, and project documents indexed with hybrid vector + "+
