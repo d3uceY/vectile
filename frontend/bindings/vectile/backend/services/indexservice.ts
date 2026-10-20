@@ -73,7 +73,7 @@ export function DeleteSource(sourceID: number): $CancellablePromise<number> {
 }
 
 /**
- * GetConfig returns the current configuration.
+ * GetConfig returns the current configuration snapshot.
  */
 export function GetConfig(): $CancellablePromise<config$0.Config | null> {
     return $Call.ByID(2113296768).then(($result: any) => {
