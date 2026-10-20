@@ -45,7 +45,7 @@ export const NAV_GROUPS: {
     label: "Companions",
     items: [
       { key: "vexter", label: "Vexter", icon: VexterNavIcon },
-      { key: "connect", label: "Connect", icon: ConnectNavIcon },
+      { key: "connect", label: "Connect (MCP)", icon: ConnectNavIcon },
     ],
   },
 ];
