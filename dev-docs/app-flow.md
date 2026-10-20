@@ -11,7 +11,17 @@ vectile is a desktop app with two halves.
 - A Go backend reads your files, turns them into searchable chunks, stores them in a local SQLite database, and answers searches.
 - A web-style UI (SolidJS) renders in a native window and talks to the backend over the Wails bridge.
 
-Everything runs on your machine. No server, no cloud, no network calls.
+Parsing, embedding, indexing, search, and OCR run in-process. No server, no cloud, no remote embedding
+service.
+
+The only requests that leave the machine:
+
+- `api.github.com` on launch: the latest release tag, for the update badge.
+- `huggingface.co` on download: a `.gguf` from the catalog (bytes come from a `*.cdn.hf.co` CDN).
+- `github.com` on OCR install: the Tesseract archive plus its `SHA256SUMS`
+  (assets redirect to `release-assets.githubusercontent.com`).
+
+The MCP server listens on `127.0.0.1` only. See `frontend/src/lib/update.ts`, `backend/services/model_download.go`, `backend/ocr/install.go`, and `backend/mcp/service.go` for the four places that touch a socket.
 
 ```mermaid
 flowchart LR

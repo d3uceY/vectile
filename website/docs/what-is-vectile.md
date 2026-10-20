@@ -15,8 +15,9 @@ Every query runs twice: once for the exact words you typed, once for passages th
 thing in other words. The two result lists are blended into one. A search for "how do we ship
 changes safely" can land on a note about blue-green deploys that never says "ship".
 
-Nothing leaves your machine. No server, no account, no API key, no tracking. The model that reads
-your text runs inside the app, from a file on your disk.
+Your documents never leave your machine. No server, no account, no API key, no tracking; the model
+runs inside the app, from a file on your disk. Three network requests exist — a launch version check,
+and model or OCR downloads — and [the privacy page](/docs/privacy) names each host.
 
 <Shot
   src="screenshots/search.png"

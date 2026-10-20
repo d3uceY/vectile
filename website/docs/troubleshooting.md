@@ -74,7 +74,21 @@ model state.
 
 ## A Windows firewall prompt appeared
 
-The MCP server listens on loopback, so denying the prompt does not break the app.
+The MCP server listens on loopback, so denying the prompt breaks nothing. Nothing else listens;
+outbound requests are listed below.
+
+## A model or OCR download fails
+
+Downloads go straight to a public host; a proxy or egress allowlist must allow these:
+
+| What | Hosts |
+|---|---|
+| Model from the catalog | `huggingface.co`, then `*.cdn.hf.co` for the bytes |
+| Tesseract plugin | `github.com` for the release page, then `release-assets.githubusercontent.com` for the archive and `SHA256SUMS` |
+| Update badge at launch | `api.github.com` |
+
+A blocked host shows as an HTTP error in the dialog. Import or drop in a `.gguf` to skip the model
+download.
 
 ## The app will not start on Linux
 

@@ -36,10 +36,29 @@ will keep you informed of our progress toward a fix and a disclosure timeline.
 
 ## Scope
 
-vectile is designed to be fully local and privacy-preserving: no server, no
-cloud, and no network calls. Everything, including the embedding model, runs on
-your machine. Security reports related to the handling of local data, the
-indexing or parsing of documents, and the in-process model engine are in scope.
+vectile is designed to be local and privacy-preserving. Indexing, parsing,
+chunking, embedding, search, and OCR run in-process on your machine. No code
+path sends document text, chunks, vectors, or library metadata anywhere. No
+server component, no account, no cloud sync, no remote embedding service.
+
+It is not a zero-network application. These are the only requests it makes:
+
+| When | What | Host |
+| --- | --- | --- |
+| Every launch | Newest release tag, compared with the running version to offer an update. Sends no identifiers. No setting disables it for now. | `api.github.com` |
+| You press download in Settings → Model → Get a model | The selected `.gguf`, streamed into the models folder. | `huggingface.co`, then a Hugging Face CDN (`*.cdn.hf.co`) for the bytes |
+| You install the Tesseract OCR plugin in Settings | The platform archive and the release's `SHA256SUMS`, which the archive is verified against before unpacking. | `github.com` release assets, then `release-assets.githubusercontent.com` |
+
+Blocking any host above breaks nothing else: the update check skips, and a
+blocked download shows an error. Links (repository, release page, model catalog)
+open in your default browser, never in-app. The optional MCP server is off by
+default and binds to `127.0.0.1` only.
+
+No analytics, telemetry, crash reporting, or background uploads.
+
+Security reports related to the handling of local data, the indexing or parsing
+of documents, the download and verification of models and OCR bundles, the MCP
+listener, and the in-process model engine are in scope.
 
 Out of scope:
 

@@ -13,7 +13,7 @@ Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys: the embeddin
 
 ## Features
 
-- **Private:** the embedding model runs inside the app. Nothing leaves your machine.
+- **Private:** indexing, parsing, embedding, search, and OCR run inside the app. Your documents and their text are never uploaded. See [network activity](#network-activity) for the three requests the app does make.
 - **Search by meaning:** a blue-green deploy note matches “how do we ship changes safely” without using those words.
 - **Index what you have:** Obsidian vaults, document folders (Markdown, PDF, DOCX, HTML, TXT, CSV, JSON, YAML, XML, SQL, shell scripts, XLSX, PPTX, Jupyter notebooks, EPUB), Calibre libraries, and code repositories with commit history.
 - **Bring your own model:** import or download a `.gguf` from Settings.
@@ -159,6 +159,26 @@ Query embeddings are cached per model, so repeat searches skip the model; rankin
 | mcp.transport | streamable-http | MCP transport: `streamable-http` (`/mcp`) or `sse` (`/sse`) |
 | ocr.enabled | true | Run OCR on PDF pages that come back with no text |
 | ocr.languages | [eng] | Language codes; codes with no matching data are ignored |
+
+## Network activity
+
+Parsing, chunking, embedding, search, and OCR run in-process. Document text, chunks,
+vectors, and library metadata never leave the machine. No server, account, or cloud sync.
+
+Three outbound requests, and only these:
+
+| When | What | Host |
+|---|---|---|
+| Every launch | The latest release tag, compared with your version to show an update badge. Sends no identifiers. No setting turns it off; blocking the host just means no update notice. | `api.github.com` |
+| You press download in Settings → Model → **Get a model** | The `.gguf` you picked | `huggingface.co` (file bytes from its CDN, `*.cdn.hf.co`) |
+| You install the Tesseract OCR plugin in Settings | The platform archive and the release `SHA256SUMS` it is verified against | `github.com` (assets from `release-assets.githubusercontent.com`) |
+
+Both downloads happen only when you ask: import a model you already have, or skip the OCR plugin,
+and nothing is fetched. Links open in your default browser, not in-app. **Settings → Connect**
+starts a loopback-only MCP server, off by default.
+
+No analytics, telemetry, crash reporting, or background uploads. The
+[privacy page](https://d3ucey.github.io/vectile/docs/privacy) has the same detail.
 
 ## Tech stack
 

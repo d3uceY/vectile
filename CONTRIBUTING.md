@@ -1,6 +1,6 @@
 # Contributing to vectile
 
-Thanks for wanting to contribute! vectile is a personal, keyboard-first desktop search engine for your own library — everything runs in-process, nothing leaves the machine. Keep that spirit in mind as you work.
+Thanks for wanting to contribute! vectile is a personal, keyboard-first desktop search engine for your own library — the work runs in-process, and document content never leaves the machine. Outbound requests are limited to the launch update check and user-initiated model and OCR downloads; a new one needs a line in `SECURITY.md` and `README.md`.
 
 This guide covers how the repo is organized, how to build and test, and what a good pull request looks like.
 
