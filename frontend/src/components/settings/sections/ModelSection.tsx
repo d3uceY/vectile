@@ -252,18 +252,13 @@ export function ModelSection() {
 
         <ConfirmDialog
           open={confirmSwitch() !== null}
-          title="Switching models means re-indexing"
+          title="Switching models needs a re-index"
           body={
-            <>
-              <p>
-                <span class="font-medium text-ink">{confirmSwitch()?.name}</span> embeds text
-                differently from the current model, so the numbers already stored cannot be
-                compared against it — even when the two models have the same number of
-                dimensions. Switching clears every stored embedding, and every indexed
-                collection needs a re-index before the meaning search works again.
-              </p>
-              <p class="mt-2">Switch anyway?</p>
-            </>
+            <p>
+              <span class="font-medium text-ink">{confirmSwitch()?.name}</span> embeds text
+              differently, so stored vectors can't be reused — even at the same dimension.
+              Switching clears them; each collection then needs a re-index.
+            </p>
           }
           confirmLabel="Switch & re-index"
           busyLabel="Switching…"

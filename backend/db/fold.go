@@ -11,11 +11,9 @@ import (
 
 // Case folding for substring filters.
 //
-// SQLite's lower() only case-folds ASCII, so a prefilter written as
-// instr(lower(content), lower(?)) silently drops rows whose only match differs
-// in case outside ASCII (ⱥ in the text, Ⱥ in the pattern). vfold(text) is
-// registered here as a deterministic SQL function that folds text the same way
-// Go's (?i) regexp matching does, so a filter and the match it guards agree.
+// SQLite's lower() folds ASCII only, so instr(lower(content), lower(?)) drops
+// rows whose match differs in case outside ASCII (ⱥ vs Ⱥ). vfold() folds the way
+// Go's (?i) does, so a prefilter never hides a row the match would find.
 
 func init() {
 	sqlite.MustRegisterDeterministicScalarFunction("vfold", 1,
@@ -29,17 +27,14 @@ func init() {
 		})
 }
 
-// foldString maps every rune to the smallest rune in its Unicode simple case
-// folding orbit. Two runes fold together exactly when Go's (?i) regexp matching
-// treats them as equal, because both use unicode.SimpleFold. Unlike
-// strings.ToLower it maps one rune to one rune, so it never changes a string's
-// rune count.
+// foldString maps each rune to the smallest in its simple case folding orbit:
+// the equivalence (?i) matches on, one rune in and one rune out.
 func foldString(s string) string {
 	var b strings.Builder
 	b.Grow(len(s))
 	if isASCII(s) {
-		// The orbit of an ASCII letter is {upper, lower}, so folding is just
-		// upper-casing. This avoids a table lookup per byte on the common path.
+		// An ASCII letter's orbit is {upper, lower}, so folding is upper-casing:
+		// no table lookup per byte on the common path.
 		for i := 0; i < len(s); i++ {
 			c := s[i]
 			if 'a' <= c && c <= 'z' {
@@ -55,8 +50,7 @@ func foldString(s string) string {
 	return b.String()
 }
 
-// foldRune returns the smallest rune in r's simple case folding orbit. Runes
-// with no case variant fold to themselves.
+// foldRune returns the smallest rune in r's case folding orbit.
 func foldRune(r rune) rune {
 	min := r
 	for f := unicode.SimpleFold(r); f != r; f = unicode.SimpleFold(f) {

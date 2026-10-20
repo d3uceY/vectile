@@ -121,9 +121,8 @@ func (c *Config) IsEmpty() bool {
 		len(c.Repositories) == 0 && len(c.Projects) == 0
 }
 
-// Clone returns a deep copy: every slice and map is duplicated, so the copy can
-// be edited without touching the original. Core keeps a config snapshot behind
-// a lock and publishes a clone on every save, so it relies on this.
+// Clone returns a deep copy, so the copy can be edited without touching the
+// original. Core publishes one on every config save.
 func (c *Config) Clone() *Config {
 	if c == nil {
 		return nil

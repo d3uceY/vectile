@@ -19,10 +19,9 @@ var Version = "dev"
 
 // Core holds the shared runtime state for all services.
 type Core struct {
-	// cfg is replaced whole under cfgMu, never edited in place once published:
-	// the indexer goroutine, the auto-reindex loop, search handlers, and the
-	// MCP server all read it while the frontend saves settings. Readers take a
-	// snapshot with Config(); writers go through UpdateConfig.
+	// cfg is swapped whole under cfgMu and never edited once published, so a
+	// snapshot stays valid while a reader holds it. Read with Config, write
+	// with UpdateConfig.
 	cfgMu sync.RWMutex
 	cfg   *config.Config
 
@@ -51,23 +50,20 @@ type Core struct {
 // NewCore creates the shared runtime state around an initial configuration.
 func NewCore(cfg *config.Config) *Core { return &Core{cfg: cfg} }
 
-// Config returns the current configuration snapshot. A published snapshot is
-// never modified again, so the caller can read it freely, on any goroutine,
-// even while a save replaces it. Change configuration through UpdateConfig
-// rather than writing to the returned struct.
+// Config returns the current configuration snapshot. Snapshots are never
+// modified after publication, so a caller can hold one on any goroutine while a
+// save replaces it. Write through UpdateConfig, not the result.
 func (c *Core) Config() *config.Config {
 	c.cfgMu.RLock()
 	defer c.cfgMu.RUnlock()
 	return c.cfg
 }
 
-// UpdateConfig applies mutate to a copy of the current configuration, saves the
-// result, and publishes it. Readers see either the old snapshot or the new one,
-// never a half-updated config, and never race with the write.
+// UpdateConfig applies mutate to a copy, saves it, and publishes it: readers see
+// the old snapshot or the new one, never a half-applied config.
 //
-// The published config is owned by Core: mutate may install its own slices or
-// maps (a config value straight from the settings form, say), so the result is
-// copied once more before it is shared.
+// The result is copied again after mutate, so a mutator that installs its own
+// slices or maps cannot alias the published config.
 func (c *Core) UpdateConfig(mutate func(*config.Config)) error {
 	c.cfgMu.Lock()
 	defer c.cfgMu.Unlock()
@@ -147,9 +143,8 @@ type Status struct {
 }
 
 // Collection is a library collection with counts and enabled state.
-// NeedsReindex is true when the collection has indexed documents but no
-// embeddings — typically right after switching to another embedding model,
-// which drops the old model's vectors until the collection is re-indexed.
+// NeedsReindex: documents exist but have no vectors — the state after a model
+// switch, until the collection is re-indexed.
 type Collection struct {
 	ID           int64  `json:"id"`
 	Name         string `json:"name"`

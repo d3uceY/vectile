@@ -211,11 +211,9 @@ func TestGrepFindsLiteralAndRegex(t *testing.T) {
 	}
 }
 
-// TestGrepOffsetsSurviveCaseFolding guards the case-insensitive literal path.
-// Matching used to run against strings.ToLower(content), whose byte length can
-// differ from content's: U+023A (Ⱥ) is 2 bytes and lowercases to U+2C65 (ⱥ),
-// which is 3. Enough of them before a match pushed the offset past the end of
-// the chunk and the handler sliced out of range.
+// TestGrepOffsetsSurviveCaseFolding: matching used to run against
+// strings.ToLower(content), whose byte length differs for some runes (Ⱥ U+023A is
+// 2 bytes, ⱥ U+2C65 is 3), pushing the offset past the end of the chunk.
 func TestGrepOffsetsSurviveCaseFolding(t *testing.T) {
 	core := testCore(t)
 
@@ -241,10 +239,9 @@ func TestGrepOffsetsSurviveCaseFolding(t *testing.T) {
 	}
 }
 
-// TestGrepFindsNonASCIICaseVariants guards the SQL prefilter that narrows the
-// rows before the Go-side match runs. It used to be instr(lower(...)), and
-// SQLite's lower() folds ASCII only, so a row whose only match differed in case
-// outside ASCII was dropped before anything looked at it.
+// TestGrepFindsNonASCIICaseVariants: the SQL prefilter was instr(lower(...)), and
+// SQLite's lower() folds ASCII only, so a row whose match differed in case
+// outside ASCII was dropped before the Go-side match saw it.
 func TestGrepFindsNonASCIICaseVariants(t *testing.T) {
 	core := testCore(t)
 

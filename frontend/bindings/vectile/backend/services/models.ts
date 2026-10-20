@@ -13,11 +13,9 @@ import * as db$0 from "../db/models.js";
 import * as embeddings$0 from "../embeddings/models.js";
 
 /**
- * CatalogModel is one pre-approved embedding model vectile can fetch for the
- * user. Each pins the SHA-256 and the exact byte size of the file at its URL,
- * and the download refuses to install anything that does not match both, so a
- * corrupted or tampered file is never loaded. Each also carries a link out to
- * the upstream page for users who prefer to read about or inspect it.
+ * CatalogModel is one pre-approved embedding model vectile can fetch. Each pins
+ * the SHA-256 and exact size of its file, and the download refuses anything that
+ * fails either check. HFURL points at the upstream page.
  */
 export class CatalogModel {
     "key": string;
@@ -90,9 +88,8 @@ export class CatalogModel {
 
 /**
  * Collection is a library collection with counts and enabled state.
- * NeedsReindex is true when the collection has indexed documents but no
- * embeddings — typically right after switching to another embedding model,
- * which drops the old model's vectors until the collection is re-indexed.
+ * NeedsReindex: documents exist but have no vectors — the state after a model
+ * switch, until the collection is re-indexed.
  */
 export class Collection {
     "id": number;
@@ -501,10 +498,8 @@ export class OCRState {
 }
 
 /**
- * SetActiveResult reports the outcome of SetActiveModel. NeedsRebuild is true
- * when switching would leave embeddings that the new model cannot use, and
- * something is stored to lose — the switch is NOT applied until the frontend
- * confirms and calls SetActiveModel(force=true).
+ * SetActiveResult reports the outcome of SetActiveModel. NeedsRebuild means the
+ * switch was not applied because it would strand embeddings; call again with force.
  */
 export class SetActiveResult {
     "needsRebuild": boolean;

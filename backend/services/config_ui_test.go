@@ -11,10 +11,8 @@ import (
 	"vectile/backend/startup"
 )
 
-// These tests drive the config the way the Settings UI and Library view do:
-// a form draft saved whole, source paths added and removed one at a time, and
-// collections toggled from the library list. They assert on both the live
-// config (what the app acts on) and the file on disk (what survives a restart).
+// These tests drive config the way the Settings and Library UI do, asserting on
+// both the live config and the file a restart would read.
 
 // configUIEnv wires a Core and IndexService around a real config file.
 func configUIEnv(t *testing.T) (*Core, *IndexService, string) {
@@ -45,17 +43,16 @@ func readConfigFile(t *testing.T, path string) *config.Config {
 	return cfg
 }
 
-// currentAutostart reports the machine's start-on-login state, so a test can
-// submit it unchanged and not touch the real autostart entry.
+// currentAutostart returns the machine's state, so a test can submit it
+// unchanged instead of writing a real autostart entry.
 func currentAutostart() bool {
 	on, err := startup.IsEnabled()
 	return err == nil && on
 }
 
-// TestSettingsSaveRoundTrip covers the most common UI action: open Settings,
-// change several unrelated things, Save. Everything must be live and on disk,
-// and the model-owned fields must survive a draft that carries stale copies of
-// them (the form can be opened before a model switch).
+// TestSettingsSaveRoundTrip is the common case: several unrelated settings
+// changed and saved at once. The model-owned fields must survive a draft holding
+// stale copies of them.
 func TestSettingsSaveRoundTrip(t *testing.T) {
 	core, svc, path := configUIEnv(t)
 
@@ -125,8 +122,8 @@ func TestSettingsSaveRoundTrip(t *testing.T) {
 	}
 }
 
-// TestSourcePathEditsFromSettings covers adding a folder under Sources and
-// removing it again, and that neither loses settings saved in between.
+// TestSourcePathEditsFromSettings adds and removes folders, and checks neither
+// loses settings saved in between.
 func TestSourcePathEditsFromSettings(t *testing.T) {
 	core, svc, path := configUIEnv(t)
 
@@ -264,9 +261,8 @@ func TestSettingsSaveKeepsActiveModel(t *testing.T) {
 	}
 }
 
-// TestFailedSaveLeavesConfigUntouched: a save that can't be written (unwritable
-// path) must report the error and publish nothing, so the running app keeps
-// using the last config that is actually on disk.
+// TestFailedSaveLeavesConfigUntouched: an unwritable path must fail without
+// publishing, so the app keeps running the config that is actually on disk.
 func TestFailedSaveLeavesConfigUntouched(t *testing.T) {
 	core, svc, _ := configUIEnv(t)
 	before := core.Config()
@@ -288,9 +284,8 @@ func TestFailedSaveLeavesConfigUntouched(t *testing.T) {
 	}
 }
 
-// TestConcurrentSourceAddsAreNotLost: several adds at once (a user clicking
-// through folders while the UI is busy) must all land, because each update
-// reads the config the previous one published.
+// TestConcurrentSourceAddsAreNotLost: simultaneous adds must all land, because
+// each update reads what the previous one published.
 func TestConcurrentSourceAddsAreNotLost(t *testing.T) {
 	core, svc, path := configUIEnv(t)
 

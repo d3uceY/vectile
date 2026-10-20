@@ -274,13 +274,10 @@ func handleGrep(core *services.Core) server.ToolHandlerFunc {
 		isRegex := request.GetBool("regex", false)
 		limit := clampInt(request.GetInt("limit", 0), 20, 1, 200)
 
-		// Both modes match with a regexp against the original text, so the
-		// offsets we report index the same string they were found in. A
-		// literal pattern is escaped and compiled with (?i) instead of being
-		// matched against strings.ToLower(content): lowercasing changes the
-		// byte length of some runes (U+023A Ⱥ is 2 bytes, its lowercase
-		// U+2C65 ⱥ is 3), so every offset after them shifts and a slice can
-		// run past the end of the chunk.
+		// Match the original text in both modes, so the offsets index the string
+		// they slice. Lowercasing first shifts every offset after a rune whose
+		// lowercase has a different byte length (Ⱥ U+023A → ⱥ U+2C65), which used
+		// to slice past the end of the chunk.
 		var re *regexp.Regexp
 		if isRegex {
 			re, err = regexp.Compile(pattern)
@@ -309,10 +306,8 @@ func handleGrep(core *services.Core) server.ToolHandlerFunc {
 			args = append(args, p)
 		}
 		if !isRegex {
-			// vfold(), not lower(): SQLite's lower() folds ASCII only, so it
-			// would drop rows whose only match differs in case outside ASCII
-			// before the match below ever sees them. vfold folds exactly the
-			// way (?i) matches, so this filter never hides a real match.
+			// vfold, not lower(): SQLite folds ASCII only, which would drop rows
+			// the (?i) match below would have found.
 			where = append(where, "instr(vfold(d.content), vfold(?)) > 0")
 			args = append(args, pattern)
 		}

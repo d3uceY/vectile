@@ -10,10 +10,8 @@ import (
 	"vectile/backend/db"
 )
 
-// TestReindexKeepsOldVersionWhenChunkFailsToEmbed guards the case where a file
-// that already had an indexed version is re-indexed and one of its new chunks
-// cannot be embedded. The item has to be dropped, but its old chunks must stay
-// searchable until a replacement is stored.
+// TestReindexKeepsOldVersionWhenChunkFailsToEmbed: a file that can't be fully
+// re-indexed keeps its old chunks, so it stays searchable until a replacement lands.
 func TestReindexKeepsOldVersionWhenChunkFailsToEmbed(t *testing.T) {
 	if err := db.Open(filepath.Join(t.TempDir(), "reindex.db")); err != nil {
 		t.Fatal(err)

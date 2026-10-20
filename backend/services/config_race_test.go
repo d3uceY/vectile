@@ -8,10 +8,9 @@ import (
 	"vectile/backend/config"
 )
 
-// TestConfigAccessIsRaceFree exercises the paths that used to race: long-lived
-// readers (the auto-reindex loop, an index run, an MCP search) taking the
-// config while a settings save replaces it. Run with -race; without the
-// detector it still pins the snapshot contract.
+// TestConfigAccessIsRaceFree runs readers against a stream of saves: the shape
+// that raced. Run with -race; without the detector it still pins the snapshot
+// contract.
 func TestConfigAccessIsRaceFree(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	cfg, err := config.Load(path)
@@ -57,8 +56,8 @@ func TestConfigAccessIsRaceFree(t *testing.T) {
 	close(stop)
 	wg.Wait()
 
-	// A snapshot taken before a save keeps the old values: readers never see a
-	// half-updated struct, they see the previous config or the new one.
+	// A snapshot taken before a save keeps its values: readers see the previous
+	// config or the new one, never a half-updated struct.
 	before := core.Config()
 	if err := core.UpdateConfig(func(c *config.Config) { c.EmbeddingBatchSize = 99 }); err != nil {
 		t.Fatal(err)
@@ -74,9 +73,8 @@ func TestConfigAccessIsRaceFree(t *testing.T) {
 	}
 }
 
-// TestUpdateConfigSavesWithoutTouchingCallers guards the copy-on-write edge:
-// the slice and map values the mutator was handed must not be shared with the
-// published snapshot, or a later edit would mutate a live config.
+// TestUpdateConfigSavesWithoutTouchingCallers: the mutator's own slice must not
+// end up inside the published config.
 func TestUpdateConfigSavesWithoutTouchingCallers(t *testing.T) {
 	core := NewCore(&config.Config{Projects: map[string][]string{}, GUI: config.GUIConfig{AutoReindex: true}})
 	core.CfgPath = filepath.Join(t.TempDir(), "config.json")

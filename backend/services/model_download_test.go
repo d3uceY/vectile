@@ -67,10 +67,8 @@ func TestDownloadRejectsInvalidGGUF(t *testing.T) {
 	assertNotInstalled(t, dir, cat.File)
 }
 
-// TestDownloadRejectsBadChecksum is the regression test for an unverified
-// download: a 200 OK body used to be written, parsed, renamed into models/ and
-// activated whatever it contained. A body that doesn't match the pinned
-// SHA-256 must now be thrown away before any of that.
+// TestDownloadRejectsBadChecksum: any 200 OK body used to be written, parsed and
+// installed; a body that misses the pinned SHA-256 must now be dropped first.
 func TestDownloadRejectsBadChecksum(t *testing.T) {
 	dir := testModelsDir(t)
 	body := []byte("plausible looking model bytes")
@@ -119,9 +117,8 @@ func TestDownloadRejectsOversizeBody(t *testing.T) {
 	assertNotInstalled(t, dir, cat.File)
 }
 
-// TestDownloadRefusesUnpinnedModel covers the case the checksum exists for: the
-// response is a perfectly valid embedding GGUF, but not the file the catalog
-// pinned. It used to be renamed into models/ and activated.
+// TestDownloadRefusesUnpinnedModel: a valid embedding GGUF that isn't the file
+// the catalog pinned used to be renamed into models/ and activated.
 func TestDownloadRefusesUnpinnedModel(t *testing.T) {
 	dir := testModelsDir(t)
 	body := testGGUF(384, 512) // valid GGUF, wrong bytes

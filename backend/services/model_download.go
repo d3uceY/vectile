@@ -175,10 +175,8 @@ func (s *ModelService) runDownload(ctx context.Context, cat CatalogModel) {
 	lastBytes, lastTime, lastEmit := int64(0), time.Now(), time.Now()
 	buf := make([]byte, 64*1024)
 
-	// Hash what is written, so the checksum costs no second pass over the file
-	// and no extra memory. The body is bounded at the pinned size: a server
-	// that keeps sending (or a response with no length) must not be able to
-	// fill the disk before the checks below run.
+	// Hash while writing (no second pass) and cap the body at the pinned size, so
+	// a server that keeps sending can't fill the disk before the checks below.
 	h := sha256.New()
 	body := io.Reader(resp.Body)
 	if cat.SizeBytes > 0 {
@@ -231,15 +229,14 @@ func (s *ModelService) runDownload(ctx context.Context, cat CatalogModel) {
 		return
 	}
 
-	// Nothing is parsed, renamed into models/, or activated until the bytes
-	// match what the catalog pins. The URL is a moving ref (resolve/main), so a
-	// mismatch means upstream replaced the file, or the transfer was cut short.
+	// Verify before parsing, renaming, or activating: resolve/main is a moving ref,
+	// so a mismatch means upstream changed the file or the transfer was cut short.
 	if cat.SHA256 == "" {
 		s.abortDownload(cat, tmp, "model has no pinned checksum", false)
 		return
 	}
 	if cat.SizeBytes > 0 && downloaded != cat.SizeBytes {
-		s.abortDownload(cat, tmp, fmt.Sprintf("download is %d bytes, expected %d", downloaded, cat.SizeBytes), false)
+		s.abortDownload(cat, tmp, fmt.Sprintf("got %d bytes, expected %d", downloaded, cat.SizeBytes), false)
 		return
 	}
 	if got := hex.EncodeToString(h.Sum(nil)); !strings.EqualFold(got, cat.SHA256) {
@@ -281,11 +278,9 @@ func (s *ModelService) runDownload(ctx context.Context, cat CatalogModel) {
 	s.core.sendNotification("model-"+cat.Key, "Model ready", m.Name+" is ready")
 }
 
-// activateIfSafe makes a fresh download the active model unless that would
-// strand existing embeddings: stored vectors belong to the model that produced
-// them, and a different model cannot reuse them even when the dimensions match,
-// so with embeddings present the download stays inactive and the user switches
-// in Settings (where the reindex is confirmed).
+// activateIfSafe makes a fresh download active unless that would strand vectors
+// from another model, which can't reuse them even at the same dimension. With
+// embeddings present it stays inactive; the user switches in Settings.
 func (s *ModelService) activateIfSafe(m db.Model) {
 	vectorDim, err := db.GetVectorDim(db.DB)
 	if err != nil {

@@ -138,10 +138,10 @@ func embedTextsIndividually(embedder Embedder, texts []string) [][]float32 {
 // itemBatcher walks items in order, grouping them into batches of roughly
 // embedding_batch_size chunks. An item's chunks are never split across batches.
 type itemBatcher struct {
-	cfg     *config.Config
-	total   int
-	next    int
-	itemAt  itemFunc
+	cfg    *config.Config
+	total  int
+	next   int
+	itemAt itemFunc
 }
 
 // nextBatch returns the next batch, or nil once the items are exhausted or
@@ -215,13 +215,9 @@ func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *Inde
 		return nil
 	}
 
-	// Split by whether an item can be stored at all before touching the
-	// database. A nil vector means one of the item's chunks couldn't be
-	// embedded, and an item can only be stored whole (storeItem writes all its
-	// chunks' vectors), so such an item is dropped. Deciding this first keeps
-	// the purge below away from it: purging an item that is then not stored
-	// deletes a file's previous, still-valid chunks, and the file disappears
-	// from search instead of staying at its old version.
+	// Drop items that can't be stored whole before touching the database: an item
+	// is all-or-nothing, and purging one that is then skipped deletes a file's
+	// still-valid old chunks, taking it out of search until it is reindexed.
 	type storable struct {
 		item *indexItem
 		vecs [][]float32

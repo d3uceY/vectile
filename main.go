@@ -175,10 +175,8 @@ func main() {
 		}
 	}
 
-	// Auto-reindex: poll the config each minute; fire an index-all when the
-	// interval has elapsed. Shares the same mutex as manual index runs. The
-	// loop reads a fresh core.Config() snapshot each tick, so settings changes
-	// apply without a restart.
+	// Auto-reindex: poll the config each minute and fire an index-all when the
+	// interval has elapsed. Shares the index mutex with manual runs.
 	go autoReindexLoop(core)
 
 	// System tray: status line, Index submenu, cancel, and Quit. Must be
@@ -210,9 +208,8 @@ func raiseMainWindow(win *application.WebviewWindow) {
 	}
 }
 
-// autoReindexLoop reads a config snapshot each tick so settings changes
-// (auto-reindex toggle and interval) take effect on the next tick without
-// restarting the loop.
+// autoReindexLoop reads a fresh config snapshot each tick, so settings changes
+// apply on the next one without a restart.
 func autoReindexLoop(core *services.Core) {
 	svc := services.NewIndexService(core)
 	ticker := time.NewTicker(time.Minute)

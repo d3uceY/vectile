@@ -78,6 +78,31 @@ export const PruneIcon = (p: IconProps) => (
   </Icon>
 );
 
+/**
+ * The Model Context Protocol mark: the official three-stroke logo, in its own
+ * 180-box geometry rather than the 24-box icon grid. Tints via currentColor.
+ */
+export const McpIcon = (p: IconProps) => {
+  const size = () => p.size ?? 18;
+  return (
+    <svg
+      class={p.class}
+      width={size()}
+      height={size()}
+      viewBox="0 0 180 180"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="11.0667"
+      stroke-linecap="round"
+      aria-hidden={p["aria-hidden"] ?? true}
+    >
+      <path d="M23.5996 85.2532 86.2021 22.6507C94.8457 14.0071 108.86 14.0071 117.503 22.6507 126.147 31.2942 126.147 45.3083 117.503 53.9519L70.2254 101.23" />
+      <path d="M70.8789 100.578 117.504 53.952C126.148 45.3083 140.163 45.3083 148.806 53.952L149.132 54.278C157.776 62.9216 157.776 76.9357 149.132 85.5792L92.5139 142.198C89.6327 145.079 89.6327 149.75 92.5139 152.631L104.14 164.257" />
+      <path d="M101.853 38.3013 55.553 84.6011C46.9094 93.2447 46.9094 107.258 55.553 115.902 64.1966 124.546 78.2106 124.546 86.8543 115.902L133.154 69.6025" />
+    </svg>
+  );
+};
+
 export const SettingsIcon = (p: IconProps) => (
   <Icon {...p}>
     <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
