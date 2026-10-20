@@ -1,0 +1,233 @@
+# Builds the llama.cpp static archives for Linux amd64 and macOS (arm64 + amd64)
+# and hands them back as source to commit, mirroring the Windows archives already
+# checked in at third_party/llama-go/windows/amd64.
+#
+# Run it manually: Actions → "Build llama.cpp archives" → Run workflow.
+# Then download the `vectile-llamago-archives` artifact and unpack at the repo root:
+#
+#   unzip vectile-llamago-archives.zip -d .                         # bash
+#   Expand-Archive vectile-llamago-archives.zip -DestinationPath .  # PowerShell
+#
+# That drops third_party/llama-go/{linux/amd64,darwin/arm64,darwin/amd64}/ in place.
+# Once committed, release.yml can link straight from the checkout instead of
+# compiling llama.cpp on every release (it still does until then).
+#
+# Nothing here runs on a release. No repo writes either: the archives are ~70 MB
+# of binaries, so they are handed over as an artifact and committed by hand.
+
+name: Build llama.cpp archives
+
+on:
+  workflow_dispatch:
+    inputs:
+      llama_go_ref:
+        description: "llama-go ref to build from (commit or tag). Empty = auto-detect from the vendored headers."
+        required: false
+        default: ""
+
+concurrency:
+  group: llamago-archives
+  cancel-in-progress: false
+
+env:
+  # Empty means the script picks the ref whose wrapper.h and cgo_headers/llama.cpp
+  # are byte-identical to third_party/llama-go, and aborts if none match.
+  LLAMA_GO_REF: ${{ github.event.inputs.llama_go_ref }}
+
+jobs:
+  linux-amd64:
+    # Same image as release.yml: the archives carry that glibc.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet || true
+          df -h /
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config cmake git
+
+      - name: Build archives
+        run: bash ./scripts/build-llamago-archives.sh
+
+      - name: Verify archives
+        run: |
+          dir=third_party/llama-go/linux/amd64
+          # Mirrors the install list in build-llamago-archives.sh.
+          for lib in libbinding libllama-common libllama-common-base libllama \
+                     libggml-cpu libggml libggml-base; do
+            test -s "$dir/$lib.a" || { echo "missing $dir/$lib.a" >&2; exit 1; }
+          done
+          # The script builds with GGML_NATIVE=OFF and AVX-512/VNNI off, so these
+          # archives cannot fault on pre-Alder Lake CPUs. vpdpbusd showing up
+          # means those flags were dropped again (the Windows job guards the same
+          # failure with check-llamago-archives-portable.ps1).
+          if objdump -d "$dir"/lib*.a | grep -qw vpdpbusd; then
+            echo "AVX-VNNI (vpdpbusd) in the archives; check GGML_AVX512_VNNI=OFF" >&2
+            exit 1
+          fi
+          ls -l "$dir"
+
+      - name: Stage for upload
+        run: |
+          mkdir -p stage/third_party/llama-go/linux/amd64
+          cp third_party/llama-go/linux/amd64/*.a stage/third_party/llama-go/linux/amd64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archives-linux-amd64
+          path: stage/**
+          if-no-files-found: error
+
+  # One job per arch rather than one job building both: each clone+build is
+  # ~15 minutes, and a failure in one arch shouldn't cost the other its output.
+  darwin-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes || true
+          sudo rm -rf /Library/Developer/CoreSimulator/Volumes || true
+          sudo rm -rf /usr/local/share/dotnet /usr/local/lib/android || true
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+
+      - name: Ensure cmake
+        run: command -v cmake >/dev/null || brew install cmake
+
+      - name: Build archives
+        env:
+          GOARCH: arm64
+        run: bash ./scripts/build-llamago-archives.sh
+
+      - name: Verify archives
+        run: |
+          dir=third_party/llama-go/darwin/arm64
+          # Mirrors the install list: the Linux set plus the Metal and BLAS
+          # backends that linkage_darwin_arm64.go links.
+          for lib in libbinding libllama-common libllama-common-base libllama \
+                     libggml-cpu libggml libggml-base libggml-metal libggml-blas; do
+            test -s "$dir/$lib.a" || { echo "missing $dir/$lib.a" >&2; exit 1; }
+          done
+          ls -l "$dir"
+
+      - name: Stage for upload
+        run: |
+          mkdir -p stage/third_party/llama-go/darwin/arm64
+          cp third_party/llama-go/darwin/arm64/*.a stage/third_party/llama-go/darwin/arm64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archives-darwin-arm64
+          path: stage/**
+          if-no-files-found: error
+
+  darwin-amd64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes || true
+          sudo rm -rf /Library/Developer/CoreSimulator/Volumes || true
+          sudo rm -rf /usr/local/share/dotnet /usr/local/lib/android || true
+          df -h "$GITHUB_WORKSPACE" "$TMPDIR" || true
+
+      - name: Ensure cmake
+        run: command -v cmake >/dev/null || brew install cmake
+
+      - name: Build archives
+        env:
+          # Cross-built on the ARM runner; the script maps this to
+          # CMAKE_OSX_ARCHITECTURES=x86_64.
+          GOARCH: amd64
+        run: bash ./scripts/build-llamago-archives.sh
+
+      - name: Verify archives
+        run: |
+          dir=third_party/llama-go/darwin/amd64
+          for lib in libbinding libllama-common libllama-common-base libllama \
+                     libggml-cpu libggml libggml-base libggml-metal libggml-blas; do
+            test -s "$dir/$lib.a" || { echo "missing $dir/$lib.a" >&2; exit 1; }
+          done
+          ls -l "$dir"
+
+      - name: Stage for upload
+        run: |
+          mkdir -p stage/third_party/llama-go/darwin/amd64
+          cp third_party/llama-go/darwin/amd64/*.a stage/third_party/llama-go/darwin/amd64/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archives-darwin-amd64
+          path: stage/**
+          if-no-files-found: error
+
+  bundle:
+    runs-on: ubuntu-latest
+    needs:
+      - linux-amd64
+      - darwin-arm64
+      - darwin-amd64
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: payload
+          merge-multiple: true
+
+      - name: Verify all three platforms are present
+        run: |
+          expected=7
+          for dir in linux/amd64 darwin/arm64 darwin/amd64; do
+            case "$dir" in darwin/*) expected=9 ;; *) expected=7 ;; esac
+            got=$(find "payload/third_party/llama-go/$dir" -name '*.a' -size +0 | wc -l)
+            if [ "$got" -ne "$expected" ]; then
+              echo "$dir: $got non-empty archives, expected $expected" >&2
+              find "payload/third_party/llama-go/$dir" -name '*.a' >&2 || true
+              exit 1
+            fi
+          done
+          total=$(find payload/third_party -name '*.a' -size +0 | wc -l)
+          echo "$total archives: linux/amd64 (7), darwin/arm64 (9), darwin/amd64 (9)"
+
+      - name: Package and checksum
+        run: |
+          mkdir -p dist
+          cd payload
+          # Zip only the tree, so unzipping at the repo root puts every archive
+          # back where the linker expects it and nothing else.
+          zip -9 -rX ../dist/vectile-llamago-archives.zip third_party
+          find third_party -name '*.a' | sort | xargs sha256sum > ../dist/SHA256SUMS.txt
+
+      - name: Job summary
+        working-directory: payload
+        run: |
+          {
+            echo "## llama.cpp archives"
+            echo ""
+            echo "Download \`vectile-llamago-archives\`, unpack at the repo root, then commit:"
+            echo ""
+            echo '```'
+            echo "unzip vectile-llamago-archives.zip -d .                        # bash"
+            echo "Expand-Archive vectile-llamago-archives.zip -DestinationPath . # PowerShell"
+            echo "git add third_party/llama-go/linux third_party/llama-go/darwin"
+            echo '```'
+            echo ""
+            echo "| file | bytes |"
+            echo "|---|---:|"
+            find third_party -name '*.a' | sort | while read -r f; do
+              printf '| `%s` | %s |\n' "$f" "$(stat -c %s "$f")"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vectile-llamago-archives
+          path: dist/*
+          if-no-files-found: error
