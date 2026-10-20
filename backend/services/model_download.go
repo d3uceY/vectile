@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log/slog"
@@ -173,10 +175,21 @@ func (s *ModelService) runDownload(ctx context.Context, cat CatalogModel) {
 	lastBytes, lastTime, lastEmit := int64(0), time.Now(), time.Now()
 	buf := make([]byte, 64*1024)
 
+	// Hash what is written, so the checksum costs no second pass over the file
+	// and no extra memory. The body is bounded at the pinned size: a server
+	// that keeps sending (or a response with no length) must not be able to
+	// fill the disk before the checks below run.
+	h := sha256.New()
+	body := io.Reader(resp.Body)
+	if cat.SizeBytes > 0 {
+		body = io.LimitReader(resp.Body, cat.SizeBytes+1) // the extra byte detects oversize
+	}
+	w := io.MultiWriter(f, h)
+
 	for {
-		n, rerr := resp.Body.Read(buf)
+		n, rerr := body.Read(buf)
 		if n > 0 {
-			if _, werr := f.Write(buf[:n]); werr != nil {
+			if _, werr := w.Write(buf[:n]); werr != nil {
 				f.Close()
 				s.abortDownload(cat, tmp, werr.Error(), false)
 				return
@@ -215,6 +228,22 @@ func (s *ModelService) runDownload(ctx context.Context, cat CatalogModel) {
 	}
 	if ctx.Err() != nil {
 		s.abortDownload(cat, tmp, "", true)
+		return
+	}
+
+	// Nothing is parsed, renamed into models/, or activated until the bytes
+	// match what the catalog pins. The URL is a moving ref (resolve/main), so a
+	// mismatch means upstream replaced the file, or the transfer was cut short.
+	if cat.SHA256 == "" {
+		s.abortDownload(cat, tmp, "model has no pinned checksum", false)
+		return
+	}
+	if cat.SizeBytes > 0 && downloaded != cat.SizeBytes {
+		s.abortDownload(cat, tmp, fmt.Sprintf("download is %d bytes, expected %d", downloaded, cat.SizeBytes), false)
+		return
+	}
+	if got := hex.EncodeToString(h.Sum(nil)); !strings.EqualFold(got, cat.SHA256) {
+		s.abortDownload(cat, tmp, fmt.Sprintf("checksum mismatch: got %s, expected %s", got, cat.SHA256), false)
 		return
 	}
 

@@ -14,16 +14,22 @@ import * as embeddings$0 from "../embeddings/models.js";
 
 /**
  * CatalogModel is one pre-approved embedding model vectile can fetch for the
- * user. Each carries the SHA-256 verified after download so a corrupted or
- * tampered file is never loaded, plus a link out to the upstream page for
- * users who prefer to read about or inspect it.
+ * user. Each pins the SHA-256 and the exact byte size of the file at its URL,
+ * and the download refuses to install anything that does not match both, so a
+ * corrupted or tampered file is never loaded. Each also carries a link out to
+ * the upstream page for users who prefer to read about or inspect it.
  */
 export class CatalogModel {
     "key": string;
     "name": string;
     "file": string;
     "url": string;
+    "sha256": string;
     "dimensions": number;
+
+    /**
+     * exact, not rounded
+     */
     "sizeBytes": number;
     "quantization": string;
     "language": string;
@@ -44,6 +50,9 @@ export class CatalogModel {
         }
         if (!("url" in $$source)) {
             this["url"] = "";
+        }
+        if (!("sha256" in $$source)) {
+            this["sha256"] = "";
         }
         if (!("dimensions" in $$source)) {
             this["dimensions"] = 0;
