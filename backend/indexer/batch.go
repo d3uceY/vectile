@@ -215,19 +215,23 @@ func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *Inde
 		return nil
 	}
 
-	if !preCleared {
-		purgeSourceDocuments(conn, collectionID, b.items)
+	// Split by whether an item can be stored at all before touching the
+	// database. A nil vector means one of the item's chunks couldn't be
+	// embedded, and an item can only be stored whole (storeItem writes all its
+	// chunks' vectors), so such an item is dropped. Deciding this first keeps
+	// the purge below away from it: purging an item that is then not stored
+	// deletes a file's previous, still-valid chunks, and the file disappears
+	// from search instead of staying at its old version.
+	type storable struct {
+		item *indexItem
+		vecs [][]float32
 	}
-
-	var indexedNames []string
+	keep := make([]storable, 0, len(b.items))
 	offset := 0
 	for _, item := range b.items {
 		vecs := b.vecs[offset : offset+len(item.Chunks)]
 		offset += len(item.Chunks)
 
-		// A nil vector means one of the item's chunks couldn't be embedded.
-		// An item can only be stored whole (storeItem writes all its chunks'
-		// vectors), so a partially-embedded item is dropped entirely.
 		if hasNilVec(vecs) {
 			result.Errors++
 			if result.Errors <= 10 {
@@ -237,18 +241,30 @@ func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *Inde
 			}
 			continue
 		}
+		keep = append(keep, storable{item: item, vecs: vecs})
+	}
 
-		if err := storeItem(conn, collectionID, item, vecs); err != nil {
+	if !preCleared {
+		items := make([]*indexItem, len(keep))
+		for i, s := range keep {
+			items[i] = s.item
+		}
+		purgeSourceDocuments(conn, collectionID, items)
+	}
+
+	var indexedNames []string
+	for _, s := range keep {
+		if err := storeItem(conn, collectionID, s.item, s.vecs); err != nil {
 			result.Errors++
 			if result.Errors <= 10 {
-				msg := fmt.Sprintf("error indexing %s %s: %v", item.SourceType, item.SourcePath, err)
+				msg := fmt.Sprintf("error indexing %s %s: %v", s.item.SourceType, s.item.SourcePath, err)
 				slog.Warn(msg)
 				result.ErrorMessages = append(result.ErrorMessages, msg)
 			}
 			continue
 		}
 		result.Indexed++
-		indexedNames = append(indexedNames, itemProgressName(item))
+		indexedNames = append(indexedNames, itemProgressName(s.item))
 	}
 	return indexedNames
 }
