@@ -40,7 +40,7 @@ have not changed, so it would not pick the PDF up. See [Scanned PDFs](/docs/ocr)
 ## A collection shows a "needs reindex" badge
 
 That collection has documents but no usable numbers stored for them, usually after switching to a
-model with a different vector width. Run **Re-index all** for it, or **Index all**.
+different embedding model. Run **Re-index all** for it, or **Index all**.
 
 ## Deleting is refused
 

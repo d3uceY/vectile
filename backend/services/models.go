@@ -106,8 +106,8 @@ type Status struct {
 
 // Collection is a library collection with counts and enabled state.
 // NeedsReindex is true when the collection has indexed documents but no
-// embeddings — typically right after switching to a model with a different
-// embedding dimension, which empties the vector tables until re-indexing.
+// embeddings — typically right after switching to another embedding model,
+// which drops the old model's vectors until the collection is re-indexed.
 type Collection struct {
 	ID           int64  `json:"id"`
 	Name         string `json:"name"`

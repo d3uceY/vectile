@@ -136,14 +136,16 @@ func TestSetActiveModelDimChange(t *testing.T) {
 	b := writeFakeModel(t, "b.gguf", 768)
 	_, _ = svc.ListModels() // scan registers both
 
-	// Same dim as the vector tables (1024): applies immediately.
+	// Same dim as the vector tables (1024), nothing embedded yet: applies
+	// immediately, since a rebuild would destroy nothing.
 	res, err := svc.SetActiveModel(a, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if res.NeedsRebuild {
-		t.Fatal("same-dim switch should not need a rebuild")
+		t.Fatal("switch with nothing embedded should not need a rebuild")
 	}
+	seedEmbedding(t, 1024)
 
 	// Different dim without force: not applied, asks for confirmation.
 	res, err = svc.SetActiveModel(b, false)
@@ -172,6 +174,140 @@ func TestSetActiveModelDimChange(t *testing.T) {
 	if svc.core.Cfg.ActiveModel != b {
 		t.Fatalf("cfg.ActiveModel = %q, want %q", svc.core.Cfg.ActiveModel, b)
 	}
+}
+
+// TestSetActiveModelSameDimNeedsRebuild pins the rule that a model change is a
+// reindex even when the dimensions match: two 384d models embed into different
+// spaces, so the old vectors cannot be compared against the new model's query
+// vectors.
+func TestSetActiveModelSameDimNeedsRebuild(t *testing.T) {
+	svc := modelTestEnv(t)
+	a := writeFakeModel(t, "a.gguf", 384)
+	b := writeFakeModel(t, "b.gguf", 384)
+	_, _ = svc.ListModels()
+
+	if _, err := svc.SetActiveModel(a, false); err != nil {
+		t.Fatal(err)
+	}
+	seedEmbedding(t, 384)
+
+	res, err := svc.SetActiveModel(b, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.NeedsRebuild {
+		t.Fatal("same-dim model change should still report NeedsRebuild")
+	}
+	if active, _, _ := db.GetActiveModel(db.DB); active.Path != a {
+		t.Fatalf("model switched before the user confirmed: %q", active.Path)
+	}
+
+	if _, err := svc.SetActiveModel(b, true); err != nil {
+		t.Fatal(err)
+	}
+	if active, _, _ := db.GetActiveModel(db.DB); active.Path != b {
+		t.Fatalf("active after confirm = %q, want %q", active.Path, b)
+	}
+	if n, _ := db.CountEmbeddings(db.DB); n != 0 {
+		t.Fatalf("embeddings after a confirmed switch = %d, want the old space dropped", n)
+	}
+	if dim, _ := db.GetVectorDim(db.DB); dim != 384 {
+		t.Fatalf("vector dim = %d, want 384", dim)
+	}
+}
+
+// TestSetActiveModelSameModelIsFree makes sure re-applying the active model
+// does not demand a reindex (the startup path does this on every launch).
+func TestSetActiveModelSameModelIsFree(t *testing.T) {
+	svc := modelTestEnv(t)
+	a := writeFakeModel(t, "a.gguf", 384)
+	_, _ = svc.ListModels()
+	if _, err := svc.SetActiveModel(a, false); err != nil {
+		t.Fatal(err)
+	}
+	seedEmbedding(t, 384)
+
+	res, err := svc.SetActiveModel(a, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.NeedsRebuild {
+		t.Fatal("re-applying the active model should not ask for a rebuild")
+	}
+	if n, _ := db.CountEmbeddings(db.DB); n != 1 {
+		t.Fatalf("embeddings = %d, want the existing vector kept", n)
+	}
+}
+
+// seedEmbedding stores one document with a vector of the given dimension.
+func seedEmbedding(t *testing.T, dims int) {
+	t.Helper()
+	coll, err := db.GetOrCreateCollection(db.DB, "seed", "project", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := db.DB.Exec(
+		`INSERT INTO sources (collection_id, source_type, source_path) VALUES (?, 'markdown', '/seed.md')`,
+		coll)
+	if err != nil {
+		t.Fatal(err)
+	}
+	src, _ := res.LastInsertId()
+	res, err = db.DB.Exec(
+		`INSERT INTO documents (source_id, collection_id, chunk_index, title, content, metadata)
+		 VALUES (?, ?, 0, 'seed', 'seed text', '{}')`, src, coll)
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc, _ := res.LastInsertId()
+	if err := db.InsertEmbedding(db.DB, doc, make([]byte, dims*4)); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestDownloadedModelNotAutoActivatedOverExistingVectors: a download must not
+// silently replace the active model while vectors from the old one exist, even
+// at the same dimension — the vectors would become meaningless.
+func TestDownloadedModelNotAutoActivatedOverExistingVectors(t *testing.T) {
+	t.Run("with existing vectors", func(t *testing.T) {
+		svc := modelTestEnv(t)
+		a := writeFakeModel(t, "a.gguf", 384)
+		_, _ = svc.ListModels()
+		if _, err := svc.SetActiveModel(a, false); err != nil {
+			t.Fatal(err)
+		}
+		seedEmbedding(t, 384)
+
+		bPath := writeFakeModel(t, "b.gguf", 384)
+		_, _ = svc.ListModels()
+		b, ok, err := db.GetModelByPath(db.DB, bPath)
+		if err != nil || !ok {
+			t.Fatalf("model b: ok=%v err=%v", ok, err)
+		}
+		svc.activateIfSafe(b)
+
+		if active, _, _ := db.GetActiveModel(db.DB); active.Path != a {
+			t.Fatalf("downloaded model auto-activated over existing vectors: %q", active.Path)
+		}
+		if n, _ := db.CountEmbeddings(db.DB); n != 1 {
+			t.Fatalf("vectors after download = %d, want the existing one kept", n)
+		}
+	})
+
+	t.Run("with nothing embedded", func(t *testing.T) {
+		svc := modelTestEnv(t)
+		p := writeFakeModel(t, "a.gguf", 384)
+		_, _ = svc.ListModels()
+		m, ok, err := db.GetModelByPath(db.DB, p)
+		if err != nil || !ok {
+			t.Fatalf("model: ok=%v err=%v", ok, err)
+		}
+		svc.activateIfSafe(m)
+
+		if active, _, _ := db.GetActiveModel(db.DB); active.Path != p {
+			t.Fatalf("fresh download should be active, got %q", active.Path)
+		}
+	})
 }
 
 func TestDeleteModelActiveBlocked(t *testing.T) {

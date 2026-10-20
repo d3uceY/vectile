@@ -502,8 +502,9 @@ export class OCRState {
 
 /**
  * SetActiveResult reports the outcome of SetActiveModel. NeedsRebuild is true
- * when switching would change the embedding dimension — the switch is NOT
- * applied until the frontend confirms and calls SetActiveModel(force=true).
+ * when switching would leave embeddings that the new model cannot use, and
+ * something is stored to lose — the switch is NOT applied until the frontend
+ * confirms and calls SetActiveModel(force=true).
  */
 export class SetActiveResult {
     "needsRebuild": boolean;

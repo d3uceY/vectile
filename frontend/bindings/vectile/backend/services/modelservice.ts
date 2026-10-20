@@ -102,10 +102,13 @@ export function ListRecommendedModels(): $CancellablePromise<$models.CatalogMode
 }
 
 /**
- * SetActiveModel makes the model at path active. When the model's embedding
- * dimension differs from the dimension the vector tables were built at, the
- * switch is NOT applied — NeedsRebuild is returned so the frontend can confirm
- * the destructive re-index, then call SetActiveModel(path, force=true).
+ * SetActiveModel makes the model at path active. Any change of model needs a
+ * reindex, not just a change of dimension: two models can share a dimension and
+ * still map text into different spaces, so stored document vectors are not
+ * comparable with the new model's query vectors and the vector tables are
+ * rebuilt to drop them. When embeddings exist the switch is NOT applied —
+ * NeedsRebuild is returned so the frontend can confirm the destructive
+ * re-index, then call SetActiveModel(path, force=true).
  */
 export function SetActiveModel(path: string, force: boolean): $CancellablePromise<$models.SetActiveResult> {
     return $Call.ByID(859586252, path, force).then(($result: any) => {

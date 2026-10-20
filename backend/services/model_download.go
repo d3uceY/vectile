@@ -281,10 +281,11 @@ func (s *ModelService) runDownload(ctx context.Context, cat CatalogModel) {
 	s.core.sendNotification("model-"+cat.Key, "Model ready", m.Name+" is ready")
 }
 
-// activateIfSafe makes a fresh download the active model unless doing so would
-// drop existing embeddings: when the new dimension differs from the vector
-// tables' dimension AND they hold documents, leave it inactive so nothing is
-// silently cleared; the user picks it in Settings.
+// activateIfSafe makes a fresh download the active model unless that would
+// strand existing embeddings: stored vectors belong to the model that produced
+// them, and a different model cannot reuse them even when the dimensions match,
+// so with embeddings present the download stays inactive and the user switches
+// in Settings (where the reindex is confirmed).
 func (s *ModelService) activateIfSafe(m db.Model) {
 	vectorDim, err := db.GetVectorDim(db.DB)
 	if err != nil {
@@ -294,9 +295,15 @@ func (s *ModelService) activateIfSafe(m db.Model) {
 	if err != nil {
 		return
 	}
-	if m.Dimensions > 0 && vectorDim > 0 && m.Dimensions != vectorDim && count > 0 {
-		slog.Info("downloaded model left inactive (dim differs from existing embeddings)", "name", m.Name)
-		return
+	if count > 0 {
+		differs, err := s.activeModelDiffers(m)
+		if err != nil {
+			return
+		}
+		if differs {
+			slog.Info("downloaded model left inactive (stored vectors belong to another model)", "name", m.Name)
+			return
+		}
 	}
 	dimChange := m.Dimensions > 0 && vectorDim > 0 && m.Dimensions != vectorDim
 	if err := s.applyActive(m, dimChange); err != nil {

@@ -17,12 +17,12 @@ export function ModelSection() {
 
   const [selModel, setSelModel] = createSignal("");
   const [switchBusy, setSwitchBusy] = createSignal(false);
-  const [confirmDim, setConfirmDim] = createSignal<{ path: string; name: string } | null>(null);
+  const [confirmSwitch, setConfirmSwitch] = createSignal<{ path: string; name: string } | null>(null);
   const [confirmBusy, setConfirmBusy] = createSignal(false);
 
   createEffect(() => {
     const m = activeModel();
-    if (m && !switchBusy() && confirmDim() === null) setSelModel(m.path);
+    if (m && !switchBusy() && confirmSwitch() === null) setSelModel(m.path);
   });
 
   const cpuCount = (): number => (store.cpuCount() > 0 ? store.cpuCount() : 64);
@@ -49,7 +49,7 @@ export function ModelSection() {
     setSelModel(path); // preview the pending choice in the dropdown
     try {
       const r = await store.setActiveModel(path);
-      if (r.needsRebuild) setConfirmDim({ path, name: r.name });
+      if (r.needsRebuild) setConfirmSwitch({ path, name: r.name });
       else setSelModel(activeModel()?.path ?? ""); // applied; resync from the store
     } catch (err) {
       setSelModel(activeModel()?.path ?? ""); // rejected; revert the dropdown
@@ -59,13 +59,13 @@ export function ModelSection() {
     }
   };
 
-  const confirmDimSwitch = async () => {
-    const c = confirmDim();
+  const confirmModelSwitch = async () => {
+    const c = confirmSwitch();
     if (!c) return;
     setConfirmBusy(true);
     try {
       await store.setActiveModel(c.path, true);
-      setConfirmDim(null);
+      setConfirmSwitch(null);
     } catch (err) {
       setSelModel(activeModel()?.path ?? ""); // failed; revert the dropdown
       store.pushToast(`Couldn't switch model: ${err}`, "danger");
@@ -251,15 +251,16 @@ export function ModelSection() {
         </Show>
 
         <ConfirmDialog
-          open={confirmDim() !== null}
-          title="Switching changes the embedding dimension"
+          open={confirmSwitch() !== null}
+          title="Switching models means re-indexing"
           body={
             <>
               <p>
-                <span class="font-medium text-ink">{confirmDim()?.name}</span> uses a
-                different embedding dimension than the current model. Every indexed
-                collection will need to be re-indexed before meaning search works again,
-                and all existing embeddings will be cleared.
+                <span class="font-medium text-ink">{confirmSwitch()?.name}</span> embeds text
+                differently from the current model, so the numbers already stored cannot be
+                compared against it — even when the two models have the same number of
+                dimensions. Switching clears every stored embedding, and every indexed
+                collection needs a re-index before the meaning search works again.
               </p>
               <p class="mt-2">Switch anyway?</p>
             </>
@@ -268,10 +269,10 @@ export function ModelSection() {
           busyLabel="Switching…"
           busy={confirmBusy()}
           onCancel={() => {
-            setConfirmDim(null);
+            setConfirmSwitch(null);
             setSelModel(activeModel()?.path ?? ""); // keep the previous model
           }}
-          onConfirm={() => void confirmDimSwitch()}
+          onConfirm={() => void confirmModelSwitch()}
         />
       </div>
     </Section>

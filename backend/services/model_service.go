@@ -29,8 +29,9 @@ const defaultBatchSize = 32
 func NewModelService(core *Core) *ModelService { return &ModelService{core: core} }
 
 // SetActiveResult reports the outcome of SetActiveModel. NeedsRebuild is true
-// when switching would change the embedding dimension — the switch is NOT
-// applied until the frontend confirms and calls SetActiveModel(force=true).
+// when switching would leave embeddings that the new model cannot use, and
+// something is stored to lose — the switch is NOT applied until the frontend
+// confirms and calls SetActiveModel(force=true).
 type SetActiveResult struct {
 	NeedsRebuild bool     `json:"needsRebuild"`
 	Model        db.Model `json:"model"`
@@ -79,10 +80,13 @@ func (s *ModelService) ImportModel(srcPath string) (db.Model, error) {
 	return m, nil
 }
 
-// SetActiveModel makes the model at path active. When the model's embedding
-// dimension differs from the dimension the vector tables were built at, the
-// switch is NOT applied — NeedsRebuild is returned so the frontend can confirm
-// the destructive re-index, then call SetActiveModel(path, force=true).
+// SetActiveModel makes the model at path active. Any change of model needs a
+// reindex, not just a change of dimension: two models can share a dimension and
+// still map text into different spaces, so stored document vectors are not
+// comparable with the new model's query vectors and the vector tables are
+// rebuilt to drop them. When embeddings exist the switch is NOT applied —
+// NeedsRebuild is returned so the frontend can confirm the destructive
+// re-index, then call SetActiveModel(path, force=true).
 func (s *ModelService) SetActiveModel(path string, force bool) (SetActiveResult, error) {
 	if s.isIndexing() {
 		return SetActiveResult{}, fmt.Errorf("cannot switch models while an index run is in progress")
@@ -100,13 +104,36 @@ func (s *ModelService) SetActiveModel(path string, force bool) (SetActiveResult,
 		return SetActiveResult{}, err
 	}
 	dimChange := m.Dimensions > 0 && vectorDim > 0 && m.Dimensions != vectorDim
-	if dimChange && !force {
-		return SetActiveResult{NeedsRebuild: true, Model: m}, nil
+	modelChange, err := s.activeModelDiffers(m)
+	if err != nil {
+		return SetActiveResult{}, err
 	}
-	if err := s.applyActive(m, dimChange); err != nil {
+	rebuild := dimChange || modelChange
+	if rebuild && !force {
+		n, err := db.CountEmbeddings(db.DB)
+		if err != nil {
+			return SetActiveResult{}, err
+		}
+		// With nothing embedded there is nothing to lose, so the switch (and
+		// any dimension fix-up of the vector tables) just happens.
+		if n > 0 {
+			return SetActiveResult{NeedsRebuild: true, Model: m}, nil
+		}
+	}
+	if err := s.applyActive(m, rebuild); err != nil {
 		return SetActiveResult{}, err
 	}
 	return SetActiveResult{Model: m}, nil
+}
+
+// activeModelDiffers reports whether m is not the model that is currently
+// active, counting "none active yet" as different.
+func (s *ModelService) activeModelDiffers(m db.Model) (bool, error) {
+	active, ok, err := db.GetActiveModel(db.DB)
+	if err != nil {
+		return false, err
+	}
+	return !ok || active.Path != m.Path, nil
 }
 
 // DeleteModel removes a model from the table and, when the file lives in the

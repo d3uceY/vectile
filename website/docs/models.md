@@ -42,10 +42,15 @@ hand is picked up automatically. A chat model renamed to `.gguf` is rejected whe
 
 ## Switching the active model
 
-Most switches apply immediately. One does not. A model that describes a passage with a different
-number of dimensions cannot be compared against the numbers already stored, so vectile asks first
-and then rebuilds. After that, the whole library needs re-indexing before the meaning search
-returns anything, and Library shows a **needs reindex** badge until you do it.
+Every switch that happens while something is indexed needs a re-index. Two models can share a
+number of dimensions and still describe a passage differently, so the numbers already stored cannot
+be compared against the new model's query numbers. vectile asks before clearing them, then rebuilds
+the vector tables. After that, the whole library needs re-indexing before the meaning search returns
+anything, and Library shows a **needs reindex** badge until you do it. Keyword search keeps working
+meanwhile.
+
+Switching back to the model that is already active changes nothing, and a switch on an empty library
+applies immediately.
 
 Switching models also empties the [query cache](/docs/search#the-query-cache), because a cached
 query from the old model means nothing to the new one.

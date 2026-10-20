@@ -182,9 +182,11 @@ export async function importModel(path: string): Promise<ModelInfo> {
 }
 
 /**
- * Makes the model at path active. When switching would change the embedding
- * dimension the backend does NOT apply it and returns needsRebuild=true; the
- * UI confirms the destructive re-index, then calls setActiveModel(path, true).
+ * Makes the model at path active. Any model change needs a reindex — the stored
+ * vectors belong to the old model's space even when the dimensions match — so
+ * while embeddings exist the backend does NOT apply the switch and returns
+ * needsRebuild=true; the UI confirms the destructive re-index, then calls
+ * setActiveModel(path, true).
  */
 export async function setActiveModel(path: string, force = false): Promise<SetActiveResult> {
   return ModelService.SetActiveModel(path, force) as unknown as SetActiveResult;
