@@ -27,7 +27,7 @@ func handleSearch(core *services.Core) server.ToolHandlerFunc {
 			return mcp.NewToolResultError("query parameter is required"), nil
 		}
 
-		topK := request.GetInt("top_k", core.Cfg.SearchDefaults.TopK)
+		topK := request.GetInt("top_k", core.Config().SearchDefaults.TopK)
 		maxChars := clampChars(request.GetInt("max_chars", defaultSnippetChars))
 
 		metadataFilters := make(map[string]string)
@@ -49,7 +49,7 @@ func handleSearch(core *services.Core) server.ToolHandlerFunc {
 			TopK:            topK,
 		}
 
-		resp, err := search.Search(db.DB, query, filters, core.Embedder, core.Cfg.SearchDefaults)
+		resp, err := search.Search(db.DB, query, filters, core.Embedder, core.Config().SearchDefaults)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("search failed: %v", err)), nil
 		}
@@ -66,7 +66,7 @@ func handleSearch(core *services.Core) server.ToolHandlerFunc {
 				"collection":  r.Collection,
 				"source_type": r.SourceType,
 				"source_path": r.SourcePath,
-				"source_uri":  buildSourceURI(r.SourcePath, r.SourceType, r.Metadata, core.Cfg),
+				"source_uri":  buildSourceURI(r.SourcePath, r.SourceType, r.Metadata, core.Config()),
 				"score":       fmt.Sprintf("%.4f", r.Score),
 				"metadata":    r.Metadata,
 			})
@@ -109,7 +109,7 @@ func handleListCollections(core *services.Core) server.ToolHandlerFunc {
 				"source_count": sourceCount,
 				"chunk_count":  chunkCount,
 				"created_at":   createdAt,
-				"enabled":      core.Cfg.IsCollectionEnabled(name),
+				"enabled":      core.Config().IsCollectionEnabled(name),
 			}
 			if description.Valid {
 				if text, repos := describeCollection(description.String); text != "" {
@@ -192,7 +192,7 @@ func handleCollectionInfo(core *services.Core) server.ToolHandlerFunc {
 			"chunk_count":   chunkCount,
 			"source_types":  sourceTypes,
 			"sample_titles": sampleTitles,
-			"enabled":       core.Cfg.IsCollectionEnabled(collection),
+			"enabled":       core.Config().IsCollectionEnabled(collection),
 		}
 		if description.Valid {
 			if text, repos := describeCollection(description.String); text != "" {
@@ -214,7 +214,7 @@ func handleCollectionInfo(core *services.Core) server.ToolHandlerFunc {
 
 func handleIndex(core *services.Core) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		if !core.Cfg.MCP.AllowWrite {
+		if !core.Config().MCP.AllowWrite {
 			return mcp.NewToolResultError(
 				"write tools are disabled: enable 'Allow write tools' in vectile Settings"), nil
 		}
@@ -251,7 +251,7 @@ func handleIndex(core *services.Core) server.ToolHandlerFunc {
 
 func handlePrune(core *services.Core) server.ToolHandlerFunc {
 	return func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		if !core.Cfg.MCP.AllowWrite {
+		if !core.Config().MCP.AllowWrite {
 			return mcp.NewToolResultError(
 				"write tools are disabled: enable 'Allow write tools' in vectile Settings"), nil
 		}

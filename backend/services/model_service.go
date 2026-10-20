@@ -179,9 +179,13 @@ func (s *ModelService) UpdateModelSettings(id int64, contextWindow, batchSize, t
 		}
 		s.core.clearQueryCache("active model settings changed")
 		if batchSize > 0 {
-			s.core.Cfg.EmbeddingBatchSize = batchSize
+			if err := s.core.UpdateConfig(func(c *config.Config) {
+				c.EmbeddingBatchSize = batchSize
+			}); err != nil {
+				return err
+			}
 		}
-		return config.Save(s.core.Cfg, s.core.CfgPath)
+		return nil
 	}
 	return nil
 }
@@ -199,11 +203,12 @@ func (s *ModelService) ApplyActiveModel() error {
 	if err != nil {
 		return err
 	}
+	cfg := s.core.Config()
 	path := ""
 	if ok {
 		path = active.Path
-	} else if s.core.Cfg.ActiveModel != "" {
-		path = s.core.Cfg.ActiveModel
+	} else if cfg != nil && cfg.ActiveModel != "" {
+		path = cfg.ActiveModel
 	}
 	if path == "" {
 		return s.core.Embedder.SetModel(appdata.ModelPath(), 0, 0)
@@ -214,9 +219,8 @@ func (s *ModelService) ApplyActiveModel() error {
 	}
 	if !has {
 		// Configured model vanished (reconcile already dropped the row).
-		if s.core.Cfg.ActiveModel != "" {
-			s.core.Cfg.ActiveModel = ""
-			_ = config.Save(s.core.Cfg, s.core.CfgPath)
+		if cfg != nil && cfg.ActiveModel != "" {
+			_ = s.core.UpdateConfig(func(c *config.Config) { c.ActiveModel = "" })
 		}
 		return s.core.Embedder.SetModel(appdata.ModelPath(), 0, 0)
 	}
@@ -256,13 +260,13 @@ func (s *ModelService) applyActive(m db.Model, rebuild bool) error {
 	if modelChanged {
 		s.core.clearQueryCache("active model changed")
 	}
-	cfg := s.core.Cfg
-	if m.BatchSize > 0 {
-		cfg.EmbeddingBatchSize = m.BatchSize
-	}
-	cfg.ActiveModel = m.Path
-	cfg.EmbeddingModel = m.Name // keep the display-name fallback accurate
-	if err := config.Save(cfg, s.core.CfgPath); err != nil {
+	if err := s.core.UpdateConfig(func(c *config.Config) {
+		if m.BatchSize > 0 {
+			c.EmbeddingBatchSize = m.BatchSize
+		}
+		c.ActiveModel = m.Path
+		c.EmbeddingModel = m.Name // keep the display-name fallback accurate
+	}); err != nil {
 		return err
 	}
 	slog.Info("active model", "path", m.Path, "dims", m.Dimensions, "rebuild", rebuild)
@@ -326,8 +330,7 @@ func (s *ModelService) syncModelsFromFolder() (added, removed int, err error) {
 				return added, removed, err
 			}
 			s.core.clearQueryCache("active model removed")
-			s.core.Cfg.ActiveModel = ""
-			_ = config.Save(s.core.Cfg, s.core.CfgPath)
+			_ = s.core.UpdateConfig(func(c *config.Config) { c.ActiveModel = "" })
 		}
 		if _, err := db.DeleteModelByPath(db.DB, m.Path); err != nil {
 			return added, removed, err

@@ -85,7 +85,7 @@ func handleGetChunk(core *services.Core) server.ToolHandlerFunc {
 				"chunk_index": idx,
 				"title":       title.String,
 				"content":     content,
-				"source_uri":  buildSourceURI(sourcePath, sourceType, md, core.Cfg),
+				"source_uri":  buildSourceURI(sourcePath, sourceType, md, core.Config()),
 				"metadata":    md,
 			})
 		}
@@ -372,7 +372,7 @@ func handleGrep(core *services.Core) server.ToolHandlerFunc {
 				"collection":  coll,
 				"source_type": sourceType,
 				"source_path": sourcePath,
-				"source_uri":  buildSourceURI(sourcePath, sourceType, md, core.Cfg),
+				"source_uri":  buildSourceURI(sourcePath, sourceType, md, core.Config()),
 				"line":        strings.Count(content[:start], "\n") + 1,
 				"context":     matchContext(content, start, end, 120),
 			}
@@ -429,8 +429,8 @@ func handleStatus(core *services.Core) server.ToolHandlerFunc {
 		if st.ModelError != "" {
 			out["model_error"] = st.ModelError
 		}
-		if core.Cfg != nil && len(core.Cfg.DisabledCollections) > 0 {
-			out["disabled_collections"] = core.Cfg.DisabledCollections
+		if cfg := core.Config(); cfg != nil && len(cfg.DisabledCollections) > 0 {
+			out["disabled_collections"] = cfg.DisabledCollections
 		}
 		data, _ := json.MarshalIndent(out, "", "  ")
 		return mcp.NewToolResultText(string(data)), nil
@@ -641,7 +641,7 @@ func handleFindRelated(core *services.Core) server.ToolHandlerFunc {
 			Collection: request.GetString("collection", ""),
 			TopK:       topK,
 		}
-		results, err := search.Related(db.DB, embeddings.DeserializeFloat32(blob), seed, topK, filters, core.Cfg.SearchDefaults)
+		results, err := search.Related(db.DB, embeddings.DeserializeFloat32(blob), seed, topK, filters, core.Config().SearchDefaults)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("related search failed: %v", err)), nil
 		}
@@ -657,7 +657,7 @@ func handleFindRelated(core *services.Core) server.ToolHandlerFunc {
 				"collection":  r.Collection,
 				"source_type": r.SourceType,
 				"source_path": r.SourcePath,
-				"source_uri":  buildSourceURI(r.SourcePath, r.SourceType, r.Metadata, core.Cfg),
+				"source_uri":  buildSourceURI(r.SourcePath, r.SourceType, r.Metadata, core.Config()),
 				"distance":    fmt.Sprintf("%.4f", r.Score),
 			})
 		}
@@ -753,7 +753,7 @@ func handleTimeline(core *services.Core) server.ToolHandlerFunc {
 				"collection":  coll,
 				"source_type": sourceType,
 				"source_path": sourcePath,
-				"source_uri":  buildSourceURI(sourcePath, sourceType, md, core.Cfg),
+				"source_uri":  buildSourceURI(sourcePath, sourceType, md, core.Config()),
 			})
 		}
 		if err := rows.Err(); err != nil {

@@ -17,7 +17,7 @@ func TestCreateServerRegistersTools(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	core := &services.Core{Cfg: cfg}
+	core := services.NewCore(cfg)
 	s := CreateServer(core)
 	if s == nil {
 		t.Fatal("CreateServer returned nil")
@@ -47,7 +47,7 @@ func TestWriteToolsGated(t *testing.T) {
 		t.Fatal(err)
 	}
 	// AllowWrite defaults to false, so the write tools must refuse to run.
-	core := &services.Core{Cfg: cfg}
+	core := services.NewCore(cfg)
 	req := mcp.CallToolRequest{
 		Params: mcp.CallToolParams{
 			Name:      "vectile_index",

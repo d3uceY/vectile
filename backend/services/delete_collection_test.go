@@ -19,7 +19,7 @@ func TestDeleteCollectionKeepsConfiguredSources(t *testing.T) {
 	t.Cleanup(func() { _ = db.Close() })
 
 	cfg := &config.Config{Projects: map[string][]string{"notes": {filepath.Join("C:", "notes")}}}
-	s := &IndexService{core: &Core{Cfg: cfg}}
+	s := &IndexService{core: NewCore(cfg)}
 
 	if _, err := db.GetOrCreateCollection(db.DB, "notes", "project", nil, nil); err != nil {
 		t.Fatal(err)
@@ -36,8 +36,8 @@ func TestDeleteCollectionKeepsConfiguredSources(t *testing.T) {
 	if rows != 0 {
 		t.Fatal("collection row survived the delete")
 	}
-	if got := s.core.Cfg.Projects["notes"]; len(got) != 1 {
-		t.Fatalf("configured sources were dropped: %v", s.core.Cfg.Projects)
+	if got := s.core.Config().Projects["notes"]; len(got) != 1 {
+		t.Fatalf("configured sources were dropped: %v", s.core.Config().Projects)
 	}
 
 	// Deleting again (config-only now, no DB row) is a no-op, not an error.

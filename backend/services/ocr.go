@@ -88,7 +88,9 @@ func (s *OCRService) stamp(st OCRState) OCRState {
 		st.SizeBytes = ocr.AssetSize(st.Platform)
 		st.DownloadURL = ocr.AssetURL(st.Platform)
 	}
-	st.Enabled = s.core.Cfg != nil && s.core.Cfg.OCR.Enabled
+	if cfg := s.core.Config(); cfg != nil {
+		st.Enabled = cfg.OCR.Enabled
+	}
 	return st
 }
 

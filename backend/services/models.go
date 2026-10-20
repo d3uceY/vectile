@@ -19,7 +19,13 @@ var Version = "dev"
 
 // Core holds the shared runtime state for all services.
 type Core struct {
-	Cfg           *config.Config
+	// cfg is replaced whole under cfgMu, never edited in place once published:
+	// the indexer goroutine, the auto-reindex loop, search handlers, and the
+	// MCP server all read it while the frontend saves settings. Readers take a
+	// snapshot with Config(); writers go through UpdateConfig.
+	cfgMu sync.RWMutex
+	cfg   *config.Config
+
 	CfgPath       string
 	Embedder      *embeddings.Embedder
 	App           *application.App
@@ -40,6 +46,42 @@ type Core struct {
 	// index from the frontend between batches.
 	cancelMu sync.Mutex
 	cancel   context.CancelFunc
+}
+
+// NewCore creates the shared runtime state around an initial configuration.
+func NewCore(cfg *config.Config) *Core { return &Core{cfg: cfg} }
+
+// Config returns the current configuration snapshot. A published snapshot is
+// never modified again, so the caller can read it freely, on any goroutine,
+// even while a save replaces it. Change configuration through UpdateConfig
+// rather than writing to the returned struct.
+func (c *Core) Config() *config.Config {
+	c.cfgMu.RLock()
+	defer c.cfgMu.RUnlock()
+	return c.cfg
+}
+
+// UpdateConfig applies mutate to a copy of the current configuration, saves the
+// result, and publishes it. Readers see either the old snapshot or the new one,
+// never a half-updated config, and never race with the write.
+//
+// The published config is owned by Core: mutate may install its own slices or
+// maps (a config value straight from the settings form, say), so the result is
+// copied once more before it is shared.
+func (c *Core) UpdateConfig(mutate func(*config.Config)) error {
+	c.cfgMu.Lock()
+	defer c.cfgMu.Unlock()
+	next := c.cfg.Clone()
+	if next == nil {
+		next = &config.Config{}
+	}
+	mutate(next)
+	next = next.Clone()
+	if err := config.Save(next, c.CfgPath); err != nil {
+		return err
+	}
+	c.cfg = next
+	return nil
 }
 
 // newIndexContext creates a cancellable context for a new index run and

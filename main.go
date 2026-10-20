@@ -69,11 +69,9 @@ func main() {
 		modelPath = appdata.ModelPath()
 	}
 
-	core := &services.Core{
-		Cfg:      cfg,
-		CfgPath:  appdata.ConfigPath(),
-		Embedder: embeddings.NewEmbedder(modelPath, 0, 0),
-	}
+	core := services.NewCore(cfg)
+	core.CfgPath = appdata.ConfigPath()
+	core.Embedder = embeddings.NewEmbedder(modelPath, 0, 0)
 
 	// The in-app MCP server: exposed to the frontend and auto-started below
 	// when the user has enabled it in Settings. Binds to 127.0.0.1 only.
@@ -179,7 +177,8 @@ func main() {
 
 	// Auto-reindex: poll the config each minute; fire an index-all when the
 	// interval has elapsed. Shares the same mutex as manual index runs. The
-	// loop reads core.Cfg live so settings changes apply without a restart.
+	// loop reads a fresh core.Config() snapshot each tick, so settings changes
+	// apply without a restart.
 	go autoReindexLoop(core)
 
 	// System tray: status line, Index submenu, cancel, and Quit. Must be
@@ -211,8 +210,9 @@ func raiseMainWindow(win *application.WebviewWindow) {
 	}
 }
 
-// autoReindexLoop reads core.Cfg live so settings changes (auto-reindex toggle
-// and interval) take effect on the next tick without restarting the loop.
+// autoReindexLoop reads a config snapshot each tick so settings changes
+// (auto-reindex toggle and interval) take effect on the next tick without
+// restarting the loop.
 func autoReindexLoop(core *services.Core) {
 	svc := services.NewIndexService(core)
 	ticker := time.NewTicker(time.Minute)
@@ -220,8 +220,8 @@ func autoReindexLoop(core *services.Core) {
 
 	var last time.Time
 	for range ticker.C {
-		c := core.Cfg
-		if !c.GUI.AutoReindex {
+		c := core.Config()
+		if c == nil || !c.GUI.AutoReindex {
 			continue
 		}
 		interval := time.Duration(c.GUI.AutoReindexIntervalMinutes) * time.Minute

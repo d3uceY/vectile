@@ -13,7 +13,7 @@ func NewSearchService(core *Core) *SearchService { return &SearchService{core: c
 
 // Search runs hybrid vector + FTS search with the given filters.
 func (s *SearchService) Search(query string, filters search.Filters) (search.SearchResponse, error) {
-	return search.Search(db.DB, query, filters, s.core.Embedder, s.core.Cfg.SearchDefaults)
+	return search.Search(db.DB, query, filters, s.core.Embedder, s.core.Config().SearchDefaults)
 }
 
 // GetCacheStats reports what the cached query vectors currently hold.

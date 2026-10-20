@@ -45,7 +45,7 @@ func testCore(t *testing.T) *services.Core {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return &services.Core{Cfg: cfg}
+	return services.NewCore(cfg)
 }
 
 func seedLibrary(t *testing.T, conn *sql.DB) {

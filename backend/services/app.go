@@ -49,7 +49,7 @@ func (s *AppService) GetStatus() Status {
 	if err := s.core.Embedder.LoadError(); err != nil {
 		modelErr = err.Error()
 	}
-	modelName := s.core.Cfg.EmbeddingModel
+	modelName := s.core.Config().EmbeddingModel
 	if active, ok, err := db.GetActiveModel(db.DB); err == nil && ok {
 		modelName = active.Name
 		if active.Dimensions > 0 {
@@ -104,7 +104,7 @@ func (s *AppService) ListCollections() ([]Collection, error) {
 		}
 		c.LastIndexed = last.String
 		c.NeedsReindex = needsReindex == 1
-		c.Enabled = s.core.Cfg.IsCollectionEnabled(c.Name)
+		c.Enabled = s.core.Config().IsCollectionEnabled(c.Name)
 		out = append(out, c)
 	}
 	return out, rows.Err()

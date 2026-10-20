@@ -283,8 +283,8 @@ func (t *tray) modelName() string {
 		}
 		return active.Name
 	}
-	if t.core.Cfg != nil && t.core.Cfg.EmbeddingModel != "" {
-		return t.core.Cfg.EmbeddingModel
+	if cfg := t.core.Config(); cfg != nil && cfg.EmbeddingModel != "" {
+		return cfg.EmbeddingModel
 	}
 	return "bge-m3"
 }
@@ -292,10 +292,10 @@ func (t *tray) modelName() string {
 // collections returns the enabled, configured collections in a deterministic
 // order: system (obsidian, calibre), then repos, then projects.
 func (t *tray) collections() []string {
-	if t.core.Cfg == nil {
+	cfg := t.core.Config()
+	if cfg == nil {
 		return nil
 	}
-	cfg := t.core.Cfg
 	var names []string
 	if cfg.IsCollectionEnabled("obsidian") && len(cfg.ObsidianVaults) > 0 {
 		names = append(names, "obsidian")

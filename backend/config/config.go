@@ -121,6 +121,40 @@ func (c *Config) IsEmpty() bool {
 		len(c.Repositories) == 0 && len(c.Projects) == 0
 }
 
+// Clone returns a deep copy: every slice and map is duplicated, so the copy can
+// be edited without touching the original. Core keeps a config snapshot behind
+// a lock and publishes a clone on every save, so it relies on this.
+func (c *Config) Clone() *Config {
+	if c == nil {
+		return nil
+	}
+	cp := *c
+	cp.ObsidianVaults = append([]string(nil), c.ObsidianVaults...)
+	cp.ObsidianExcludeFolders = append([]string(nil), c.ObsidianExcludeFolders...)
+	cp.ProjectExcludeFolders = append([]string(nil), c.ProjectExcludeFolders...)
+	cp.RepositoryExcludeFolders = append([]string(nil), c.RepositoryExcludeFolders...)
+	cp.CalibreExcludeFolders = append([]string(nil), c.CalibreExcludeFolders...)
+	cp.CalibreLibraries = append([]string(nil), c.CalibreLibraries...)
+	cp.DisabledCollections = append([]string(nil), c.DisabledCollections...)
+	cp.GitCommitSubjectBlacklist = append([]string(nil), c.GitCommitSubjectBlacklist...)
+	cp.OCR.Languages = append([]string(nil), c.OCR.Languages...)
+	cp.Repositories = clonePathGroups(c.Repositories)
+	cp.Projects = clonePathGroups(c.Projects)
+	return &cp
+}
+
+// clonePathGroups deep-copies a repo/project listing.
+func clonePathGroups(m map[string][]string) map[string][]string {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string][]string, len(m))
+	for name, paths := range m {
+		out[name] = append([]string(nil), paths...)
+	}
+	return out
+}
+
 // systemCollections are the reserved names owned by the built-in indexers.
 var systemCollections = []string{"obsidian", "calibre"}
 

@@ -20,8 +20,8 @@ type IndexService struct{ core *Core }
 // NewIndexService creates an IndexService bound to the shared core.
 func NewIndexService(core *Core) *IndexService { return &IndexService{core: core} }
 
-// GetConfig returns the current configuration.
-func (s *IndexService) GetConfig() *config.Config { return s.core.Cfg }
+// GetConfig returns the current configuration snapshot.
+func (s *IndexService) GetConfig() *config.Config { return s.core.Config() }
 
 // SetConfig saves the configuration and applies its side effects
 // (start-on-login). Auto-reindex is read live by the loop in main.
@@ -30,13 +30,15 @@ func (s *IndexService) SetConfig(cfg config.Config) error {
 	// owned by the ModelService (and applied when a model is activated). The
 	// Settings form's config draft may carry stale copies, so preserve the
 	// live values here rather than let a save revert them.
-	cfg.ActiveModel = s.core.Cfg.ActiveModel
-	cfg.EmbeddingModel = s.core.Cfg.EmbeddingModel
-	cfg.EmbeddingBatchSize = s.core.Cfg.EmbeddingBatchSize
-	if err := config.Save(&cfg, s.core.CfgPath); err != nil {
+	if live := s.core.Config(); live != nil {
+		cfg.ActiveModel = live.ActiveModel
+		cfg.EmbeddingModel = live.EmbeddingModel
+		cfg.EmbeddingBatchSize = live.EmbeddingBatchSize
+	}
+	next := cfg.Clone()
+	if err := s.core.UpdateConfig(func(c *config.Config) { *c = *next }); err != nil {
 		return err
 	}
-	s.core.Cfg = &cfg
 	s.applyStartup(cfg.GUI.StartOnLogin)
 	return nil
 }
@@ -44,52 +46,58 @@ func (s *IndexService) SetConfig(cfg config.Config) error {
 // AddSourcePath adds a source path. kind is "vault", "calibre", "project", or
 // "repo"; name is the collection name for project/repo (ignored otherwise).
 func (s *IndexService) AddSourcePath(kind, name, path string) error {
-	cfg := s.core.Cfg
 	switch kind {
-	case "vault":
-		cfg.ObsidianVaults = appendUnique(cfg.ObsidianVaults, path)
-	case "calibre":
-		cfg.CalibreLibraries = appendUnique(cfg.CalibreLibraries, path)
-	case "project":
-		cfg.Projects = setMapSlice(cfg.Projects, name,
-			appendUnique(append([]string(nil), cfg.Projects[name]...), path))
-	case "repo":
-		cfg.Repositories = setMapSlice(cfg.Repositories, name,
-			appendUnique(append([]string(nil), cfg.Repositories[name]...), path))
+	case "vault", "calibre", "project", "repo":
 	default:
 		return fmt.Errorf("unknown source kind %q", kind)
 	}
-	return s.persistConfig()
+	return s.core.UpdateConfig(func(cfg *config.Config) {
+		switch kind {
+		case "vault":
+			cfg.ObsidianVaults = appendUnique(cfg.ObsidianVaults, path)
+		case "calibre":
+			cfg.CalibreLibraries = appendUnique(cfg.CalibreLibraries, path)
+		case "project":
+			cfg.Projects = setMapSlice(cfg.Projects, name,
+				appendUnique(append([]string(nil), cfg.Projects[name]...), path))
+		case "repo":
+			cfg.Repositories = setMapSlice(cfg.Repositories, name,
+				appendUnique(append([]string(nil), cfg.Repositories[name]...), path))
+		}
+	})
 }
 
 // RemoveSourcePath removes a source path from a config section.
 func (s *IndexService) RemoveSourcePath(kind, name, path string) error {
-	cfg := s.core.Cfg
 	switch kind {
-	case "vault":
-		cfg.ObsidianVaults = removeStr(cfg.ObsidianVaults, path)
-	case "calibre":
-		cfg.CalibreLibraries = removeStr(cfg.CalibreLibraries, path)
-	case "project":
-		cfg.Projects = setMapSlice(cfg.Projects, name,
-			removeStr(append([]string(nil), cfg.Projects[name]...), path))
-	case "repo":
-		cfg.Repositories = setMapSlice(cfg.Repositories, name,
-			removeStr(append([]string(nil), cfg.Repositories[name]...), path))
+	case "vault", "calibre", "project", "repo":
 	default:
 		return fmt.Errorf("unknown source kind %q", kind)
 	}
-	return s.persistConfig()
+	return s.core.UpdateConfig(func(cfg *config.Config) {
+		switch kind {
+		case "vault":
+			cfg.ObsidianVaults = removeStr(cfg.ObsidianVaults, path)
+		case "calibre":
+			cfg.CalibreLibraries = removeStr(cfg.CalibreLibraries, path)
+		case "project":
+			cfg.Projects = setMapSlice(cfg.Projects, name,
+				removeStr(append([]string(nil), cfg.Projects[name]...), path))
+		case "repo":
+			cfg.Repositories = setMapSlice(cfg.Repositories, name,
+				removeStr(append([]string(nil), cfg.Repositories[name]...), path))
+		}
+	})
 }
 
 // ToggleCollectionEnabled enables/disables a collection for indexing.
 func (s *IndexService) ToggleCollectionEnabled(name string, enabled bool) error {
-	cfg := s.core.Cfg
-	cfg.DisabledCollections = removeStr(cfg.DisabledCollections, name)
-	if !enabled {
-		cfg.DisabledCollections = append(cfg.DisabledCollections, name)
-	}
-	return s.persistConfig()
+	return s.core.UpdateConfig(func(cfg *config.Config) {
+		cfg.DisabledCollections = removeStr(cfg.DisabledCollections, name)
+		if !enabled {
+			cfg.DisabledCollections = append(cfg.DisabledCollections, name)
+		}
+	})
 }
 
 // IndexCollection starts indexing one collection in the background, emitting
@@ -121,7 +129,7 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 		s.core.resetIndexRun(true)
 		ctx := s.core.newIndexContext()
 		defer s.core.clearIndexContext()
-		if pr := indexer.PruneAll(db.DB, s.core.Cfg); pr.Pruned > 0 {
+		if pr := indexer.PruneAll(db.DB, s.core.Config()); pr.Pruned > 0 {
 			s.core.App.Event.Emit("indexing:pruned", pr.Pruned)
 		}
 		noText := 0
@@ -180,9 +188,9 @@ func (s *IndexService) CancelIndexing() bool {
 func (s *IndexService) Prune(name string) (indexer.PruneResult, error) {
 	var res indexer.PruneResult
 	if name == "" || name == "all" {
-		res = *indexer.PruneAll(db.DB, s.core.Cfg)
+		res = *indexer.PruneAll(db.DB, s.core.Config())
 	} else {
-		res = *indexer.PruneCollection(db.DB, s.core.Cfg, name)
+		res = *indexer.PruneCollection(db.DB, s.core.Config(), name)
 	}
 	s.core.clearQueryCache("prune")
 	return res, nil
@@ -380,7 +388,9 @@ func (s *IndexService) reportIndexPanic(name string, r any) {
 // It returns the run summary so a synchronous caller (the MCP write tool) can
 // report it; the async IndexCollection/IndexAll discard the value.
 func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *indexer.IndexResult {
-	cfg := s.core.Cfg
+	// One snapshot for the whole run, so a settings save mid-run can't change
+	// the rules under the indexer.
+	cfg := s.core.Config()
 	progress := func(current, total int, item string) {
 		// Per-file event: the frontend increments its per-collection count.
 		p := IndexFileProgress{Collection: name, File: item, Indexed: current, Total: total}
@@ -447,7 +457,7 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *i
 // configuredCollections returns the enabled, configured collections in a
 // deterministic order: system (obsidian, calibre), then repos, then projects.
 func (s *IndexService) configuredCollections() []string {
-	cfg := s.core.Cfg
+	cfg := s.core.Config()
 	var names []string
 	if cfg.IsCollectionEnabled("obsidian") && len(cfg.ObsidianVaults) > 0 {
 		names = append(names, "obsidian")
@@ -468,10 +478,6 @@ func (s *IndexService) configuredCollections() []string {
 		}
 	}
 	return names
-}
-
-func (s *IndexService) persistConfig() error {
-	return config.Save(s.core.Cfg, s.core.CfgPath)
 }
 
 func (s *IndexService) applyStartup(enabled bool) {

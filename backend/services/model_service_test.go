@@ -30,11 +30,9 @@ func modelTestEnv(t *testing.T) *ModelService {
 	if err != nil {
 		t.Fatal(err)
 	}
-	core := &Core{
-		Cfg:      cfg,
-		CfgPath:  filepath.Join(dir, "config.json"),
-		Embedder: embeddings.NewEmbedder(filepath.Join(appdata.ModelsDir(), "bge-m3.gguf"), 0, 0),
-	}
+	core := NewCore(cfg)
+	core.CfgPath = filepath.Join(dir, "config.json")
+	core.Embedder = embeddings.NewEmbedder(filepath.Join(appdata.ModelsDir(), "bge-m3.gguf"), 0, 0)
 	return NewModelService(core)
 }
 
@@ -171,8 +169,8 @@ func TestSetActiveModelDimChange(t *testing.T) {
 	if dim, _ := db.GetVectorDim(db.DB); dim != 768 {
 		t.Fatalf("vector dim after rebuild = %d, want 768", dim)
 	}
-	if svc.core.Cfg.ActiveModel != b {
-		t.Fatalf("cfg.ActiveModel = %q, want %q", svc.core.Cfg.ActiveModel, b)
+	if svc.core.Config().ActiveModel != b {
+		t.Fatalf("cfg.ActiveModel = %q, want %q", svc.core.Config().ActiveModel, b)
 	}
 }
 
