@@ -55,9 +55,9 @@ its allowed range is pulled back to the nearest one.
 | `auto_reindex` | bool | `false` | Re-run an incremental index on a timer. |
 | `auto_reindex_interval_minutes` | int | `60` | Minutes between runs. 1 to 10080, which is a week. |
 | `start_on_login` | bool | `false` | Launch with your session. |
+| `mascot.show_idle` | bool | `true` | Show Vexter at rest, when nothing is running. |
 | `mascot.show_searching` | bool | `true` | Show Vexter while a query runs. |
 | `mascot.show_indexing` | bool | `true` | Show Vexter while a library indexes. |
-| `mascot.show_nothing` | bool | `true` | Show Vexter when a search comes back empty. |
 
 ## `ocr`
 
@@ -114,9 +114,9 @@ See [Scanned PDFs](/docs/ocr).
     "auto_reindex_interval_minutes": 60,
     "start_on_login": false,
     "mascot": {
+      "show_idle": true,
       "show_searching": true,
-      "show_indexing": true,
-      "show_nothing": true
+      "show_indexing": true
     }
   },
   "mcp": {

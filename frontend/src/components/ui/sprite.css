@@ -1,0 +1,20 @@
+/* One frame of a sprite sheet.
+
+   The image is the whole horizontal strip. The player steps it a frame at a
+   time with a transform, so the work stays on the compositor and the pixel
+   grid stays honest. */
+.sprite {
+  display: block;
+  position: relative;
+  flex: none;
+  overflow: hidden;
+}
+
+.sprite img {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
+  image-rendering: pixelated;
+}

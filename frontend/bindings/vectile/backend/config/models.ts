@@ -245,25 +245,24 @@ export class MCPConfig {
 }
 
 /**
- * MascotConfig controls which sidebar-mascot (Vexter) interactions are shown.
- * Each flag gates one resting-state trigger; all three off hides Vexter for
- * every moment at once.
+ * MascotConfig controls which sidebar-mascot (Vexter) sheets are shown: one
+ * flag per sheet, and all three off hides Vexter entirely.
  */
 export class MascotConfig {
+    "show_idle": boolean;
     "show_searching": boolean;
     "show_indexing": boolean;
-    "show_nothing": boolean;
 
     /** Creates a new MascotConfig instance. */
     constructor($$source: Partial<MascotConfig> = {}) {
+        if (!("show_idle" in $$source)) {
+            this["show_idle"] = false;
+        }
         if (!("show_searching" in $$source)) {
             this["show_searching"] = false;
         }
         if (!("show_indexing" in $$source)) {
             this["show_indexing"] = false;
-        }
-        if (!("show_nothing" in $$source)) {
-            this["show_nothing"] = false;
         }
 
         Object.assign(this, $$source);

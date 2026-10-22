@@ -65,7 +65,7 @@ const DETAILS = [
   },
   {
     title: 'Vexter',
-    body: 'A pixel dinosaur lives in the sidebar footer and pokes up while a query runs, while a library indexes, and when a search comes up empty. Each moment has its own switch, and there is an off switch for all three.',
+    body: 'A pixel mascot lives in the sidebar footer and pokes up while a query runs, while a library indexes, and when a search comes up empty. Each moment has its own switch, and there is an off switch for all three.',
   },
 ];
 
@@ -361,7 +361,7 @@ function Details() {
             <figure className={styles.vexterStage}>
               <img
                 src={withBaseUrl('img/vectile-mascot.webp')}
-                alt="Vexter, the pixel dinosaur that lives in the sidebar"
+                alt="Vexter, the pixel mascot that lives in the sidebar"
                 width={84}
                 height={84}
                 loading="lazy"

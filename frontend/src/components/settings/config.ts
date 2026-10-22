@@ -11,9 +11,9 @@ export type PathKey =
   | "calibre_libraries";
 
 export const DEFAULT_MASCOT: MascotConfig = {
+  show_idle: true,
   show_searching: true,
   show_indexing: true,
-  show_nothing: true,
 };
 
 export const cloneCfg = (c: AppConfig): AppConfig => ({

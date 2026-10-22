@@ -111,13 +111,13 @@ function createSettingsEditor(): SettingsEditor {
       if (!d) return d;
       return {
         ...d,
-        gui: { ...d.gui, mascot: { show_searching: !v, show_indexing: !v, show_nothing: !v } },
+        gui: { ...d.gui, mascot: { show_idle: !v, show_searching: !v, show_indexing: !v } },
       };
     });
 
   const mascotAllDisabled = () => {
     const m = draft()?.gui.mascot;
-    return m ? !m.show_searching && !m.show_indexing && !m.show_nothing : false;
+    return m ? !m.show_idle && !m.show_searching && !m.show_indexing : false;
   };
 
   const addPath: SettingsEditor["addPath"] = (k, v) =>

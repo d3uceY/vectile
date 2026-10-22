@@ -1,39 +1,38 @@
 import { Show } from "solid-js";
+import { SpriteAnimation } from "../../ui/SpriteAnimation";
 import { useMascotState } from "./state";
-import { useMascotVisibility } from "./lifecycle";
-import { MASCOT_ASSETS, MASCOT_STATIC } from "./assets";
+import { MASCOT_ART_PX, MASCOT_CLIPS, MASCOT_LIFT_ART } from "./assets";
 import "./mascot.css";
 
 /* ------------------------------------------------------------------
-   Sidebar mascot: a small pixel dinosaur that pops in from the bottom
-   of the footer colophon while an interaction is happening, lingers
-   for a beat once it ends, then animates back down. Purely decorative.
+   Sidebar mascot: the pixel mascot resting at the bottom of the footer
+   colophon. It plays the idle sheet, switches to the indexing or searching
+   sheet while that interaction runs, then settles back to idle. Purely
+   decorative.
 
-   The component just composes the module pieces:
-     - useMascotState()      : store -> which interaction is active
-     - useMascotVisibility() : show / 700ms hold / exit timing
-     - assets.ts             : state -> image URLs
-   Nothing renders unless a state is active.
+   The component composes the module pieces:
+     - useMascotState() : store -> which sheet is playing (null when every
+                          Vexter switch is off)
+     - assets.ts        : state -> sprite clip
+     - mascot.css       : the stage it stands on
+   A sheet change swaps the clip in place: the player restarts the new clip's
+   intro, and nothing pops, rises or fades.
    ------------------------------------------------------------------ */
 
 export function Mascot() {
   const active = useMascotState();
-  const { shown, leaving } = useMascotVisibility(active);
 
   return (
-    <div class="mascot-stage" aria-hidden="true">
-      {/* keyed Show: a fresh element per state, so the pop-in re-runs each time.
-          Two imgs stack: the animated webp wins normally, the static PNG is
-          swapped in under prefers-reduced-motion via a CSS media query (the
-          browser does not reliably honor a <source media=...> swap here). */}
-      <Show when={shown()} keyed>
-        {(state) => (
-          <div class={`mascot mascot--${state}${leaving() ? " mascot--leaving" : ""}`}>
-            <img class="mascot__anim" src={MASCOT_ASSETS[state]} alt="" draggable={false} />
-            <img class="mascot__static" src={MASCOT_STATIC} alt="" draggable={false} />
-          </div>
-        )}
-      </Show>
-    </div>
+    <Show when={active()}>
+      {(state) => (
+        <div class="mascot-stage" aria-hidden="true">
+          <SpriteAnimation
+            clip={MASCOT_CLIPS[state()]}
+            artPx={MASCOT_ART_PX}
+            lift={(MASCOT_LIFT_ART[state()] ?? 0) * MASCOT_ART_PX}
+          />
+        </div>
+      )}
+    </Show>
   );
 }

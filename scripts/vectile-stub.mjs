@@ -88,7 +88,7 @@ const config = {
     auto_reindex: false,
     auto_reindex_interval_minutes: 60,
     start_on_login: false,
-    mascot: { show_searching: true, show_indexing: true, show_nothing: true },
+    mascot: { show_idle: true, show_searching: true, show_indexing: true },
   },
   mcp: { enabled: true, port: 31123, allow_write: false, transport: "streamable-http" },
 };

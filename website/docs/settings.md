@@ -124,14 +124,14 @@ Type a path or click **Browse** for the folder picker. Excluded folder names liv
 
 ### Vexter
 
-The small pixel dinosaur in the sidebar footer. It pops up while a query runs, while a library
-indexes, and when a search comes back empty, then lowers itself again. Each moment has its own
-switch, and one switch turns all three off. Vexter is decoration: turning it off changes nothing
-about how search or indexing behave.
+The small pixel chameleon in the sidebar footer. It rests there while nothing is happening, plays
+one animation while the Search page is open, and another while a library indexes. Each of those
+moments has its own switch, and one switch turns all three off. Vexter is decoration: turning it
+off changes nothing about how search or indexing behave.
 
 <Shot
   src="screenshots/settings-mascot.png"
-  alt="Settings, Vexter section: a master disable switch and one switch for each moment Vexter appears, searching, indexing, and no results"
+  alt="Settings, Vexter section: a master disable switch and one switch for each moment Vexter appears, idle, searching and indexing"
   caption="Three moments, three switches, and one that turns all of them off."
 />
 

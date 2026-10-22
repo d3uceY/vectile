@@ -1,93 +1,20 @@
 /* ------------------------------------------------------------------
-   Sidebar mascot styles. Co-located with the Mascot component; uses the
-   global design tokens (--ease-snappy, tailwind palette) from index.css.
-   The dino rises from the footer's top edge on activation, lingers after
-   the interaction ends, then animates back down the way it came.
+   Sidebar mascot styles. Co-located with the Mascot component.
+
+   The sprite player owns the frames, so this file only owns the stage: a
+   clipped box standing on the footer's top edge. A sheet change is a swap in
+   place, so there is no entrance or exit animation here.
    ------------------------------------------------------------------ */
 
 .mascot-stage {
   display: flex;
-  height: 5.5rem;
+  /* Tall enough for the searching sheet once it is lifted onto the branch line:
+     60px of art plus a 26px lift, over 8px of breathing room under it. The
+     stage hangs above the footer, so its height costs no layout. */
+  height: 6.5rem;
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;
   pointer-events: none;
   padding-bottom: 0.5rem;
-}
-
-.mascot {
-  position: relative;
-  height: 5rem;
-  width: auto;
-}
-
-.mascot img {
-  display: block;
-  height: 5rem;
-  width: auto;
-  /* Crisp nearest-neighbour upscale so the pixel grid stays honest */
-  image-rendering: pixelated;
-}
-
-/* Animated webp is the default; the static PNG is hidden and only swapped in
-   under reduced motion, so the dino never loops for motion-sensitive users. */
-.mascot__static {
-  display: none !important;
-}
-
-/* Pop-in when a live interaction starts. */
-.mascot--indexing,
-.mascot--searching,
-.mascot--nothing {
-  animation: mascot-pop 260ms var(--ease-snappy);
-}
-
-@keyframes mascot-pop {
-  from {
-    opacity: 0;
-    transform: translateY(112%);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Exit when the interaction ends: the dino drops back down the way it came.
-   Higher specificity than the state classes so it overrides mascot-pop. */
-.mascot.mascot--leaving {
-  animation: mascot-exit 260ms var(--ease-snappy) forwards;
-}
-
-@keyframes mascot-exit {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(112%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mascot__anim {
-    display: none !important;
-  }
-  .mascot__static {
-    display: block !important;
-  }
-  /* Reduced motion: no translate, just a quick fade out. */
-  .mascot.mascot--leaving {
-    animation: mascot-exit-fade 260ms linear forwards;
-  }
-}
-
-@keyframes mascot-exit-fade {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
 }

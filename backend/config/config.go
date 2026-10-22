@@ -21,13 +21,12 @@ type SearchDefaults struct {
 	FTSWeight    float64 `json:"fts_weight"`
 }
 
-// MascotConfig controls which sidebar-mascot (Vexter) interactions are shown.
-// Each flag gates one resting-state trigger; all three off hides Vexter for
-// every moment at once.
+// MascotConfig controls which sidebar-mascot (Vexter) sheets are shown: one
+// flag per sheet, and all three off hides Vexter entirely.
 type MascotConfig struct {
+	ShowIdle      bool `json:"show_idle"`
 	ShowSearching bool `json:"show_searching"`
 	ShowIndexing  bool `json:"show_indexing"`
-	ShowNothing   bool `json:"show_nothing"`
 }
 
 // GUIConfig holds app-level (non-source) settings.
@@ -337,9 +336,9 @@ func defaults() *Config {
 			AutoReindexIntervalMinutes: 60,
 			StartOnLogin:               false,
 			Mascot: MascotConfig{
+				ShowIdle:      true,
 				ShowSearching: true,
 				ShowIndexing:  true,
-				ShowNothing:   true,
 			},
 		},
 		MCP: MCPConfig{

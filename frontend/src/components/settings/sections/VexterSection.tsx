@@ -1,37 +1,41 @@
 import { For } from "solid-js";
 import { Switch, Toggle } from "../../ui/primitives";
-import { MASCOT_ASSETS, MASCOT_STATIC } from "../../shell/mascot/assets";
+import { SpriteAnimation } from "../../ui/SpriteAnimation";
+import { MASCOT_CLIPS, MASCOT_LIFT_ART } from "../../shell/mascot/assets";
+import type { ActiveMascotState } from "../../shell/mascot/types";
+import type { SpriteClip } from "../../../lib/sprite";
+import type { MascotConfig } from "../../../lib/types";
 import { Section } from "../fields";
 import { VexterNavIcon } from "../nav";
 import { useSettings } from "../context";
 
 const MASCOT_STATES: {
-  key: "show_searching" | "show_indexing" | "show_nothing";
+  key: keyof MascotConfig;
+  state: ActiveMascotState;
   label: string;
   desc: string;
-  anim: string;
-  static: string;
+  clip: SpriteClip;
 }[] = [
   {
+    key: "show_idle",
+    state: "idle",
+    label: "Idle",
+    desc: "While nothing is running",
+    clip: MASCOT_CLIPS.idle,
+  },
+  {
     key: "show_searching",
+    state: "searching",
     label: "Searching",
-    desc: "While a query runs",
-    anim: MASCOT_ASSETS.searching,
-    static: MASCOT_STATIC,
+    desc: "While the Search page is open",
+    clip: MASCOT_CLIPS.searching,
   },
   {
     key: "show_indexing",
+    state: "indexing",
     label: "Indexing",
     desc: "While a library rebuilds",
-    anim: MASCOT_ASSETS.indexing,
-    static: MASCOT_STATIC,
-  },
-  {
-    key: "show_nothing",
-    label: "No results",
-    desc: "When a search comes up empty",
-    anim: MASCOT_ASSETS.nothing,
-    static: MASCOT_STATIC,
+    clip: MASCOT_CLIPS.indexing,
   },
 ];
 
@@ -42,7 +46,7 @@ export function VexterSection() {
     <Section
       icon={<VexterNavIcon size={16} />}
       title="Vexter"
-      note="The pixel dinosaur in the sidebar. It pokes up while your library works."
+      note="The pixel mascot in the sidebar. It rests at idle and changes while your library works, and each of those moments has its own switch."
     >
       <div class="space-y-6">
         <Toggle
@@ -61,8 +65,7 @@ export function VexterSection() {
                 }`}
               >
                 <div class="mascot-preview shrink-0">
-                  <img class="mascot-preview__anim" src={s.anim} alt="" draggable={false} />
-                  <img class="mascot-preview__static" src={s.static} alt="" draggable={false} />
+                  <SpriteAnimation clip={s.clip} artPx={1} lift={MASCOT_LIFT_ART[s.state] ?? 0} />
                 </div>
                 <div class="min-w-0 flex-1">
                   <p class="text-[13px] font-semibold leading-tight text-ink">{s.label}</p>

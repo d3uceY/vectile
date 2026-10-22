@@ -582,35 +582,15 @@ html[data-theme="dark"] {
     border: 3px solid var(--color-paper);
   }
 
-  /* Settings → Vexter: a small preview of each mascot moment. The animated
-     webp is the default; the shared static PNG swaps in under reduced motion
-     (the browser doesn't reliably pause an animated webp for motion-sensitive
-     users, so it's done in CSS like the sidebar mascot). */
+  /* Settings → Vexter: a small live preview of each mascot sheet. Same sprite
+     player as the sidebar, at one art pixel per CSS pixel so it fits the row.
+     Reduced motion freezes the player on its first frame. */
   .mascot-preview {
     display: flex;
     height: 3.5rem;
     width: 3.5rem;
     align-items: flex-end;
     justify-content: center;
-  }
-  .mascot-preview img {
-    display: block;
-    height: 3.5rem;
-    width: auto;
-    max-width: 100%;
-    object-fit: contain;
-    image-rendering: pixelated;
-  }
-  .mascot-preview .mascot-preview__static {
-    display: none !important;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .mascot-preview .mascot-preview__anim {
-      display: none !important;
-    }
-    .mascot-preview .mascot-preview__static {
-      display: block !important;
-    }
   }
 }
 

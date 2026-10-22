@@ -142,11 +142,12 @@ export interface SearchDefaults {
   fts_weight: number;
 }
 
-/** Mirrors config.MascotConfig (sidebar-mascot display settings). */
+/** Mirrors config.MascotConfig (sidebar-mascot display settings). One switch
+    per sheet; all three off hides Vexter. */
 export interface MascotConfig {
+  show_idle: boolean;
   show_searching: boolean;
   show_indexing: boolean;
-  show_nothing: boolean;
 }
 
 export interface GUIConfig {

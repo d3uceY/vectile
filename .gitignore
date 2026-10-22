@@ -13,3 +13,8 @@ references/
 walkthrough/
 .exe
 *.exe
+
+# Local-only helper scripts. Not shipped and not used by CI or the release
+# workflow; anything deployment needs stays tracked in scripts/ and is invoked
+# from .github/workflows.
+local-tools/

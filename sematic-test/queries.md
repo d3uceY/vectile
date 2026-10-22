@@ -68,7 +68,7 @@ Two caveats shaped the rows:
 - vectile's FTS5 table indexes the document **title** as well as the body, and for these `.txt` files the title is the *filename*. A query word is only safe if it is absent from the file body **and** from its filename — so topic words that live only in the filename (e.g. `italian`, `banana`, `movie`) are avoided too.
 - Each row keeps a **Missing keyword** — the salient word a keyword searcher would naturally reach for — which is additionally absent from the *entire* corpus (all 17 files: 0 hits). The **Verify** regex spot-checks that one word against the file body; it must match nothing.
 
-The **Verify** regex is the quick per-file spot-check. A ready-to-run check that tests *every* query word against both the body and the filename title for all 17 at once lives in [`verify-black-queries.ps1`](./verify-black-queries.ps1).
+The **Verify** regex is the quick per-file spot-check. A ready-to-run check that tests *every* query word against both the body and the filename title for all 17 at once lives in `local-tools/verify-black-queries.ps1`, a local-only helper that is gitignored rather than shipped.
 
 | # | Query | Target | Missing keyword | Verify (against target file) |
 |---|-------|--------|-----------------|------------------------------|

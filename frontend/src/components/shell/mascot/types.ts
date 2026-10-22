@@ -1,3 +1,3 @@
-/** The states the sidebar mascot shows while an interaction is live; each maps
-    to an asset and gets its own pop-in. */
-export type ActiveMascotState = "searching" | "indexing" | "nothing";
+/** The sheets the sidebar mascot can play. Idle is the resting state and is
+    always available; the other two take over while their interaction runs. */
+export type ActiveMascotState = "idle" | "searching" | "indexing";

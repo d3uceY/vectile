@@ -66,7 +66,7 @@ The `.deb` pulls in GTK4, WebKitGTK 6.0, and `libgomp1`. The AppImage needs `chm
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/settings-mascot.png" alt="Settings → Vexter: show the sidebar mascot while searching, indexing, or on no results" width="100%">
+  <img src="docs/screenshots/settings-mascot.png" alt="Settings → Vexter: show the sidebar mascot at idle, while searching, or while indexing" width="100%">
 </p>
 
 ## Supported sources
@@ -150,9 +150,9 @@ Query embeddings are cached per model, so repeat searches skip the model; rankin
 | gui.auto_reindex | false | Enable periodic re-indexing |
 | gui.auto_reindex_interval_minutes | 60 | Minutes between auto-reindex runs |
 | gui.start_on_login | false | Launch at login |
+| gui.mascot.show_idle | true | Show Vexter at rest between runs |
 | gui.mascot.show_searching | true | Show Vexter in the sidebar while a query runs |
 | gui.mascot.show_indexing | true | Show Vexter while a library rebuilds |
-| gui.mascot.show_nothing | true | Show Vexter when a search comes up empty |
 | mcp.enabled | false | Serve MCP tools to local assistants on launch |
 | mcp.port | 31123 | Port the MCP server listens on (127.0.0.1 only) |
 | mcp.allow_write | false | Let assistants call the index and prune tools |
