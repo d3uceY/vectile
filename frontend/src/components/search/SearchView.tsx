@@ -43,6 +43,7 @@ export function SearchView() {
 
   const onInput = (text: string) => {
     setValue(text);
+    store.noteTyping();
     window.clearTimeout(debounce() ?? undefined);
     setDebounce(
       window.setTimeout(() => store.runSearch(text, store.filters()), SEARCH_DEBOUNCE_MS),

@@ -161,6 +161,9 @@ export function createAppStore() {
   const [searchState, setSearchState] = createSignal<"idle" | "searching" | "done">("idle");
   const [searchCached, setSearchCached] = createSignal(false);
 
+  const [searchTyping, setSearchTyping] = createSignal(false);
+  const noteTyping = () => setSearchTyping(true);
+
   const [scoreDisplay, setScoreDisplayRaw] = createSignal<"rank" | "percent">(
     localStorage.getItem("vectile.score-display") === "percent" ? "percent" : "rank",
   );
@@ -194,6 +197,7 @@ export function createAppStore() {
     setQuery(q);
     setFilters(f);
     setSearchCached(false);
+    setSearchTyping(false);
     if (!q.trim()) {
       setResults([]);
       setSearchState("idle");
@@ -221,6 +225,7 @@ export function createAppStore() {
     setFilters(defaultFilters(config()?.search_defaults.top_k));
     setResults([]);
     setSearchCached(false);
+    setSearchTyping(false);
     setSearchState("idle");
   };
 
@@ -870,6 +875,8 @@ export function createAppStore() {
     setScoreDisplay,
     searchState,
     searchCached,
+    searchTyping,
+    noteTyping,
     runSearch,
     clearSearch,
     registerSearchInput,
