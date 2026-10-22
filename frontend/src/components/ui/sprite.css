@@ -28,4 +28,5 @@
   left: 0;
   max-width: none;
   image-rendering: pixelated;
+  will-change: transform;
 }
