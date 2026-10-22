@@ -18,3 +18,14 @@
   pointer-events: none;
   padding-bottom: 0.5rem;
 }
+
+/* The mascot itself takes clicks (the easter egg plays on tap) while the stage
+   around it stays inert, so the sprite is the only hit area. */
+.mascot-hit {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+}

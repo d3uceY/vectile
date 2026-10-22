@@ -1,8 +1,7 @@
 import { For } from "solid-js";
 import { Switch, Toggle } from "../../ui/primitives";
 import { SpriteAnimation } from "../../ui/SpriteAnimation";
-import { MASCOT_CLIPS, MASCOT_LIFT_ART } from "../../shell/mascot/assets";
-import type { ActiveMascotState } from "../../shell/mascot/types";
+import { MASCOT_CLIPS, mascotLift } from "../../shell/mascot/assets";
 import type { SpriteClip } from "../../../lib/sprite";
 import type { MascotConfig } from "../../../lib/types";
 import { Section } from "../fields";
@@ -11,28 +10,24 @@ import { useSettings } from "../context";
 
 const MASCOT_STATES: {
   key: keyof MascotConfig;
-  state: ActiveMascotState;
   label: string;
   desc: string;
   clip: SpriteClip;
 }[] = [
   {
     key: "show_idle",
-    state: "idle",
     label: "Idle",
     desc: "While nothing is running",
     clip: MASCOT_CLIPS.idle,
   },
   {
     key: "show_searching",
-    state: "searching",
     label: "Searching",
     desc: "While the Search page is open",
     clip: MASCOT_CLIPS.searching,
   },
   {
     key: "show_indexing",
-    state: "indexing",
     label: "Indexing",
     desc: "While a library rebuilds",
     clip: MASCOT_CLIPS.indexing,
@@ -65,7 +60,7 @@ export function VexterSection() {
                 }`}
               >
                 <div class="mascot-preview shrink-0">
-                  <SpriteAnimation clip={s.clip} artPx={1} lift={MASCOT_LIFT_ART[s.state] ?? 0} />
+                  <SpriteAnimation clip={s.clip} artPx={1} lift={mascotLift(s.clip, 1)} />
                 </div>
                 <div class="min-w-0 flex-1">
                   <p class="text-[13px] font-semibold leading-tight text-ink">{s.label}</p>

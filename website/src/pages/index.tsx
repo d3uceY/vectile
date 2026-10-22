@@ -65,7 +65,7 @@ const DETAILS = [
   },
   {
     title: 'Vexter',
-    body: 'A pixel mascot lives in the sidebar footer and pokes up while a query runs, while a library indexes, and when a search comes up empty. Each moment has its own switch, and there is an off switch for all three.',
+    body: 'A pixel chameleon lives in the sidebar footer. It rests at idle, plays a search animation while the Search page is open, and another while a library indexes. Each moment has its own switch, and there is an off switch for all three.',
   },
 ];
 
@@ -360,10 +360,10 @@ function Details() {
             <h2 className={styles.h2}>Craft lives in the parts nobody screenshots.</h2>
             <figure className={styles.vexterStage}>
               <img
-                src={withBaseUrl('img/vectile-mascot.webp')}
-                alt="Vexter, the pixel mascot that lives in the sidebar"
-                width={84}
-                height={84}
+                src={withBaseUrl('img/vectile-mascot.png')}
+                alt="Vexter, the pixel chameleon that lives in the sidebar"
+                width={133}
+                height={112}
                 loading="lazy"
               />
               <figcaption>Vexter, on the job</figcaption>

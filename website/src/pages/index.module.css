@@ -525,7 +525,7 @@
 }
 
 .vexterStage img {
-  width: 84px;
+  width: auto;
   height: 84px;
   image-rendering: pixelated;
 }

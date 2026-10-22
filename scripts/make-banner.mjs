@@ -2,9 +2,11 @@
 //
 // The banner is drawn in the app's "field notebook" world: paper ground,
 // graph-paper dots, hairline borders, one leaf-green accent, a serif-italic
-// tagline, and mono data lines. The animated mascot is embedded as a raw
-// WebP (so it loops inside the SVG) and the app's original logo sits at the
-// top; both are inlined so the banner is self-contained for GitHub.
+// tagline, and mono data lines. The mascot comes from the app's own sprite
+// sheet (`frontend/public/mascot/idle.png`): frame 1 is cropped to its drawn
+// area and downscaled with nearest-neighbour so the pixel grid survives, then
+// inlined so the banner is self-contained for GitHub. The app's original logo
+// sits at the top, also inlined.
 //
 // Run:  node scripts/make-banner.mjs
 
@@ -21,15 +23,21 @@ const require = createRequire(
 const { chromium } = require("playwright");
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const mascotPath = path.join(root, "docs", "vectile-mascot.webp");
+const sheetPath = path.join(root, "frontend", "public", "mascot", "idle.png");
 const logoPath = path.join(root, "frontend", "public", "vectile-logo.png");
 const outPath = path.join(root, "docs", "vectile-banner.svg");
 const LOGO_MARK = 48; // original logo resized down for the top-left mark
 
-// The animated mascot is embedded as its raw WebP so it keeps animating inside
-// the SVG. Resizing it through a canvas would collapse it to a single frame.
-const webp = await readFile(mascotPath);
-const webpB64 = webp.toString("base64");
+// Mascot placement. The sheet is one 960x960 strip of 10 frames; frame 1's
+// drawn area is cropped and divided by SCALE (nearest-neighbour) so one art
+// pixel lands on a clean multiple of the screen pixel.
+const MASCOT_FRAME = { x: 144, y: 336, width: 664, height: 560 };
+const MASCOT_SCALE = 5;
+const MASCOT_W = Math.round(MASCOT_FRAME.width / MASCOT_SCALE); // 133
+const MASCOT_H = Math.round(MASCOT_FRAME.height / MASCOT_SCALE); // 112
+
+const sheetPng = await readFile(sheetPath);
+const sheetB64 = sheetPng.toString("base64");
 
 // Resize the original logo for the top-left mark via a canvas.
 const logoPng = await readFile(logoPath);
@@ -37,9 +45,7 @@ const logoB64 = logoPng.toString("base64");
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
-await page.setContent(
-  `<canvas id="c" width="${LOGO_MARK}" height="${LOGO_MARK}"></canvas>`,
-);
+await page.setContent(`<canvas id="c" width="${LOGO_MARK}" height="${LOGO_MARK}"></canvas>`);
 const logoDataUri = await page.evaluate(
   ({ b64, size }) => {
     return new Promise((resolve, reject) => {
@@ -57,6 +63,27 @@ const logoDataUri = await page.evaluate(
     });
   },
   { b64: logoB64, size: LOGO_MARK },
+);
+
+// Crop frame 1 to the drawn area and downscale it without smoothing.
+const mascotDataUri = await page.evaluate(
+  ({ b64, frame, w, h }) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext("2d");
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, frame.x, frame.y, frame.width, frame.height, 0, 0, w, h);
+        resolve(c.toDataURL("image/png"));
+      };
+      img.onerror = reject;
+      img.src = "data:image/png;base64," + b64;
+    });
+  },
+  { b64: sheetB64, frame: MASCOT_FRAME, w: MASCOT_W, h: MASCOT_H },
 );
 await browser.close();
 
@@ -82,10 +109,11 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.
   <image x="82" y="48" width="${LOGO_MARK}" height="${LOGO_MARK}" preserveAspectRatio="xMidYMid meet"
          href="${logoDataUri}" xlink:href="${logoDataUri}"/>
 
-  <!-- animated mascot on a white card (matches the WebP backdrop) -->
+  <!-- mascot on a white card, from the app's own sprite sheet -->
   <rect x="80" y="126" width="160" height="160" rx="20" fill="#ffffff" stroke="#d1d8de"/>
-  <image x="102" y="148" width="116" height="116" preserveAspectRatio="xMidYMid meet"
-         href="data:image/webp;base64,${webpB64}" xlink:href="data:image/webp;base64,${webpB64}"/>
+  <image x="94" y="150" width="132" height="111" preserveAspectRatio="xMidYMid meet"
+         style="image-rendering:pixelated"
+         href="${mascotDataUri}" xlink:href="${mascotDataUri}"/>
 
   <!-- wordmark -->
   <text x="272" y="214" font-family="${sans}" font-size="52" font-weight="700" letter-spacing="-1.2" fill="#1b2226">vectile</text>

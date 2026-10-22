@@ -2,7 +2,18 @@
 
    The image is the whole horizontal strip. The player steps it a frame at a
    time with a transform, so the work stays on the compositor and the pixel
-   grid stays honest. */
+   grid stays honest.
+
+   `.sprite-anchor` is the outer box, symmetric about the sheet's anchor point,
+   so a crop that reaches further one way grows away from the character instead
+   of pushing it off centre. It is exactly as wide as the crop when the crop and
+   the anchor agree, which is the usual case. */
+.sprite-anchor {
+  display: block;
+  position: relative;
+  flex: none;
+}
+
 .sprite {
   display: block;
   position: relative;
