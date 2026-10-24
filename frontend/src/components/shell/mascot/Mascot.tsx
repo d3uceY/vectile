@@ -21,7 +21,8 @@ import "./mascot.css";
    intro, and nothing pops, rises or fades.
 
    Clicking it plays one of the easter-egg sheets, picked at random, once and
-   over whatever is showing, then hands back.
+   over whatever is showing, then hands back. The pick remembers the sheet that
+   just played so the same beat never runs twice in a row.
    ------------------------------------------------------------------ */
 
 export function Mascot() {
@@ -31,6 +32,10 @@ export function Mascot() {
   /** The easter egg, or null when idle/deep work owns the stage. A fresh object
       per click restarts the clip if the mascot is tapped again mid-play. */
   const [easter, setEaster] = createSignal<SpriteClip | null>(null);
+
+  /** Sheet src of the egg that played last, so the next pick can skip it. Not a
+      signal: only `play` reads it, and nothing on screen depends on it. */
+  let lastEgg: string | null = null;
 
   const clip = (state: ActiveMascotState) => easter() ?? MASCOT_CLIPS[state];
 
@@ -45,12 +50,17 @@ export function Mascot() {
     for (const c of MASCOT_EASTER) void loadSheet(c.sheet.src);
   });
 
-  /** One of the idle eggs at random; the spread copies it so a second click
-      mid-play restarts the clip instead of reusing the running one. */
+  /** One of the idle eggs at random, never the sheet that played last. The
+      spread copies it so a second click mid-play restarts the clip instead of
+      reusing the running one. */
   const play = async () => {
     if (still()) return;
-    const egg = MASCOT_EASTER[Math.floor(Math.random() * MASCOT_EASTER.length)];
+    const pool = MASCOT_EASTER.filter((c) => c.sheet.src !== lastEgg);
+    /* One egg total: nothing left to rotate to, so repeat it. */
+    const pick = pool.length > 0 ? pool : MASCOT_EASTER;
+    const egg = pick[Math.floor(Math.random() * pick.length)];
     await loadSheet(egg.sheet.src);
+    lastEgg = egg.sheet.src;
     setEaster({ ...egg });
   };
 
