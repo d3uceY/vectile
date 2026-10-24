@@ -9,13 +9,13 @@
 .mascot-stage {
   display: flex;
   /* Tall enough for the searching sheet once it is lifted onto the branch line:
-     60px of art plus a 26px lift, over 8px of breathing room under it. The
+     60px of art plus a 28px lift, over 8px of breathing room under it. The
      stage hangs above the footer, so its height costs no layout. */
   height: 6.5rem;
-  /* Wide enough for the widest clip (the pacman egg, whose pellets reach 120px)
+  /* Wide enough for the widest clip (the pacman egg, whose pellets reach 128px)
      so the stage keeps one size and the sprite is centred in the same place on
      every swap instead of the box being re-laid out around a new sheet. */
-  width: 7.5rem;
+  width: 8.5rem;
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;

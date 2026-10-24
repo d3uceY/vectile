@@ -13,10 +13,12 @@ import { MASCOT_CLIPS } from "../shell/mascot/assets";
 import { SpriteAnimation } from "../ui/SpriteAnimation";
 import type { NavIconSlot, SectionKey } from "./types";
 
+/** The idle sheet at nav-icon size: its anchor box is 42 art pixels wide, so
+    0.38 lands it just inside the 16px slot instead of clipping the antenna. */
 export function VexterNavIcon(_p: NavIconSlot) {
   return (
     <span class="flex h-4 w-4 items-center justify-center overflow-hidden">
-      <SpriteAnimation clip={MASCOT_CLIPS.idle} artPx={0.42} />
+      <SpriteAnimation clip={MASCOT_CLIPS.idle} artPx={0.38} />
     </span>
   );
 }
