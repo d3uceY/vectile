@@ -13,8 +13,9 @@ import type { ActiveMascotState } from "./types";
    the same branch line whichever sheet is playing. The idle, searching, cool and
    pacman sheets are all drawn on the same 60x60 art canvas, so `anchor` points
    them at art x 28 (448 at 16x, 112 at 4x) and the branch never slides sideways
-   when the sheet swaps. Indexing is its own 64x64 canvas, so it stays centred
-   on its crop. */
+   when the sheet swaps. The explode sheet is a 64x64 canvas with the same
+   chameleon one art pixel further right, so its anchor is art x 29 (116 at 4x).
+   Indexing is its own 64x64 canvas, so it stays centred on its crop. */
 
 const MASCOT_DIR = "/mascot";
 
@@ -107,6 +108,35 @@ export const MASCOT_EASTER: SpriteClip[] = [
     },
     frameMs: 200,
     timing: [{ frames: 4, frameMs: 50 }],
+    loop: false,
+  },
+  /* The eye glitch: the pupil blooms, bursts into sparks, the chameleon sits
+     empty-eyed while the wisp drifts off, then a second burst and the eye is
+     back. 4352x256, 17 frames of 256 at four sheet pixels per art pixel, so the
+     same 2px art scale as the other eggs. The crop is the union of every frame,
+     because the sparks reach above the head (art y 17) and past the body's
+     right edge (art x 56) only during the bursts. It also carries one art row of
+     empty space under the tail (164 tall rather than the drawn 160) so the
+     branch lands on idle's row, 13 art pixels above the crop's bottom edge. */
+  {
+    sheet: {
+      src: `${MASCOT_DIR}/idle-explode.png`,
+      frames: 17,
+      frameWidth: 256,
+      frameHeight: 256,
+      pixelSize: 4,
+      content: { x: 36, y: 68, width: 188, height: 164 },
+      /* Body centre line: idle's art x 28, shifted by the one art pixel this
+         export sits further right. Sparks spill right of it, which the
+         symmetric anchor box absorbs. */
+      anchor: 116,
+    },
+    frameMs: 100,
+    timing: [
+      { frames: [1, 5], frameMs: 200 }, // the blink
+      { frames: [6, 9], frameMs: 120 }, // the bloom and the burst
+      { frames: [15, 16], frameMs: 120 }, // the second burst
+    ],
     loop: false,
   },
 ];

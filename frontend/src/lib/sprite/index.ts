@@ -9,3 +9,4 @@ export * from "./timeline";
 export * from "./geometry";
 export * from "./player";
 export * from "./motion";
+export * from "./preload";

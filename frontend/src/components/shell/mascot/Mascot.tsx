@@ -1,6 +1,6 @@
-import { Show, createEffect, createSignal } from "solid-js";
+import { Show, createEffect, createSignal, onMount } from "solid-js";
 import { SpriteAnimation } from "../../ui/SpriteAnimation";
-import { useReducedMotion, type SpriteClip } from "../../../lib/sprite";
+import { loadSheet, useReducedMotion, type SpriteClip } from "../../../lib/sprite";
 import { useMascotState } from "./state";
 import { MASCOT_ART_PX, MASCOT_CLIPS, MASCOT_EASTER, mascotLift } from "./assets";
 import type { ActiveMascotState } from "./types";
@@ -39,11 +39,18 @@ export function Mascot() {
     if (!active()) setEaster(null);
   });
 
+  // Decode every strip up front so a swap never paints a half-loaded sheet.
+  onMount(() => {
+    for (const c of Object.values(MASCOT_CLIPS)) void loadSheet(c.sheet.src);
+    for (const c of MASCOT_EASTER) void loadSheet(c.sheet.src);
+  });
+
   /** One of the idle eggs at random; the spread copies it so a second click
       mid-play restarts the clip instead of reusing the running one. */
-  const play = () => {
+  const play = async () => {
     if (still()) return;
     const egg = MASCOT_EASTER[Math.floor(Math.random() * MASCOT_EASTER.length)];
+    await loadSheet(egg.sheet.src);
     setEaster({ ...egg });
   };
 
