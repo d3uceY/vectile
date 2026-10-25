@@ -3,7 +3,7 @@ import { useAppStore } from "../../lib/store";
 import { daysSince } from "../../lib/time";
 import type { SearchFilters } from "../../lib/types";
 import { exampleQueries, termsOf } from "../../lib/mock";
-import { SearchIcon, CloseIcon, BoltIcon, ReindexIcon } from "../ui/icons";
+import { SearchIcon, CloseIcon, BoltIcon, ReindexIcon, DownloadIcon } from "../ui/icons";
 import { EmptyState, Button, Chip, Kbd, Select, Skeleton } from "../ui/primitives";
 import { ResultCard } from "./ResultCard";
 
@@ -91,6 +91,7 @@ export function SearchView() {
     return last ? daysSince(last) : null;
   };
   const showFreshness = () =>
+    !store.noModel() &&
     freshnessDays() !== null &&
     freshnessDays()! >= 1 &&
     store.config()?.gui.auto_reindex === false &&
@@ -115,9 +116,14 @@ export function SearchView() {
           <input
             id="search-input"
             ref={(el) => store.registerSearchInput(el)}
-            class="h-11 w-full bg-transparent text-[14px] font-medium text-ink outline-none placeholder:text-faint"
-            placeholder="Search your notes, books, and code"
+            class="h-11 w-full bg-transparent text-[14px] font-medium text-ink outline-none placeholder:text-faint disabled:cursor-not-allowed"
+            placeholder={
+              store.noModel()
+                ? "Add a model to turn search on"
+                : "Search your notes, books, and code"
+            }
             value={value()}
+            disabled={store.noModel()}
             onInput={(e) => onInput(e.currentTarget.value)}
             onKeyDown={(e) => {
               if (e.key === "Escape" && value()) clearAll();
@@ -220,14 +226,21 @@ export function SearchView() {
       {/* Results area: the view's own scroll region */}
       <div class="scroll-quiet relative mt-6 min-h-0 flex-1 overflow-y-auto">
         <Show
-          when={store.searchState() === "idle"}
+          when={store.noModel()}
           fallback={
-            <Show when={store.searchState() === "searching"} fallback={<ResultList />}>
-              <SearchingState />
+            <Show
+              when={store.searchState() === "idle"}
+              fallback={
+                <Show when={store.searchState() === "searching"} fallback={<ResultList />}>
+                  <SearchingState />
+                </Show>
+              }
+            >
+              <IdleState onPick={pickExample} />
             </Show>
           }
         >
-          <IdleState onPick={pickExample} />
+          <NoModelState />
         </Show>
       </div>
     </div>
@@ -242,6 +255,21 @@ function FilterField(props: { label: string; children: JSX.Element }) {
       </span>
       {props.children}
     </label>
+  );
+}
+
+function NoModelState() {
+  const store = useAppStore();
+  return (
+    <div class="flex h-full items-center justify-center">
+      <EmptyState
+        icon={<DownloadIcon size={20} />}
+        title="No model to search with"
+        note="Search ranks by meaning, which needs a local embedding model. Add one and the box turns back on — nothing leaves this machine."
+      >
+        <Button onClick={() => store.openSettings("model")}>Add a model</Button>
+      </EmptyState>
+    </div>
   );
 }
 

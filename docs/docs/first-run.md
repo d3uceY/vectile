@@ -34,7 +34,7 @@ One path per group in **Settings → Sources**.
 
 ## 4. Search
 
-Press <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on macOS).
+Press <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on macOS). Search needs the model from step 1: with none active the box stays closed and links back to **Settings → Model**.
 
 ![A search result expanded to show the full passage, its tags, and the Open file and Reveal in folder buttons](/img/screenshots/search-passage.png)
 

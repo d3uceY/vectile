@@ -131,4 +131,4 @@ See [Scanned PDFs](../features/ocr).
 
 ## Environment
 
-One environment variable changes behaviour. `VECTILE_EMBED_MODEL` overrides the path vectile looks in for its model, which is useful when the model lives outside the app data folder.
+`VECTILE_EMBED_MODEL` overrides the model path, for a model kept outside the app data folder.

@@ -4,9 +4,7 @@ sidebar_position: 1
 
 # Search
 
-The home screen: one box, a row of filters, results as cards. Press <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on macOS) from anywhere and the cursor is already in the box.
-
-Type the question you would ask out loud, not the file name you wish you had used.
+Press <kbd>Ctrl</kbd>+<kbd>K</kbd> (<kbd>⌘</kbd>+<kbd>K</kbd> on macOS) from anywhere and the cursor is already in the box.
 
 ![The Search view: a query box with a Ctrl K hint, a filter row, and result cards with highlighted snippets, collection chips, and monospaced file paths](/img/screenshots/search.png)
 
@@ -37,8 +35,6 @@ The **rank toggle** swaps `#1` for the score as a percentage. **Read full passag
 | Date range | Documents dated between the two days you set |
 | Top k | How many results to return. Defaults to the value in Settings. |
 
-The text filters wait until you stop typing; <kbd>Enter</kbd> skips the wait.
-
 ## Why you got nothing
 
 - **No collections yet.** Nothing is configured, and the link goes to Settings.
@@ -55,4 +51,4 @@ The cache empties itself after an index run, a prune, or a model change. **Setti
 
 ## When the model is missing
 
-The meaning search is skipped and the word search still answers. Exact matches keep working, which can look like a healthy search until you ask a question that shares no words with the answer.
+Search is ranked by meaning, which needs an embedding model, so vectile does not pretend otherwise: with no model active the box stays closed and the view offers **Add a model**, straight into **Settings → Model**. Choosing one there turns search back on, no restart.

@@ -29,9 +29,9 @@ Dimensions are how many numbers describe each passage. Take BGE Small EN v1.5 at
 
 ## Switching the active model
 
-Any switch made while something is indexed needs a re-index. Two models can share a dimension and still describe a passage differently, so stored vectors cannot be compared against the new model's. vectile asks before clearing them, then rebuilds the vector tables; Library shows **needs reindex** until the collections are re-indexed. Keyword search keeps working in the meantime.
+Any switch made while something is indexed needs a re-index. Two models can share a dimension and still describe a passage differently, so stored vectors cannot be compared against the new model's. vectile asks before clearing them, then rebuilds the vector tables; Library shows **needs reindex** until the collections are re-indexed.
 
-Re-applying the active model changes nothing, and a switch on an empty library applies immediately.
+Re-applying the active model changes nothing.
 
 Switching also empties the [query cache](./search#the-query-cache): a cached query from the old model means nothing to the new one.
 
@@ -42,8 +42,6 @@ Switching also empties the [query cache](./search#the-query-cache): a cached que
 | Context window | 2048 tokens | The most text the model reads at once. |
 | Batch size | 32 chunks | How many passages are sent to the model per call. |
 | Threads | 0, meaning all cores | How many CPU threads the model may use. |
-
-Changes to the active model apply immediately.
 
 :::tip
 If indexing makes the machine sluggish, set threads to half your cores rather than lowering the batch size. Batch size changes how fast the work gets done, not how much CPU it takes.

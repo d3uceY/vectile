@@ -49,7 +49,7 @@ The read tools are always available. The two write tools stay off until you swit
 
 ## Connecting a client
 
-vectile speaks Streamable HTTP on `/mcp` by default. That is the transport current assistants probe first, and most of them find it from the URL alone.
+vectile speaks Streamable HTTP on `/mcp` by default.
 
 Claude Desktop, in `claude_desktop_config.json`:
 
@@ -79,18 +79,14 @@ http://127.0.0.1:31123/mcp
 
 **Settings → Connect** has a Transport choice. **Streamable HTTP** answers on `/mcp`. **SSE** is the older transport, for an assistant that cannot use Streamable HTTP, and answers on `/sse`.
 
-The choice applies when you save, and the server restarts on the new address. The status plate names the transport that is actually running.
-
-VS Code and Claude Code record the transport in their own setup, so the snippet already carries the right one.
-
-If you connected an assistant before vectile moved to Streamable HTTP, paste the setup in again once. The default address changed from `/sse` to `/mcp`.
+The choice applies when you save, and the server restarts on the new address.
 
 ## The port
 
-The default is `31123`, and you can change it in **Settings → Connect**. The new port applies when you save, and the status plate says whether the server is running, stopped, or waiting for that save.
+The default is `31123`, and you can change it in **Settings → Connect**. The new port applies when you save.
 
 ## What an assistant can see
 
 Everything you have indexed, in every collection you have not disabled. If that is more than you want, leave the server off, leave it on with write tools off, or disable collections in **Settings → Sources**, which keeps them out of results in the app and over MCP alike.
 
-The Connect section prints what is exposed (`N collections · M chunks readable`), so the trade-off has a number attached to it. [Privacy](../reference/privacy) covers the rest.
+Connect prints what is exposed (`N collections · M chunks readable`). [Privacy](../reference/privacy) covers the rest.

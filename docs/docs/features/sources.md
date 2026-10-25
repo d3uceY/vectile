@@ -28,8 +28,6 @@ Any folder of documents. Each file is read according to its extension, then spli
 
 Excel workbooks become one section per worksheet, PowerPoint decks one section per slide, and notebooks keep their text cells and code cells apart.
 
-Each group you add gets its own collection, named after the group.
-
 ## Code repositories
 
 Give it a git repository, or a folder containing several, and it scans them all.

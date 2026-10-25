@@ -14,9 +14,9 @@ Indexing needs an active model. Open **Settings → Model** and download one fro
 
 The sidebar shows the model as idle, loaded, or failed. A failed model means the file is there but could not be read, usually because the download was cut short.
 
-## Search only finds exact words
+## Search will not run
 
-With no working model, the meaning search is skipped and only the word search answers. Exact matches keep working, which can look healthy until you ask a question that shares no words with the answer. Check the model state in the sidebar.
+Search needs a model. With none active the box stays closed and the view offers **Add a model**, which opens **Settings → Model**.
 
 ## Nothing comes back at all
 
@@ -77,7 +77,7 @@ That is the single-instance guard working: the second launch raises the window o
 
 ## The first search after launch is slow
 
-The model loads on first use rather than at startup, so the first search pays for loading it and later ones are fast. Repeating a query is served from the [query cache](../features/search#the-query-cache).
+The model loads on first use rather than at startup. Repeating a query is served from the [query cache](../features/search#the-query-cache).
 
 ## Go tests fail because no model is present
 

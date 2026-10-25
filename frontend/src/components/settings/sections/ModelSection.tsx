@@ -132,7 +132,7 @@ export function ModelSection() {
           </div>
         </FieldList>
 
-        <div>
+        <div id="setup-model">
           <SubHeading
             action={
               <button

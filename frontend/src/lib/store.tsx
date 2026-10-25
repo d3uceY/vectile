@@ -110,11 +110,12 @@ export function createAppStore() {
   const [collections, setCollections] = createSignal<Collection[]>([]);
   const [config, setConfig] = createSignal<AppConfig | null>(null);
   const [models, setModels] = createSignal<ModelInfo[]>([]);
+  const [modelsLoaded, setModelsLoaded] = createSignal(false);
 
   const [recommended, setRecommended] = createSignal<CatalogModel[]>([]);
-  const [downloadState, setDownloadState] = createSignal<ModelDownloadState | null>(null);
-  const [modelDialogOpen, setModelDialogOpen] = createSignal(false);
+  const [downloadState, setDownloadState] = createSignal<ModelDownloadState | null>
   const [modelDialogDismissed, setModelDialogDismissed] = createSignal(false);
+  const [firstRunDone, setFirstRunDone] = createSignal(false);
 
   const [ocrState, setOCRState] = createSignal<OCRState | null>(null);
   const [ocrSetupOpen, setOCRSetupOpen] = createSignal(false);
@@ -200,6 +201,13 @@ export function createAppStore() {
     setSearchTyping(false);
     if (!q.trim()) {
       setResults([]);
+      setSearchState("idle");
+      return;
+    }
+    if (noModel()) {(null);
+  const [modelDialogOpen, setModelDialogOpen] = createSignal(false);
+      setResults([]);
+      setSearchCached(false);
       setSearchState("idle");
       return;
     }
@@ -313,6 +321,8 @@ export function createAppStore() {
       setModels([...(await api.listModels())]);
     } catch {
       /* backend not ready yet */
+    } finally {
+      setModelsLoaded(true);
     }
   };
 
@@ -320,6 +330,8 @@ export function createAppStore() {
   const canIndex = () =>
     (models().some((m) => m.isActive) || modelState() === "loaded") &&
     modelState() !== "failed";
+
+  const noModel = () => modelsLoaded() && !canIndex();
 
   const setActiveModel = async (path: string, force = false) => {
     const res = await api.setActiveModel(path, force);
@@ -796,6 +808,7 @@ export function createAppStore() {
       await loadOCRState();
       if (models().length === 0 && !modelDialogDismissed()) setModelDialogOpen(true);
       else maybePromptOCR();
+      setFirstRunDone(true);
     })();
   });
   onCleanup(() => {
@@ -824,6 +837,8 @@ export function createAppStore() {
     openSettings,
     takePendingSettingsSection,
     canIndex,
+    noModel,
+    firstRunDone,
     modelState,
     modelName,
     status,

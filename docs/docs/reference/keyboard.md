@@ -4,8 +4,6 @@ sidebar_position: 2
 
 # Keyboard shortcuts
 
-The first one is the one worth memorizing.
-
 | Keys | Where | Does |
 |---|---|---|
 | <kbd>Ctrl</kbd>+<kbd>K</kbd> / <kbd>⌘</kbd>+<kbd>K</kbd> | Everywhere | Focus the search box and jump to Search. |
@@ -21,10 +19,6 @@ The first one is the one worth memorizing.
 | <kbd>←</kbd> <kbd>→</kbd> | Settings rail | Move between sections. |
 | <kbd>Home</kbd> / <kbd>End</kbd> | Settings rail | Jump to the first or last section. |
 | <kbd>Enter</kbd> | A path field in Settings | Add the typed path to the list. |
-
-## One wait you will notice
-
-The search box waits 350ms after you stop typing, because every query is real work on your CPU. <kbd>Enter</kbd>, or picking an example query, skips the wait.
 
 ## On macOS
 

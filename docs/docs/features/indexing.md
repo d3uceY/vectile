@@ -22,9 +22,9 @@ Indexing needs a model, so the buttons stay greyed out until one is loaded.
 
 ## While a run is going
 
-Progress appears on the collection's row: a bar, the file being read, and a count. It survives switching views, closing the window, or reloading.
+Progress appears on the collection's row: a bar, the file being read, and a count.
 
-**Cancel** stops the run within seconds and keeps whatever it already indexed, so the next step is **Index new**. Only one run happens at a time. A desktop notification says when it finishes.
+**Cancel** stops the run within seconds and keeps whatever it already indexed, so the next step is **Index new**. Only one run happens at a time.
 
 ## Keeping it current
 
@@ -32,10 +32,8 @@ Progress appears on the collection's row: a bar, the file being read, and a coun
 
 **Prune** removes entries whose files are gone: deleted files, removed books, deleted code.
 
-When auto-reindex is off and the last run was more than a day ago, Search shows a note under the filter bar.
-
 ![Settings, Indexing section: auto-reindex and its interval, start on login, cloud placeholder handling, the git history window, and the commit subject blacklist](/img/screenshots/settings-indexing.png)
 
 ## The tray
 
-Closing the window hides vectile instead of quitting, so it keeps running in the system tray. The tray menu carries the current status, an **Index** submenu with **All Collections** and one entry per collection, **Cancel Indexing** while a run is active, **Show vectile**, and **Quit**.
+Closing the window hides vectile in the tray instead of quitting. The tray menu carries the status, an **Index** submenu with all collections or one, **Cancel Indexing** while a run is active, **Show vectile**, and **Quit**.

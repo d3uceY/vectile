@@ -22,7 +22,7 @@ vectile fetches the archive built for your system, checks its hash, unpacks it i
 
 Nothing changes for PDFs you already indexed, because a run skips any file that has not changed since last time. To read them again: **Settings → OCR → Re-index everything**.
 
-That re-reads every file in every collection, so it takes a while on a large one. Nothing is deleted, and each file's passages are replaced as it is re-read.
+That re-reads every file in every collection, so it takes a while on a large one.
 
 After that, text lifted from a scan behaves like any other passage, with the page number it came from.
 
@@ -35,8 +35,6 @@ After that, text lifted from a scan behaves like any other passage, with the pag
 ## When it cannot help
 
 Some pages defeat any OCR engine: handwriting, dense tables, low resolution photos. Those pages yield nothing, vectile moves on, and the rest of the document is indexed as usual.
-
-If a run says pages had no readable text and the plugin is already installed, the PDF is the limit rather than the setup.
 
 ## Language data
 
