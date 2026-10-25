@@ -1,0 +1,197 @@
+/* The landing page is the app's Overview page at web scale: a page head with
+   one action, a hairline panel of rows, and a status line under it. */
+
+.hero {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.heroInner {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 72px 32px 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 64px;
+  align-items: center;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  animation: rise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.title {
+  margin: 0;
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+
+.subtitle {
+  margin: 18px 0 0;
+  max-width: 34ch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+/* One action colour, as in the app. */
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 15px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 100ms, border-color 100ms;
+}
+
+.primary {
+  background: var(--action);
+  border: 1px solid var(--action);
+  color: var(--action-ink);
+  font-weight: 600;
+}
+
+.primary:hover {
+  background: var(--action-hover);
+  border-color: var(--action-hover);
+  color: var(--action-ink);
+  text-decoration: none;
+}
+
+.secondary {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.secondary:hover {
+  background: var(--fill);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.version {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  background: var(--fill);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.metaItem {
+  position: relative;
+  font-size: 11.5px;
+  color: var(--muted-2);
+}
+
+.metaItem + .metaItem::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transform: translateY(-50%);
+}
+
+/* The screenshot is framed the way the app frames a panel: one hairline. */
+.figure {
+  margin: 0;
+  animation: rise 620ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroText,
+  .figure {
+    animation: none;
+  }
+}
+
+@media (max-width: 996px) {
+  .heroInner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 52px 24px 44px;
+  }
+
+  .title {
+    font-size: 34px;
+    letter-spacing: -0.03em;
+  }
+
+  .subtitle {
+    max-width: 44ch;
+    font-size: 15px;
+  }
+}
+
+/* At phone width a 1280px app screenshot is mush. The copy carries the page. */
+@media (max-width: 720px) {
+  .figure {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 29px;
+  }
+
+  .actions {
+    width: 100%;
+  }
+
+  .primary,
+  .secondary {
+    flex: 1;
+    justify-content: center;
+  }
+}

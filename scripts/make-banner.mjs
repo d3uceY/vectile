@@ -1,4 +1,4 @@
-// Generates docs/vectile-banner.svg — the README hero banner.
+// Generates docs/static/img/vectile-banner.svg — the README hero banner.
 //
 // The banner is drawn in the app's "field notebook" world: paper ground,
 // graph-paper dots, hairline borders, one leaf-green accent, a serif-italic
@@ -25,7 +25,7 @@ const { chromium } = require("playwright");
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sheetPath = path.join(root, "frontend", "public", "mascot", "idle.png");
 const logoPath = path.join(root, "frontend", "public", "vectile-logo.png");
-const outPath = path.join(root, "docs", "vectile-banner.svg");
+const outPath = path.join(root, "docs", "static", "img", "vectile-banner.svg");
 const LOGO_MARK = 48; // original logo resized down for the top-left mark
 
 // Mascot placement. The sheet is one 960x960 strip of 10 frames; frame 1's

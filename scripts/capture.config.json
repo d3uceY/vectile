@@ -11,87 +11,87 @@
   "pages": [
     {
       "name": "search",
-      "out": "docs/screenshots/search.png",
+      "out": "docs/static/img/screenshots/search.png",
       "interactView": "search",
       "query": "kubernetes rollout"
     },
     {
       "name": "search-passage",
-      "out": "docs/screenshots/search-passage.png",
+      "out": "docs/static/img/screenshots/search-passage.png",
       "interactView": "search",
       "query": "kubernetes rollout",
       "searchExpand": true
     },
     {
       "name": "library",
-      "out": "docs/screenshots/library.png",
+      "out": "docs/static/img/screenshots/library.png",
       "interactView": "library"
     },
     {
       "name": "browse",
-      "out": "docs/screenshots/browse.png",
+      "out": "docs/static/img/screenshots/browse.png",
       "interactView": "browse"
     },
     {
       "name": "index",
-      "out": "docs/screenshots/index.png",
+      "out": "docs/static/img/screenshots/index.png",
       "interactView": "index"
     },
     {
       "name": "settings",
-      "out": "docs/screenshots/settings.png",
+      "out": "docs/static/img/screenshots/settings.png",
       "interactView": "settings"
     },
     {
       "name": "settings-sources",
-      "out": "docs/screenshots/settings-sources.png",
+      "out": "docs/static/img/screenshots/settings-sources.png",
       "interactView": "settings",
       "settingsSection": "Sources"
     },
     {
       "name": "settings-chunking",
-      "out": "docs/screenshots/settings-chunking.png",
+      "out": "docs/static/img/screenshots/settings-chunking.png",
       "interactView": "settings",
       "settingsSection": "Chunking"
     },
     {
       "name": "settings-search",
-      "out": "docs/screenshots/settings-search.png",
+      "out": "docs/static/img/screenshots/settings-search.png",
       "interactView": "settings",
       "settingsSection": "Search"
     },
     {
       "name": "settings-cache",
-      "out": "docs/screenshots/settings-cache.png",
+      "out": "docs/static/img/screenshots/settings-cache.png",
       "interactView": "settings",
       "settingsSection": "Cache"
     },
     {
       "name": "settings-ocr",
-      "out": "docs/screenshots/settings-ocr.png",
+      "out": "docs/static/img/screenshots/settings-ocr.png",
       "interactView": "settings",
       "settingsSection": "OCR"
     },
     {
       "name": "ocr-setup",
-      "out": "docs/screenshots/ocr-setup.png",
+      "out": "docs/static/img/screenshots/ocr-setup.png",
       "ocrDialog": true
     },
     {
       "name": "settings-indexing",
-      "out": "docs/screenshots/settings-indexing.png",
+      "out": "docs/static/img/screenshots/settings-indexing.png",
       "interactView": "settings",
       "settingsSection": "Indexing"
     },
     {
       "name": "settings-mascot",
-      "out": "docs/screenshots/settings-mascot.png",
+      "out": "docs/static/img/screenshots/settings-mascot.png",
       "interactView": "settings",
       "settingsSection": "vexter"
     },
     {
       "name": "settings-connect",
-      "out": "docs/screenshots/settings-connect.png",
+      "out": "docs/static/img/screenshots/settings-connect.png",
       "interactView": "settings",
       "settingsSection": "Connect",
       "loadingSelectors": [

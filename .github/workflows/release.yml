@@ -182,7 +182,7 @@ jobs:
       # the SSE2 baseline so they run on any x86-64 CPU. Portable zip only, no
       # installer, and deliberately NOT the default: K-quant models (3 of the 4
       # catalog models) are about 17x slower without AVX2. See
-      # docs/BUILD-AND-PACKAGING.md.
+      # dev-docs/build-and-packaging.md.
       - name: Build legacy SSE2 archives
         shell: pwsh
         run: |

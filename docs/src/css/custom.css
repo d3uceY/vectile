@@ -1,0 +1,912 @@
+/* ============================================================================
+   vectile docs — the app's design system, translated for reading.
+
+   Same rules as frontend/src/styles/app.css:
+
+     1. Grey everything. The only saturated colour is a state.
+     2. One action colour: near-black for "this is the thing to press".
+     3. Hairlines, not boxes.
+     4. Sentence case for controls and table headers. Uppercase only for the
+        small labels that name a section.
+     5. Numbers are tabular so columns line up.
+
+   The app runs at 13px because it is dense. Documentation reads at 15.5px;
+   everything else — the palette, the radii, the rules, the voice — is shared.
+   ========================================================================== */
+
+/* ── type ─────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("../../static/fonts/space-grotesk-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("../../static/fonts/space-grotesk-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ── tokens ───────────────────────────────────────────────────────────────── */
+
+:root {
+  --ink: #1b1d20;
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --surface-2: #f4f5f6;
+  --fill: #f0f1f3;
+  --fill-2: #e7e9eb;
+  --line: #ebedee;
+  --line-strong: #dcdde0;
+  --hover: rgba(27, 29, 32, 0.035);
+
+  --muted: #6a6f76;
+  --muted-2: #9aa0a6;
+
+  --action: #232629;
+  --action-hover: #35393d;
+  --action-ink: #ffffff;
+
+  --ok: #2f7d55;
+  --ok-bg: #edf5f0;
+  --warn: #8a6520;
+  --warn-bg: #f8f3e7;
+  --danger: #a33a34;
+  --danger-bg: #f9edec;
+
+  --radius: 6px;
+  --radius-card: 8px;
+
+  --sans: "Space Grotesk", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --ink: #e8eaec;
+  --bg: #141618;
+  --surface: #1a1d1f;
+  --surface-2: #202325;
+  --fill: #24272a;
+  --fill-2: #2b2f33;
+  --line: #2a2d31;
+  --line-strong: #383c41;
+  --hover: rgba(255, 255, 255, 0.04);
+
+  --muted: #9ba0a6;
+  --muted-2: #71767c;
+
+  --action: #e8eaec;
+  --action-hover: #ffffff;
+  --action-ink: #17191c;
+
+  --ok: #6dbb92;
+  --ok-bg: rgba(109, 187, 146, 0.13);
+  --warn: #d3ac65;
+  --warn-bg: rgba(211, 172, 101, 0.13);
+  --danger: #e08983;
+  --danger-bg: rgba(224, 137, 131, 0.13);
+
+  color-scheme: dark;
+}
+
+/* ── infima ───────────────────────────────────────────────────────────────── */
+
+:root {
+  --ifm-font-family-base: var(--sans);
+  --ifm-font-family-monospace: var(--mono);
+  --ifm-font-size-base: 15.5px;
+  --ifm-line-height-base: 1.7;
+
+  --ifm-background-color: var(--bg);
+  --ifm-background-surface-color: var(--surface);
+
+  --ifm-color-content: var(--ink);
+  --ifm-color-content-secondary: var(--muted);
+  --ifm-heading-color: var(--ink);
+  --ifm-heading-font-family: var(--sans);
+  --ifm-heading-font-weight: 600;
+
+  --ifm-link-color: var(--ink);
+  --ifm-link-hover-color: var(--ink);
+
+  /* No brand hue. The primary is the ink, the way the app's one action colour
+     is a near-black rather than a colour. */
+  --ifm-color-primary: var(--ink);
+  --ifm-color-primary-dark: var(--ink);
+  --ifm-color-primary-darker: var(--ink);
+  --ifm-color-primary-darkest: var(--ink);
+  --ifm-color-primary-light: var(--ink);
+  --ifm-color-primary-lighter: var(--ink);
+  --ifm-color-primary-lightest: var(--ink);
+
+  --ifm-global-radius: var(--radius);
+  --ifm-code-font-size: 87.5%;
+  --ifm-code-background: var(--fill);
+  --ifm-code-color: var(--ink);
+
+  --ifm-navbar-height: 56px;
+  --ifm-navbar-background-color: var(--surface);
+  --ifm-navbar-shadow: none;
+  --ifm-navbar-link-color: var(--muted);
+
+  --ifm-footer-background-color: var(--surface);
+  --ifm-footer-color: var(--muted);
+  --ifm-footer-link-color: var(--muted);
+  --ifm-footer-link-hover-color: var(--ink);
+  --ifm-footer-title-color: var(--muted-2);
+
+  --ifm-menu-color: var(--muted);
+  --ifm-menu-color-active: var(--ink);
+  --ifm-menu-color-background-active: var(--fill);
+  --ifm-menu-color-background-hover: var(--fill);
+
+  --ifm-toc-border-color: var(--line);
+  --ifm-toc-link-color: var(--muted);
+
+  --ifm-table-border-color: var(--line);
+  --ifm-table-stripe-background: transparent;
+  --ifm-table-head-background: transparent;
+
+  --ifm-breadcrumb-color-active: var(--muted);
+  --ifm-breadcrumb-item-background-active: transparent;
+  --ifm-breadcrumb-padding-horizontal: 0;
+
+  --docusaurus-highlighted-code-line-bg: var(--fill-2);
+}
+
+/* ── base ─────────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-feature-settings: "ss01" 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--fill-2);
+}
+
+/* A thin, quiet scrollbar — the app's own is the platform default, and this is
+   close enough at this density. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* ── navbar ───────────────────────────────────────────────────────────────── */
+
+.navbar {
+  height: var(--ifm-navbar-height);
+  padding: 0 20px;
+  box-shadow: none;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.navbar__inner {
+  align-items: center;
+}
+
+.navbar__brand {
+  gap: 9px;
+}
+
+.navbar__logo {
+  height: 24px;
+  width: 24px;
+  margin-right: 0;
+}
+
+.navbar__title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* The app's brand lockup: the name, and the product it belongs to underneath. */
+.navbar__title::after {
+  content: "documentation";
+  margin-top: 3px;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--muted-2);
+}
+
+.navbar__link {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: var(--radius);
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--ink);
+  background: var(--fill);
+}
+
+/* The current page is named, not filled: this is the shell, not a tab bar. */
+.navbar__link--active {
+  background: transparent;
+  font-weight: 600;
+}
+
+.navbar__link--active:hover {
+  background: var(--fill);
+}
+
+.navbar__items--right > :last-child {
+  padding-right: 0;
+}
+
+.navbar__search-input {
+  width: 210px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+.navbar__search-input::placeholder {
+  color: var(--muted-2);
+}
+
+.navbar__search-input:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+  box-shadow: none;
+}
+
+/* Docusaurus floats a grey pill behind the search on desktop. */
+.navbar__search-input::-webkit-search-cancel-button {
+  filter: grayscale(1);
+}
+
+/* The colour-mode switch is a ghost icon button, as in the app's sidebar foot. */
+html[data-theme="light"] .navbar__items--right button[class*="toggle"],
+html[data-theme="dark"] .navbar__items--right button[class*="toggle"] {
+  color: var(--muted);
+}
+
+.clean-btn.toggleButton_gllP {
+  border-radius: var(--radius);
+}
+
+.clean-btn.toggleButton_gllP:hover {
+  background: var(--fill);
+}
+
+/* ── sidebar ──────────────────────────────────────────────────────────────── */
+
+.theme-doc-sidebar-container {
+  border-right: 1px solid var(--line) !important;
+  background: var(--bg);
+}
+
+.theme-doc-sidebar-container .menu {
+  padding: 14px 10px 20px;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.menu__list .menu__list {
+  margin-left: 0;
+  padding-left: 8px;
+}
+
+/* A category keeps its children legible as children, and its caption apart
+   from whatever sibling doc follows it. */
+.menu__list-item-collapsible {
+  margin-bottom: 4px;
+}
+
+/* A plain page that follows a category is not part of it. */
+.theme-doc-sidebar-menu > .menu__list-item:has(.menu__list-item-collapsible)
+  + .menu__list-item {
+  border-top: 1px solid var(--line);
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.menu__link {
+  padding: 6px 9px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 450;
+  line-height: 1.4;
+  transition: background 100ms, color 100ms;
+}
+
+.menu__link:hover {
+  background: var(--fill);
+  color: var(--ink);
+}
+
+/* Active is a grey fill and a heavier weight — no colour, no bar. */
+.menu__link--active:not(.menu__link--sublist) {
+  background: var(--fill);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.menu__list-item-collapsible {
+  border-radius: var(--radius);
+}
+
+.menu__list-item-collapsible:hover {
+  background: transparent;
+}
+
+/* A category is a caption, not a link: the same uppercase micro-label the app
+   uses to name a group of nav items. */
+.menu__list-item-collapsible > .menu__link--sublist,
+.menu__list-item > .menu__link--sublist {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  padding: 8px 9px 4px;
+}
+
+.menu__list-item-collapsible > .menu__link--sublist:hover {
+  background: transparent;
+  color: var(--muted);
+}
+
+.menu__caret:hover {
+  background: transparent;
+}
+
+.menu__list-item-collapsible .menu__caret:before,
+.menu__link--sublist-caret:after {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.menu__list-item--collapsed .menu__caret:before,
+.menu__list-item--collapsed > .menu__link--sublist-caret:after {
+  transform: rotateZ(0deg);
+}
+
+.menu__link--sublist-caret:after {
+  transform: rotateZ(90deg);
+}
+
+/* The first category does not need a rule above it. */
+.menu > .menu__list > .menu__list-item:first-child > .menu__list-item-collapsible > .menu__link {
+  border-top: none;
+}
+
+.theme-doc-sidebar-menu > .menu__list > .menu__list-item-collapsible {
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  margin-top: 10px;
+  padding-top: 6px;
+}
+
+.theme-doc-sidebar-menu > .menu__list > .menu__list-item:first-child > .menu__list-item-collapsible {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* ── table of contents ────────────────────────────────────────────────────── */
+
+.table-of-contents {
+  font-size: 11.5px;
+  padding-left: 0;
+  border-left: 1px solid var(--line);
+}
+
+.table-of-contents__link {
+  display: block;
+  padding: 3px 0 3px 12px;
+  color: var(--muted);
+  border-left: 1px solid transparent;
+  margin-left: -1px;
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--ink);
+  border-left-color: var(--ink);
+}
+
+.table-of-contents ul ul .table-of-contents__link {
+  padding-left: 22px;
+  color: var(--muted-2);
+}
+
+.theme-doc-toc-desktop::before {
+  content: "On this page";
+  display: block;
+  margin-bottom: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+}
+
+/* ── breadcrumbs ──────────────────────────────────────────────────────────── */
+
+.breadcrumbs__item:not(:last-child)::after {
+  color: var(--muted-2);
+  opacity: 1;
+}
+
+.breadcrumbs__link {
+  font-size: 11.5px;
+  color: var(--muted-2);
+  padding: 0;
+}
+
+.breadcrumbs__link:hover {
+  background: transparent;
+  color: var(--ink);
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  color: var(--muted);
+  background: transparent;
+}
+
+/* ── page ─────────────────────────────────────────────────────────────────── */
+
+.theme-doc-markdown {
+  padding-top: 4px;
+}
+
+/* The measure. Prose sits at 70 characters; figures may use the full column. */
+.markdown > p,
+.markdown > ul,
+.markdown > ol,
+.markdown > blockquote,
+.markdown > h2,
+.markdown > h3,
+.markdown > h4,
+.markdown > table,
+.markdown > .theme-admonition,
+.markdown > div[class*="codeBlockContainer"] {
+  max-width: 70ch;
+}
+
+.markdown h1:first-child {
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-bottom: 12px;
+}
+
+.markdown h1 {
+  font-size: 30px;
+  letter-spacing: -0.025em;
+}
+
+.markdown > h2 {
+  font-size: 19px;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.markdown > h2:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.markdown > h3 {
+  font-size: 14.5px;
+  letter-spacing: -0.005em;
+  margin-top: 30px;
+  color: var(--ink);
+}
+
+.markdown > h3 + p,
+.markdown > h2 + p {
+  margin-top: 8px;
+}
+
+.markdown p,
+.markdown li {
+  color: var(--ink);
+}
+
+.markdown strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.markdown a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 100ms;
+}
+
+.markdown a:hover {
+  text-decoration-color: var(--ink);
+}
+
+.markdown hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 36px 0;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 18px;
+}
+
+.markdown li + li {
+  margin-top: 6px;
+}
+
+.markdown li::marker {
+  color: var(--muted-2);
+}
+
+/* A screenshot is a figure, framed the way the app frames a panel: one hairline
+   and a small radius. No drop shadow — elevation is declared once, as a rule. */
+.markdown img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  margin: 22px 0 10px;
+}
+
+/* ── tables ───────────────────────────────────────────────────────────────── */
+
+.markdown table {
+  display: table;
+  width: 100%;
+  font-size: 13px;
+  border-collapse: collapse;
+  border: none;
+  margin: 18px 0 22px;
+}
+
+.markdown table thead {
+  background: transparent;
+  border: none;
+}
+
+.markdown table thead tr {
+  border: none;
+}
+
+.markdown table th {
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid var(--line-strong);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.markdown table td {
+  padding: 9px 12px;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  vertical-align: top;
+}
+
+.markdown table tbody tr {
+  background: transparent;
+  border: none;
+}
+
+.markdown table tbody tr:hover {
+  background: var(--hover);
+}
+
+.markdown table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown table td strong,
+.markdown table td b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* The identity column carries the row, so it takes the ink. */
+.markdown table td:first-child {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* ── code ─────────────────────────────────────────────────────────────────── */
+
+.markdown code {
+  border: none;
+  border-radius: 4px;
+  background: var(--fill);
+  padding: 1.5px 5px;
+  font-size: 0.875em;
+  font-family: var(--mono);
+  color: var(--ink);
+}
+
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+
+div[class*="codeBlockContainer"] {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: none;
+  background: var(--surface-2);
+  margin: 16px 0 22px;
+}
+
+div[class*="codeBlockContainer"] pre,
+div[class*="codeBlockContainer"] code {
+  background: var(--surface-2) !important;
+}
+
+div[class*="codeBlockTitle"] {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 7px 14px;
+}
+
+button[class*="copyButton"] {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+button[class*="copyButton"]:hover {
+  background: var(--fill);
+  color: var(--ink);
+}
+
+html[data-theme="dark"] div[class*="codeBlockContainer"] pre {
+  background: var(--surface-2) !important;
+}
+
+/* ── admonitions ──────────────────────────────────────────────────────────── */
+
+/* The app allows colour only for a state, and never as a fill or a thick bar:
+   a hairline box, a tone on the label, and a dot’s worth of colour. */
+.theme-admonition,
+.theme-admonition.alert {
+  border: 1px solid var(--line-strong);
+  border-left-width: 1px;
+  border-radius: var(--radius);
+  background: var(--bg);
+  box-shadow: none;
+  padding: 12px 15px 13px;
+  font-size: 14px;
+  margin: 22px 0;
+}
+
+.theme-admonition p {
+  margin-bottom: 0;
+}
+
+.theme-admonition [class*="admonitionHeading"] {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.theme-admonition [class*="admonitionHeading"] svg {
+  height: 13px;
+  width: 13px;
+}
+
+.theme-admonition-caution [class*="admonitionHeading"],
+.theme-admonition-danger [class*="admonitionHeading"] {
+  color: var(--danger);
+}
+
+.theme-admonition-warning [class*="admonitionHeading"] {
+  color: var(--warn);
+}
+
+.theme-admonition-tip [class*="admonitionHeading"],
+.theme-admonition-info [class*="admonitionHeading"],
+.theme-admonition-note [class*="admonitionHeading"] {
+  color: var(--ok);
+}
+
+/* ── pagination ───────────────────────────────────────────────────────────── */
+
+.pagination-nav {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  margin-top: 40px;
+  gap: 12px;
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 12px 15px;
+  transition: background 100ms, border-color 100ms;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--line-strong);
+  background: var(--fill);
+}
+
+.pagination-nav__sublabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 4px;
+}
+
+.pagination-nav__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* ── footer ───────────────────────────────────────────────────────────────── */
+
+.footer {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 44px 0 28px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.footer__title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  margin-bottom: 10px;
+}
+
+.footer__link-item {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.9;
+}
+
+.footer__link-item:hover {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.footer__copyright {
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--muted-2);
+}
+
+.footer__bottom {
+  margin-top: 8px;
+}
+
+/* ── search ───────────────────────────────────────────────────────────────── */
+
+.searchBarContainer {
+  padding: 0;
+}
+
+/* ── narrow ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 996px) {
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .markdown h1 {
+    font-size: 26px;
+  }
+
+  .markdown img {
+    border-radius: var(--radius);
+  }
+}
+
+/* The mobile table of contents is a button, not a grey pill. */
+.theme-doc-toc-mobile > button {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 12.5px;
+  padding: 8px 12px;
+}
+
+.theme-doc-toc-mobile > button svg {
+  color: var(--muted-2);
+}
+
+.theme-doc-toc-mobile .table-of-contents {
+  border-left: none;
+  padding-left: 4px;
+}
+
+/* The collapsed search is an icon button, as in the app's sidebar foot. */
+.navbar__search > button,
+.navbar__items--right [class*="searchButton"] {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  width: 32px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar__search > button:hover {
+  background: var(--fill);
+  color: var(--ink);
+}

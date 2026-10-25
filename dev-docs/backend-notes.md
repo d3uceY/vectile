@@ -17,7 +17,7 @@ Supported sources:
 
 Left out on purpose: email and RSS, which read macOS-only app databases.
 
-Scanned PDFs go through OCR. vectile downloads a Tesseract bundle on demand, verifies it against the release checksums, and runs that copy by absolute path. See [`ocr.md`](../website/docs/ocr.md) for the user-facing side; the code is in `backend/ocr` and the fallback is wired into `ParsePDF`.
+Scanned PDFs go through OCR. vectile downloads a Tesseract bundle on demand, verifies it against the release checksums, and runs that copy by absolute path. See [`docs/docs/features/ocr.md`](../docs/docs/features/ocr.md) for the user-facing side; the code is in `backend/ocr` and the fallback is wired into `ParsePDF`.
 
 ## Where the code lives
 
@@ -131,7 +131,7 @@ The llama-go build needs the cgo environment. Only the Windows archives are comm
 `third_party/llama-go/windows/amd64/`; the Linux and macOS archives are built on the release runner
 before `go build` (the vendored `llama.cpp/` is headers-only, so they can't be committed from one
 machine). The cgo `LDFLAGS` pick the right set via `linkage_<os>_<arch>.go` (`-L./<os>/<arch>`).
-See `docs/BUILD-AND-PACKAGING.md` for the full matrix.
+See `dev-docs/build-and-packaging.md` for the full matrix.
 
 - **Windows:** MinGW-w64 `bin` on `PATH` (WinLibs); `LIBRARY_PATH` → `third_party/llama-go/windows/amd64`,
   `C_INCLUDE_PATH` → `third_party/llama-go`. The Windows build task sets these. For `wails3 dev`, set

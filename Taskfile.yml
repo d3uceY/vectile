@@ -39,13 +39,13 @@ tasks:
 
   docs:
     summary: Serves the documentation site
-    dir: website
+    dir: docs
     cmds:
       - npm start
 
   docs:build:
-    summary: Builds the static documentation site into website/build
-    dir: website
+    summary: Builds the static documentation site into docs/build
+    dir: docs
     cmds:
       - npm run build
 

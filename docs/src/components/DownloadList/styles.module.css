@@ -1,0 +1,114 @@
+/* The download list is the app's table: a hairline panel, one row per platform,
+   the platform mark in the margin, and the actions on the right. */
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  overflow: hidden;
+  margin: 24px 0 22px;
+  max-width: 70ch;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: calc(var(--ifm-navbar-height) + 16px);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.icon {
+  display: flex;
+  color: var(--muted);
+}
+
+.body {
+  min-width: 0;
+}
+
+.name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.note {
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* `.markdown a` outranks a single class, so every rule here names the panel. */
+.panel .primary,
+.panel .secondary {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 100ms, border-color 100ms;
+}
+
+.panel .primary {
+  background: var(--action);
+  border: 1px solid var(--action);
+  color: var(--action-ink);
+  font-weight: 600;
+}
+
+.panel .primary:hover {
+  background: var(--action-hover);
+  border-color: var(--action-hover);
+  color: var(--action-ink);
+  text-decoration: none;
+}
+
+.panel .secondary {
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.panel .secondary:hover {
+  background: var(--fill);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .row {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 12px;
+    padding: 13px 14px;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .panel .primary,
+  .panel .secondary {
+    flex: 1;
+    justify-content: center;
+  }
+}

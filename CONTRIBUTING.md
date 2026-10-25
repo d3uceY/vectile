@@ -40,8 +40,8 @@ go test ./backend/...
 vectile includes llama.cpp (a C++ library that runs the embedding model) through the bundled
 `third_party/llama-go`, whose prebuilt archives are committed per OS and CPU under
 `third_party/llama-go/{windows,linux,darwin}/<arch>`. You only need a C/C++ compiler on your `PATH`;
-see [`docs/BUILD-AND-PACKAGING.md`](docs/BUILD-AND-PACKAGING.md) for the full cross-platform build,
-packaging, and release notes.
+see [`dev-docs/build-and-packaging.md`](dev-docs/build-and-packaging.md) for the full cross-platform
+build, packaging, and release notes.
 
 - **Windows (amd64):** needs MinGW-w64 on `PATH`, with `LIBRARY_PATH`/`C_INCLUDE_PATH` pointing at
   `third_party/llama-go` (the Windows build task sets these). The built exe needs five MinGW runtime

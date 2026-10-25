@@ -5,10 +5,10 @@ A local RAG (Retrieval Augmented Generation) app for Windows, macOS, and Linux. 
 Inspired by Sebastian Hutter’s local-rag. No Ollama, no API keys: the embedding model runs in-process from a `.gguf` file you import or download from the built-in catalog.
 
 <p align="center">
-  <img src="docs/vectile-banner.svg" alt="vectile: your private library" width="100%">
+  <img src="docs/static/img/vectile-banner.svg" alt="vectile: your private library" width="100%">
 </p>
 <p align="center">
-  <img src="docs/vectile-demo.gif" alt="vectile demo: an index run with live per-file progress, the folder it just indexed opened in the Library, a source read in Browse, and a search that ranks by meaning" width="100%">
+  <img src="docs/static/img/vectile-demo.gif" alt="vectile demo: an index run with live per-file progress, the folder it just indexed opened in the Library, a source read in Browse, and a search that ranks by meaning" width="100%">
 </p>
 
 ## Features
@@ -62,11 +62,11 @@ The `.deb` pulls in GTK4, WebKitGTK 6.0, and `libgomp1`. The AppImage needs `chm
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/search.png" alt="Searching your library for 'kubernetes rollout'" width="100%">
+  <img src="docs/static/img/screenshots/search.png" alt="Searching your library for 'kubernetes rollout'" width="100%">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/settings-mascot.png" alt="Settings → Vexter: show the sidebar mascot at idle, while searching, or while indexing" width="100%">
+  <img src="docs/static/img/screenshots/settings-mascot.png" alt="Settings → Vexter: show the sidebar mascot at idle, while searching, or while indexing" width="100%">
 </p>
 
 ## Supported sources
