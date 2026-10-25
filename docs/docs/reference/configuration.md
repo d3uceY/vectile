@@ -61,7 +61,7 @@ If you do edit it, keep the quotes and commas as they are and close the app firs
 | Key | Type | Default | What it does |
 |---|---|---|---|
 | `enabled` | bool | `true` | Run OCR on pages that come back with no text. |
-| `languages` | string[] | `["eng"]` | Language codes to read with. Codes with no matching `.traineddata` file are ignored. |
+| `languages` | string[] | `["eng"]` | Language codes to read with, edited in **Settings → OCR → Languages**; the panel and this key are the same list. Codes with no matching `.traineddata` file are ignored at run time. |
 
 See [Scanned PDFs](../features/ocr).
 

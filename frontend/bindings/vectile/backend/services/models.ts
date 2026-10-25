@@ -430,6 +430,7 @@ export class OCRState {
     "dir": string;
     "downloadUrl": string;
     "releaseUrl": string;
+    "languages": string[];
     "installing": boolean;
     "downloaded": number;
     "total": number;
@@ -466,6 +467,9 @@ export class OCRState {
         if (!("releaseUrl" in $$source)) {
             this["releaseUrl"] = "";
         }
+        if (!("languages" in $$source)) {
+            this["languages"] = [];
+        }
         if (!("installing" in $$source)) {
             this["installing"] = false;
         }
@@ -492,7 +496,11 @@ export class OCRState {
      * Creates a new OCRState instance from a string or object.
      */
     static createFrom($$source: any = {}): OCRState {
+        const $$createField9_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("languages" in $$parsedSource) {
+            $$parsedSource["languages"] = $$createField9_0($$parsedSource["languages"]);
+        }
         return new OCRState($$parsedSource as Partial<OCRState>);
     }
 }
@@ -521,7 +529,7 @@ export class SetActiveResult {
      * Creates a new SetActiveResult instance from a string or object.
      */
     static createFrom($$source: any = {}): SetActiveResult {
-        const $$createField1_0 = $$createType4;
+        const $$createField1_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("model" in $$parsedSource) {
             $$parsedSource["model"] = $$createField1_0($$parsedSource["model"]);
@@ -602,7 +610,7 @@ export class SourcePage {
      * Creates a new SourcePage instance from a string or object.
      */
     static createFrom($$source: any = {}): SourcePage {
-        const $$createField0_0 = $$createType6;
+        const $$createField0_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("sources" in $$parsedSource) {
             $$parsedSource["sources"] = $$createField0_0($$parsedSource["sources"]);
@@ -672,6 +680,7 @@ const $$createType0 = DocumentSummary.createFrom;
 const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = IndexFileProgress.createFrom;
 const $$createType3 = $Create.Map($Create.Any, $$createType2);
-const $$createType4 = db$0.Model.createFrom;
-const $$createType5 = Source.createFrom;
-const $$createType6 = $Create.Array($$createType5);
+const $$createType4 = $Create.Array($Create.Any);
+const $$createType5 = db$0.Model.createFrom;
+const $$createType6 = Source.createFrom;
+const $$createType7 = $Create.Array($$createType6);

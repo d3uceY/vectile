@@ -78,8 +78,8 @@ func Uninstall() error {
 	return os.RemoveAll(filepath.Join(appdata.PluginsDir(), "tesseract"))
 }
 
-// Sweep clears leftovers from an install interrupted by a crash. Call it once
-// at startup. A missing plugins dir is not an error.
+// Sweep clears leftovers from an install or a language download interrupted by
+// a crash. Call it once at startup. A missing plugins dir is not an error.
 func Sweep() {
 	root := filepath.Join(appdata.PluginsDir(), "tesseract")
 	entries, err := os.ReadDir(root)
@@ -89,6 +89,14 @@ func Sweep() {
 	for _, e := range entries {
 		if strings.HasSuffix(e.Name(), ".part") || strings.HasSuffix(e.Name(), ".tmp") {
 			_ = os.RemoveAll(filepath.Join(root, e.Name()))
+		}
+	}
+	// Language downloads land one level below the root this loop covers.
+	if parts, err := os.ReadDir(TessdataDir()); err == nil {
+		for _, e := range parts {
+			if strings.HasSuffix(e.Name(), ".part") {
+				_ = os.Remove(filepath.Join(TessdataDir(), e.Name()))
+			}
 		}
 	}
 }
@@ -126,7 +134,9 @@ func get(ctx context.Context, url string) ([]byte, error) {
 
 // fetch streams url to dest and fails unless the bytes hash to want, so a
 // truncated or swapped download never reaches the extractor. Streaming keeps
-// memory flat regardless of archive size.
+// memory flat regardless of archive size. An empty want skips the comparison,
+// for sources that publish no checksums at all (single-language data files);
+// callers that omit it must have pinned the URL instead.
 func fetch(ctx context.Context, url, dest, want string, onProgress func(int64, int64)) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -155,6 +165,9 @@ func fetch(ctx context.Context, url, dest, want string, onProgress func(int64, i
 		return err
 	}
 
+	if want == "" {
+		return nil
+	}
 	if got := hex.EncodeToString(sum.Sum(nil)); !strings.EqualFold(got, want) {
 		return fmt.Errorf("checksum mismatch: expected %s, got %s", want, got)
 	}

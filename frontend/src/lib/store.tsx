@@ -22,6 +22,10 @@ import type {
   ModelState,
   OCRInstallError,
   OCRInstallProgress,
+  OCRLanguage,
+  OCRLanguageError,
+  OCRLanguageEvent,
+  OCRLanguageProgress,
   OCRState,
   SearchFilters,
   SearchResult,
@@ -119,6 +123,8 @@ export function createAppStore() {
   const [firstRunDone, setFirstRunDone] = createSignal(false);
 
   const [ocrState, setOCRState] = createSignal<OCRState | null>(null);
+  const [ocrLanguages, setOCRLanguages] = createSignal<OCRLanguage[]>([]);
+  const [ocrLangInstall, setOCRLangInstall] = createSignal<OCRLanguageProgress | null>(null);
   const [ocrSetupOpen, setOCRSetupOpen] = createSignal(false);
 
   const [mcpStatus, setMCPStatus] = createSignal<MCPStatus | null>(null);
@@ -442,6 +448,41 @@ export function createAppStore() {
     try {
       setOCRState(await api.getOCRState());
     } catch {
+    }
+  };
+
+  const ocrLanguageName = (code: string) =>
+    ocrLanguages().find((l) => l.code === code)?.name ?? code;
+
+  const loadOCRLanguages = async () => {
+    try {
+      setOCRLanguages(await api.listOCRLanguages());
+    } catch {
+      /* backend not ready yet */
+    }
+  };
+
+  const installOCRLanguage = async (code: string) => {
+    setOCRLangInstall({ code, downloaded: 0, total: 0, percent: 0, speed: 0 });
+    try {
+      const started = await api.installOCRLanguage(code);
+      if (!started) {
+        pushToast("A download is already running", "neutral");
+        setOCRLangInstall(null);
+      }
+    } catch (err) {
+      pushToast(`Could not download ${ocrLanguageName(code)}: ${err}`, "danger");
+      setOCRLangInstall(null);
+    }
+  };
+
+  const removeOCRLanguage = async (code: string) => {
+    try {
+      await api.removeOCRLanguage(code);
+      pushToast(`Removed ${ocrLanguageName(code)} language data`, "success");
+      await loadOCRState();
+    } catch (err) {
+      pushToast(`Could not remove ${ocrLanguageName(code)}: ${err}`, "danger");
     }
   };
 
@@ -775,6 +816,25 @@ export function createAppStore() {
     void loadOCRState();
     pushToast("OCR install cancelled", "neutral");
   });
+  const offOcrLangProgress = Events.On("ocr:language-progress", (ev) => {
+    setOCRLangInstall(ev.data as OCRLanguageProgress);
+  });
+  const offOcrLangComplete = Events.On("ocr:language-complete", (ev) => {
+    const e = ev.data as OCRLanguageEvent;
+    setOCRLangInstall(null);
+    void loadOCRState();
+    pushToast(`${ocrLanguageName(e.code)} is ready for OCR`, "success");
+  });
+  const offOcrLangFailed = Events.On("ocr:language-failed", (ev) => {
+    const e = ev.data as OCRLanguageError;
+    setOCRLangInstall(null);
+    pushToast(`Could not download ${ocrLanguageName(e.code)}: ${e.message}`, "danger");
+  });
+  const offOcrLangCancelled = Events.On("ocr:language-cancelled", (ev) => {
+    const e = ev.data as OCRLanguageEvent;
+    setOCRLangInstall(null);
+    pushToast(`Cancelled the ${ocrLanguageName(e.code)} download`, "neutral");
+  });
 
   const hydrateIndexing = async () => {
     try {
@@ -829,6 +889,10 @@ export function createAppStore() {
     offOcrComplete();
     offOcrFailed();
     offOcrCancelled();
+    offOcrLangProgress();
+    offOcrLangComplete();
+    offOcrLangFailed();
+    offOcrLangCancelled();
   });
 
   return {
@@ -855,6 +919,12 @@ export function createAppStore() {
     uninstallCatalogFile,
     ocrState,
     loadOCRState,
+    ocrLanguages,
+    ocrLanguageName,
+    ocrLangInstall,
+    loadOCRLanguages,
+    installOCRLanguage,
+    removeOCRLanguage,
     installOCRPlugin,
     cancelOCRPluginInstall,
     removeOCRPlugin,

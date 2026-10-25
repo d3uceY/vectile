@@ -250,11 +250,11 @@ const downloadSimPlugin = {
   },
 };
 
-// Drives the OCR install bar in the browser: watches the InstallOCR method ID
-// and emits ocr:install-progress ticks ending in ocr:install-complete, or
-// ocr:install-cancelled when CancelOCRInstall is hit. The stub's own timer
-// lands the installed flag at the same moment, so the reload the frontend does
-// on completion shows the installed card.
+// Drives the OCR downloads in the browser: watches the InstallOCR and
+// InstallOCRLanguage method IDs and emits progress ticks ending in the matching
+// complete event, or a cancel when CancelOCRInstall is hit. The stub's own
+// state lands at the same moment, so the reload the frontend does on completion
+// shows the finished card.
 const ocrSimPlugin = {
   name: "vectile-ocr-sim",
   transformIndexHtml() {
@@ -264,6 +264,7 @@ const ocrSimPlugin = {
         attrs: { type: "module" },
         children: `(() => {
   const INSTALL = 2152838503;
+  const INSTALL_LANG = 2080319849;
   const CANCEL_INSTALL = 4022925375;
 
   let sim = null;
@@ -276,21 +277,22 @@ const ocrSimPlugin = {
     const emit = (name, data) => window._wails.dispatchWailsEvent({ name, data });
     const stop = () => { if (sim) { clearInterval(sim.timer); sim = null; } };
 
-    const start = () => {
+    // One ticker for both jobs: a language code switches the events and size.
+    const run = (code, total, speed, doneEvent, doneData) => {
       stop();
-      const total = 17882639;
       let downloaded = 0;
-      sim = { total, timer: null };
+      sim = { code, timer: null };
       sim.timer = setInterval(() => {
-        downloaded = Math.min(total, downloaded + total / 16);
-        emit("ocr:install-progress", {
+        downloaded = Math.min(total, downloaded + total / (code ? 14 : 16));
+        emit(code ? "ocr:language-progress" : "ocr:install-progress", {
+          ...(code ? { code } : {}),
           downloaded, total,
           percent: (downloaded / total) * 100,
-          speed: 7.4 * 1024 * 1024,
+          speed,
         });
         if (downloaded >= total) {
           stop();
-          emit("ocr:install-complete", null);
+          emit(doneEvent, doneData);
         }
       }, 120);
     };
@@ -302,8 +304,17 @@ const ocrSimPlugin = {
           const body = JSON.parse(opts.body || "{}");
           const args = body && body.args;
           const mid = args && args.methodID;
-          if (mid === INSTALL) start();
-          else if (mid === CANCEL_INSTALL) { stop(); emit("ocr:install-cancelled", null); }
+          if (mid === INSTALL) {
+            run("", 17882639, 7.4 * 1024 * 1024, "ocr:install-complete", null);
+          } else if (mid === INSTALL_LANG) {
+            const code = (args.args && args.args[0]) || "";
+            run(code, 6 * 1024 * 1024, 3.1 * 1024 * 1024, "ocr:language-complete", { code });
+          } else if (mid === CANCEL_INSTALL) {
+            const code = sim && sim.code;
+            stop();
+            if (code) emit("ocr:language-cancelled", { code });
+            else emit("ocr:install-cancelled", null);
+          }
         }
       } catch (_) {}
       return origFetch(url, opts);

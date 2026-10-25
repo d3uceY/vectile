@@ -16,9 +16,9 @@ The loaded model, its per-model settings, and the catalog. See [Models](./models
 
 ### OCR
 
-An optional plugin that reads PDF pages which came back with no text. See [Scanned PDFs](./ocr).
+An optional plugin that reads PDF pages which came back with no text, and the languages it reads. See [Scanned PDFs](./ocr).
 
-![Settings, OCR section: plugin status and version, what it is for, the download URL, an Install button, an Open release page link, and a switch for using OCR on pages with no text](/img/screenshots/settings-ocr.png)
+![Settings, OCR section: plugin status and version, what it is for, the download URL, an Install button, an Open release page link, a switch for using OCR on pages with no text, and a Languages list with English switched on](/img/screenshots/settings-ocr.png)
 
 ### Chunking
 

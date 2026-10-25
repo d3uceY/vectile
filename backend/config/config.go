@@ -239,6 +239,7 @@ func Load(path string) (*Config, error) {
 		cfg.Repositories = map[string][]string{}
 	}
 	expandConfigPaths(cfg)
+	normalizeOCRLanguages(cfg)
 
 	// First-run shape: an empty library (existing file included) gets one
 	// default project group so the setup tour has a stable "My Library"
@@ -252,6 +253,28 @@ func Load(path string) (*Config, error) {
 			"conflict", conflict.String())
 	}
 	return cfg, nil
+}
+
+// normalizeOCRLanguages tidies a hand-edited language list: case and stray
+// spaces should not decide whether a scan gets read, duplicates mean nothing to
+// Tesseract, and an empty list would read as "no languages" while the run-time
+// fallback quietly used English. Codes with no traineddata on disk are left
+// alone: ocr.useLangs drops those at run time with a documented fallback.
+func normalizeOCRLanguages(cfg *Config) {
+	seen := make(map[string]bool, len(cfg.OCR.Languages))
+	out := make([]string, 0, len(cfg.OCR.Languages))
+	for _, code := range cfg.OCR.Languages {
+		code = strings.ToLower(strings.TrimSpace(code))
+		if code == "" || seen[code] {
+			continue
+		}
+		seen[code] = true
+		out = append(out, code)
+	}
+	if len(out) == 0 {
+		out = []string{"eng"}
+	}
+	cfg.OCR.Languages = out
 }
 
 // Save writes cfg to path ("" → default), preserving unknown keys.

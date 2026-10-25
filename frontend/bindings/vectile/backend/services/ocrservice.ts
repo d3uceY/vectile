@@ -14,10 +14,15 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as ocr$0 from "../ocr/models.js";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
 /**
- * CancelOCRInstall cancels an in-flight install, if any.
+ * CancelOCRInstall cancels whichever download is in flight: the bundle, or one
+ * language's data.
  */
 export function CancelOCRInstall(): $CancellablePromise<boolean> {
     return $Call.ByID(4022925375);
@@ -44,6 +49,25 @@ export function InstallOCR(): $CancellablePromise<boolean> {
 }
 
 /**
+ * InstallOCRLanguage downloads one language's data into the installed bundle.
+ * Progress arrives as ocr:language-progress, then ocr:language-complete,
+ * ocr:language-failed or ocr:language-cancelled. Returns whether it started.
+ */
+export function InstallOCRLanguage(code: string): $CancellablePromise<boolean> {
+    return $Call.ByID(2080319849, code);
+}
+
+/**
+ * ListOCRLanguages returns every language the UI can offer, English first. The
+ * data for most of them is downloaded on demand; nothing here touches disk.
+ */
+export function ListOCRLanguages(): $CancellablePromise<ocr$0.Language[]> {
+    return $Call.ByID(1545526977).then(($result: any) => {
+        return $$createType2($result);
+    });
+}
+
+/**
  * RemoveOCR deletes the installed bundle. Scans stop being readable until it is
  * installed again; the Settings card offers exactly that.
  */
@@ -51,5 +75,15 @@ export function RemoveOCR(): $CancellablePromise<void> {
     return $Call.ByID(3310393162);
 }
 
+/**
+ * RemoveOCRLanguage deletes one language's data. English is refused: it is what
+ * a run falls back to when the configured list names nothing the bundle holds.
+ */
+export function RemoveOCRLanguage(code: string): $CancellablePromise<void> {
+    return $Call.ByID(4194353528, code);
+}
+
 // Private type creation functions
 const $$createType0 = $models.OCRState.createFrom;
+const $$createType1 = ocr$0.Language.createFrom;
+const $$createType2 = $Create.Array($$createType1);

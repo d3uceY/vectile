@@ -140,19 +140,45 @@ export async function interact(page, job) {
   // wants a specific card (e.g. `settingsSection: "vexter"`) clicks its rail
   // button. Scoped to the rail nav so hidden mobile chips are never matched.
   if (view === "settings" && job.settingsSection) {
-    const btn = page.locator(
-      `nav[aria-label="Settings sections"] button:has-text("${job.settingsSection}")`,
-    );
-    await btn.first().waitFor({ state: "visible", timeout: 8000 }).catch(() => {});
-    if (await btn.count()) {
-      await btn.first().click();
-      await page
-        .locator("main h2")
-        .filter({ hasText: job.settingsSection })
-        .first()
-        .waitFor({ state: "visible", timeout: 8000 })
-        .catch(() => {});
+    await openSettingsSection(page, job.settingsSection);
+
+    // The Languages panel only exists once the plugin is installed, so a job
+    // that shows it installs first. The stub settles the install on a timer and
+    // the capture has no client-side progress ticker, so reload once it would
+    // have finished and come back to the section.
+    if (job.ocrInstalled) {
+      const install = page.locator('main button:has-text("Install")').first();
+      if (await install.count()) {
+        await install.click();
+        await page.waitForTimeout(2200);
+        await page.reload({ waitUntil: "domcontentloaded" });
+        const settingsNav = page.locator(
+          'nav[aria-label="Primary"] button[aria-label="Settings"]',
+        );
+        if (await settingsNav.count()) await settingsNav.first().click();
+        await openSettingsSection(page, job.settingsSection);
+        await page
+          .locator("text=English comes with the plugin")
+          .first()
+          .waitFor({ state: "visible", timeout: 20000 })
+          .catch(() => {});
+      }
     }
     return;
   }
+}
+
+async function openSettingsSection(page, section) {
+  const btn = page.locator(
+    `nav[aria-label="Settings sections"] button:has-text("${section}")`,
+  );
+  await btn.first().waitFor({ state: "visible", timeout: 8000 }).catch(() => {});
+  if (!(await btn.count())) return;
+  await btn.first().click();
+  await page
+    .locator("main h2")
+    .filter({ hasText: section })
+    .first()
+    .waitFor({ state: "visible", timeout: 8000 })
+    .catch(() => {});
 }

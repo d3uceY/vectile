@@ -338,6 +338,7 @@ export interface OCRState {
   dir: string;
   downloadUrl: string;
   releaseUrl: string;
+  languages: string[];
   installing: boolean;
   downloaded: number;
   total: number;
@@ -356,5 +357,31 @@ export interface OCRInstallProgress {
 
 /** Mirrors services.OCRInstallError; emitted when an install fails. */
 export interface OCRInstallError {
+  message: string;
+}
+
+/** Mirrors ocr.Language: one language the OCR picker can offer. */
+export interface OCRLanguage {
+  code: string;
+  name: string;
+}
+
+/** Mirrors services.OCRLanguageProgress; one language's data downloading. */
+export interface OCRLanguageProgress {
+  code: string;
+  downloaded: number;
+  total: number;
+  percent: number;
+  speed: number;
+}
+
+/** Mirrors services.OCRLanguageEvent; names the language a terminal event is about. */
+export interface OCRLanguageEvent {
+  code: string;
+}
+
+/** Mirrors services.OCRLanguageError; emitted when a language download fails. */
+export interface OCRLanguageError {
+  code: string;
   message: string;
 }

@@ -80,6 +80,42 @@ func TestNormalizeTransport(t *testing.T) {
 	}
 }
 
+func TestLoadNormalizesOCRLanguages(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	raw := `{"ocr": {"enabled": true, "languages": [" ENG ", "deu", "", "DEU", "fra"]}}`
+	if err := os.WriteFile(path, []byte(raw), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"eng", "deu", "fra"}
+	if len(cfg.OCR.Languages) != len(want) {
+		t.Fatalf("languages = %v, want %v", cfg.OCR.Languages, want)
+	}
+	for i := range want {
+		if cfg.OCR.Languages[i] != want[i] {
+			t.Fatalf("languages = %v, want %v", cfg.OCR.Languages, want)
+		}
+	}
+
+	// An empty list would otherwise read as "no languages" while the run-time
+	// fallback quietly used English.
+	raw = `{"ocr": {"enabled": true, "languages": ["  "]}}`
+	if err := os.WriteFile(path, []byte(raw), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err = Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.OCR.Languages) != 1 || cfg.OCR.Languages[0] != "eng" {
+		t.Fatalf("empty language list = %v, want [eng]", cfg.OCR.Languages)
+	}
+}
+
 func TestSaveLoadRoundtrip(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	cfg := defaults()

@@ -16,7 +16,7 @@ That something is Tesseract, an OCR engine. vectile does not ship it.
 
 vectile fetches the archive built for your system, checks its hash, unpacks it into its own folder, and runs that copy. A Tesseract you installed yourself is never used.
 
-![Settings, OCR section: plugin status and version, what it is for, the download URL, an Install button, an Open release page link, and a switch for using OCR on pages with no text](/img/screenshots/settings-ocr.png)
+![Settings, OCR section: plugin status and version, what it is for, the download URL, an Install button, an Open release page link, a switch for using OCR on pages with no text, and a Languages list with English switched on](/img/screenshots/settings-ocr.png)
 
 ## After installing
 
@@ -38,4 +38,8 @@ Some pages defeat any OCR engine: handwriting, dense tables, low resolution phot
 
 ## Language data
 
-The bundle includes English. For scans in another language, add its code to `ocr.languages` in [the settings file](../reference/configuration) and drop the matching `.traineddata` file into the plugin's `tessdata` folder. A code with no data behind it is ignored, so a typo falls back to English instead of failing every page.
+English ships with the plugin. For scans in another language, open **Settings → OCR → Languages** and use **Add language**: pick one from the list and its data downloads once, a few megabytes, then stays on this machine. Switch a language on to read with it; switch it off to stop. Removing a language deletes its data and leaves English alone.
+
+A scan written in two languages reads best with both switched on. **Save settings** applies the list.
+
+The list is stored in `ocr.languages` in [the settings file](../reference/configuration) either way, so a hand-edited file keeps working. A code with no data behind it cannot be switched on from the panel: it shows as **no data** until its data is downloaded. Hand-edit a code with no data and it is ignored at run time, rather than failing every page.

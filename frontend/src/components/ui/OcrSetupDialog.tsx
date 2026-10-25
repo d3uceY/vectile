@@ -43,8 +43,8 @@ export function OcrSetupDialog(props: {
           </div>
 
           <div class="mt-5 flex items-center justify-between gap-3">
-            <p class="text-[12px] font-medium leading-4 text-muted">
-              You can install this later from Settings.
+            <p class="max-w-[34ch] text-[12px] font-medium leading-4 text-muted">
+              English is included. Other languages are a click in Settings → OCR.
             </p>
             <Button variant="ghost" onClick={props.onDismiss}>
               Not now

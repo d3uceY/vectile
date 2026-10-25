@@ -19,6 +19,7 @@ const M = {
   GetDocument: 4208047110,
   Search: 2587852292,
   GetConfig: 2113296768,
+  SetConfig: 721337284,
   DeleteSource: 2650919656,
   DeleteCollection: 3393632225,
   DeleteDocuments: 2694537237,
@@ -44,6 +45,9 @@ const M = {
   InstallOCR: 2152838503,
   CancelOCRInstall: 4022925375,
   RemoveOCR: 3310393162,
+  ListOCRLanguages: 1545526977,
+  InstallOCRLanguage: 2080319849,
+  RemoveOCRLanguage: 4194353528,
 };
 
 const MODEL_NAME = "bge-m3";
@@ -65,7 +69,8 @@ const status = {
   lastIndexed: "2026-08-24", // most recent last_indexed_at across sources
 };
 
-const config = {
+// Mutable: SetConfig replaces it, so a reload after Save shows what was saved.
+let config = {
   embedding_model: MODEL_NAME,
   active_model: MODEL_PATH,
   embedding_batch_size: 32,
@@ -91,6 +96,7 @@ const config = {
     mascot: { show_idle: true, show_searching: true, show_indexing: true },
   },
   mcp: { enabled: true, port: 31123, allow_write: false, transport: "streamable-http" },
+  ocr: { enabled: true, languages: ["eng"] },
 };
 
 // Live MCP server state returned by GetMCPStatus; StartServer/StopServer
@@ -123,6 +129,23 @@ const OCR_DIR = "C:\\Users\\you\\AppData\\Roaming\\vectile\\plugins\\tesseract\\
 let ocrInstalled = false;
 let ocrStartedAt = 0;
 
+// Language data the "bundle" holds. Starts with just what ships, so the
+// Settings → OCR rows have something to add.
+let ocrLangs = ["eng"];
+
+// A slice of the real catalog (backend/ocr/langs_catalog.go). Enough rows to
+// scroll and search like the real thing; the names live in Go, not here.
+const ocrCatalog = [
+  { code: "eng", name: "English" },
+  { code: "deu", name: "German" },
+  { code: "fra", name: "French" },
+  { code: "spa", name: "Spanish" },
+  { code: "rus", name: "Russian" },
+  { code: "ara", name: "Arabic" },
+  { code: "jpn", name: "Japanese" },
+  { code: "chi_sim", name: "Chinese (Simplified)" },
+];
+
 // settleOCR finishes a simulated install whose time has elapsed, so the state is
 // current whenever it is read.
 function settleOCR() {
@@ -148,6 +171,7 @@ function ocrState() {
       "https://github.com/d3uceY/Tesseract-bundler-/releases/download/tesseract-5.5.3/tesseract-5.5.3-windows-amd64.zip",
     releaseUrl:
       "https://github.com/d3uceY/Tesseract-bundler-/releases/tag/tesseract-5.5.3",
+    languages: [...ocrLangs],
     installing,
     downloaded: Math.round(OCR_SIZE * frac),
     total: installing ? OCR_SIZE : 0,
@@ -515,6 +539,10 @@ export async function stub(request) {
     }
     case M.GetConfig:
       return { body: config };
+    case M.SetConfig:
+      // Stored so a reload after Save shows the saved shape, like the app.
+      config = post.args?.args?.[0] ?? config;
+      return { body: null };
     case M.GetCacheStats:
       return { body: cacheStats };    case M.ClearCache: {
       const removed = cacheStats.entries;
@@ -615,6 +643,18 @@ export async function stub(request) {
       ocrInstalled = false;
       ocrStartedAt = 0;
       return { body: null };
+    case M.ListOCRLanguages:
+      return { body: ocrCatalog };
+    case M.InstallOCRLanguage: {
+      const code = post.args?.args?.[0] ?? "";
+      if (!ocrLangs.includes(code)) ocrLangs = [...ocrLangs, code].sort();
+      return { body: true };
+    }
+    case M.RemoveOCRLanguage: {
+      const code = post.args?.args?.[0] ?? "";
+      ocrLangs = ocrLangs.filter((c) => c !== code);
+      return { body: null };
+    }
     case M.GetDownloadState:
       return { body: downloadState };
     case M.DownloadModel: {

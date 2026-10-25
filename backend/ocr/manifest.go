@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"vectile/backend/appdata"
@@ -112,7 +113,8 @@ func Installed() bool {
 	return err == nil
 }
 
-// Languages lists the language data the bundle ships.
+// Languages lists the language data the bundle holds, sorted so the UI and the
+// tests see a stable order.
 func Languages() []string {
 	entries, err := os.ReadDir(TessdataDir())
 	if err != nil {
@@ -124,5 +126,6 @@ func Languages() []string {
 			out = append(out, name)
 		}
 	}
+	sort.Strings(out)
 	return out
 }

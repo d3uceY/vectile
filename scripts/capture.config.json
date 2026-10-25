@@ -70,7 +70,8 @@
       "name": "settings-ocr",
       "out": "docs/static/img/screenshots/settings-ocr.png",
       "interactView": "settings",
-      "settingsSection": "OCR"
+      "settingsSection": "OCR",
+      "ocrInstalled": true
     },
     {
       "name": "ocr-setup",

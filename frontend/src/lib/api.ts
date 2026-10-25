@@ -20,6 +20,7 @@ import type {
   MCPStatus,
   ModelDownloadState,
   ModelInfo,
+  OCRLanguage,
   OCRState,
   SearchFilters,
   SearchResponse,
@@ -244,6 +245,21 @@ export async function cancelOCRInstall(): Promise<boolean> {
 /** Deletes the installed OCR bundle. */
 export async function removeOCR(): Promise<void> {
   await OCRService.RemoveOCR();
+}
+
+/** Every OCR language the picker can offer, English first. */
+export async function listOCRLanguages(): Promise<OCRLanguage[]> {
+  return OCRService.ListOCRLanguages() as unknown as OCRLanguage[];
+}
+
+/** Downloads one language's data into the installed bundle; true when it started. */
+export async function installOCRLanguage(code: string): Promise<boolean> {
+  return OCRService.InstallOCRLanguage(code) as unknown as boolean;
+}
+
+/** Deletes one language's data file. English is refused by the backend. */
+export async function removeOCRLanguage(code: string): Promise<void> {
+  await OCRService.RemoveOCRLanguage(code);
 }
 
 /**
