@@ -113,7 +113,8 @@ export function createAppStore() {
   const [modelsLoaded, setModelsLoaded] = createSignal(false);
 
   const [recommended, setRecommended] = createSignal<CatalogModel[]>([]);
-  const [downloadState, setDownloadState] = createSignal<ModelDownloadState | null>
+  const [downloadState, setDownloadState] = createSignal<ModelDownloadState | null>(null);
+  const [modelDialogOpen, setModelDialogOpen] = createSignal(false);
   const [modelDialogDismissed, setModelDialogDismissed] = createSignal(false);
   const [firstRunDone, setFirstRunDone] = createSignal(false);
 
@@ -204,8 +205,7 @@ export function createAppStore() {
       setSearchState("idle");
       return;
     }
-    if (noModel()) {(null);
-  const [modelDialogOpen, setModelDialogOpen] = createSignal(false);
+    if (noModel()) {
       setResults([]);
       setSearchCached(false);
       setSearchState("idle");
