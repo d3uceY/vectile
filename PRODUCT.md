@@ -16,7 +16,7 @@ A single user working locally on their own machine, searching their own accumula
 
 ## Product Purpose
 
-Inspired by `local-rag`. It indexes personal knowledge into one local database (vector + full-text hybrid search) and lets the user search, browse, and manage that library through a fast, friendly interface instead of a CLI. Success means the user can search their whole knowledge base in one place, gets useful results in milliseconds, and trusts that nothing left the machine.
+It indexes personal knowledge into one local database (vector + full-text hybrid search) and lets the user search, browse, and manage that library through a fast, friendly interface instead of a CLI. Success means the user can search their whole knowledge base in one place, gets useful results in milliseconds, and trusts that nothing left the machine.
 
 ## Positioning
 
@@ -39,7 +39,7 @@ Everything runs in one binary: the model loader (llama.go), the indexer, and the
 - Status/health: database stats (collections, sources, chunks, size, last indexed) and model-engine state.
 - Settings: model, chunking, paths, search defaults, disabled collections, OCR, GUI options.
 - Constraint (confirmed): the model loader lives in the vectile binary via vendored llama-go. The UI health indicator reflects an in-process model engine (loaded / idle / failed), never a remote service.
-- Decided: the index and search are a native Go implementation inside vectile. The backend is wired end to end; the UI talks to it through generated Wails bindings. The `SearchResult`/`Filters`/collection model follows local-rag's.
+- Decided: the index and search are a native Go implementation inside vectile. The backend is wired end to end; the UI talks to it through generated Wails bindings.
 
 ## Brand Commitments
 

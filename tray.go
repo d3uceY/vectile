@@ -1,6 +1,6 @@
 package main
 
-// System tray integration. Follows the same pattern local-rag uses for its
+// System tray integration. Follows the same pattern uses for its
 // tray: a status line, an "Index" submenu (all collections + each configured
 // collection), a cancel action while a run is in flight, and Quit. The menu
 // is rebuilt from live app state through a single coalescing goroutine so
@@ -59,7 +59,7 @@ func (t *tray) start() {
 	st.OnClick(t.showWindow)
 	t.systray = st
 
-	// Coalescing rebuild loop (local-rag pattern): all rebuild requests land
+	// Coalescing rebuild loop : all rebuild requests land
 	// on one goroutine so SetMenu is never called concurrently.
 	go t.rebuildLoop()
 
@@ -168,10 +168,10 @@ func (t *tray) rebuildMenu() {
 	menu.Add("Show Vectile").OnClick(func(*application.Context) { t.showWindow() })
 	menu.AddSeparator()
 
-	// Status line (disabled) — mirror of local-rag's status item.
+	
 	menu.Add(status).SetEnabled(false)
 
-	// Index submenu (local-rag style): All Collections + each configured one.
+	// Index submenu: All Collections + each configured one.
 	indexSub := menu.AddSubmenu("Index")
 	indexSub.Add("All Collections").OnClick(func(*application.Context) {
 		t.triggerIndex("")
