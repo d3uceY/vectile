@@ -264,71 +264,93 @@ function ClientSetup(props: { client: MCPClient; url: string; transport: MCPTran
   );
 }
 
-const MCP_TOOLS: { name: string; desc: string; kind: "read" | "write" }[] = [
+/**
+ * The exposed tools, grouped by what an assistant does with them: find, read,
+ * inspect, then change. Only Change is gated behind Allow write tools, so only
+ * that group carries a state chip.
+ */
+type MCPToolGroup = {
+  id: "find" | "read" | "inspect" | "change";
+  label: string;
+  tools: { name: string; desc: string }[];
+};
+
+const MCP_TOOL_GROUPS: MCPToolGroup[] = [
   {
-    name: "vectile_search",
-    desc: "Hybrid semantic and keyword search, filterable by collection, source type, path, and date.",
-    kind: "read",
+    id: "find",
+    label: "Find",
+    tools: [
+      {
+        name: "vectile_search",
+        desc: "Hybrid semantic and keyword search, filterable by collection, source type, path, and date.",
+      },
+      {
+        name: "vectile_grep",
+        desc: "Exact or regex match for identifiers, error strings, and TODOs.",
+      },
+      {
+        name: "vectile_find_related",
+        desc: "More chunks like one the assistant already found.",
+      },
+    ],
   },
   {
-    name: "vectile_get_chunk",
-    desc: "Read one result in full, with optional neighbouring chunks.",
-    kind: "read",
+    id: "read",
+    label: "Read",
+    tools: [
+      {
+        name: "vectile_get_chunk",
+        desc: "Read one result in full, with optional neighbouring chunks.",
+      },
+      {
+        name: "vectile_read_source",
+        desc: "Read a whole note, book section, or code file reassembled in order.",
+      },
+    ],
   },
   {
-    name: "vectile_read_source",
-    desc: "Read a whole note, book section, or code file reassembled in order.",
-    kind: "read",
+    id: "inspect",
+    label: "Inspect",
+    tools: [
+      {
+        name: "vectile_list_collections",
+        desc: "List your collections with file and chunk counts.",
+      },
+      {
+        name: "vectile_collection_info",
+        desc: "Details for one collection: counts, source types, and sample titles.",
+      },
+      {
+        name: "vectile_list_sources",
+        desc: "List the files indexed in a collection.",
+      },
+      {
+        name: "vectile_facets",
+        desc: "Metadata keys and common values for search filters.",
+      },
+      {
+        name: "vectile_status",
+        desc: "Library counts, database size, last indexed time, and active model.",
+      },
+      {
+        name: "vectile_timeline",
+        desc: "Documents in date order, newest first.",
+      },
+    ],
   },
   {
-    name: "vectile_grep",
-    desc: "Exact or regex match for identifiers, error strings, and TODOs.",
-    kind: "read",
-  },
-  {
-    name: "vectile_list_collections",
-    desc: "List your collections with file and chunk counts.",
-    kind: "read",
-  },
-  {
-    name: "vectile_collection_info",
-    desc: "Details for one collection: counts, source types, and sample titles.",
-    kind: "read",
-  },
-  {
-    name: "vectile_list_sources",
-    desc: "List the files indexed in a collection.",
-    kind: "read",
-  },
-  {
-    name: "vectile_facets",
-    desc: "Metadata keys and common values for search filters.",
-    kind: "read",
-  },
-  {
-    name: "vectile_status",
-    desc: "Library counts, database size, last indexed time, and active model.",
-    kind: "read",
-  },
-  {
-    name: "vectile_find_related",
-    desc: "More chunks like one the assistant already found.",
-    kind: "read",
-  },
-  {
-    name: "vectile_timeline",
-    desc: "Documents in date order, newest first.",
-    kind: "read",
-  },
-  {
-    name: "vectile_index",
-    desc: "Index one collection: Obsidian vault, Calibre library, or a project/repo group.",
-    kind: "write",
-  },
-  {
-    name: "vectile_prune",
-    desc: "Remove stale entries for files or books that no longer exist.",
-    kind: "write",
+    id: "change",
+    label: "Change",
+    tools: [
+      {
+        name: "vectile_index",
+        desc: "Index one collection: Obsidian vault, Calibre library, or a project/repo group.",
+      },
+      {
+        name: "vectile_prune",
+        desc: "Remove stale entries for files or books that no longer exist.",
+      },
+    ],
   },
 ];
 
@@ -484,30 +506,52 @@ export function ConnectSection() {
 
         <div>
           <SubHeading>Tools</SubHeading>
-          <p class="mb-2 mt-0.5 text-[12px] font-medium leading-4 text-muted">
+          <p class="mb-2.5 mt-0.5 text-[12px] font-medium leading-4 text-muted">
             {mcpWriteAllowed()
-              ? "Search, plus index and prune, scoped to your library."
-              : "Read-only search now. Turn on Allow write tools to let an AI index and prune."}
+              ? "An assistant can search, index, and prune your library."
+              : "Read-only. Turn on Allow write tools to let an assistant index and prune."}
           </p>
-          <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
-            <For each={MCP_TOOLS}>
-              {(t) => (
-                <li class="flex items-start gap-3 px-3 py-2">
-                  <span class="mt-px shrink-0 font-mono text-[11px] text-ink-soft">{t.name}</span>
-                  <span class="text-[12px] font-medium leading-5 text-muted">{t.desc}</span>
-                  <Show when={t.kind === "write"}>
-                    <span
-                      class={`ml-auto shrink-0 rounded-full px-2 py-0.5 font-mono text-[11px] ${
-                        mcpWriteAllowed() ? "bg-amber-soft text-amber-deep" : "bg-surface-2 text-muted"
-                      }`}
-                    >
-                      write
-                    </span>
-                  </Show>
-                </li>
+          <div class="@container overflow-hidden rounded-[8px] border border-line-strong bg-surface">
+            <For each={MCP_TOOL_GROUPS}>
+              {(g) => (
+                <>
+                  <div class="flex items-center gap-2 border-y border-line bg-surface-2/60 px-3.5 py-1.5 first:border-t-0">
+                    <p class="min-w-0 flex-1 truncate text-[12px] font-semibold text-ink-soft">
+                      {g.label}
+                    </p>
+                    <Show when={g.id === "change"}>
+                      <span
+                        class={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[11px] ${
+                          mcpWriteAllowed()
+                            ? "border-amber-warm bg-amber-soft text-amber-deep"
+                            : "border-line-strong text-muted"
+                        }`}
+                        title={
+                          mcpWriteAllowed()
+                            ? "Allow write tools is on, so these two are callable."
+                            : "Turn on Allow write tools above to make these two callable."
+                        }
+                      >
+                        {mcpWriteAllowed() ? "on" : "off"}
+                      </span>
+                    </Show>
+                  </div>
+                  <ul class="divide-y divide-line" aria-label={`${g.label} tools`}>
+                    <For each={g.tools}>
+                      {(t) => (
+                        <li class="grid grid-cols-1 gap-x-3 gap-y-1 px-3.5 py-2 @lg:grid-cols-[168px_minmax(0,1fr)] @lg:items-start">
+                          <span class="inline-flex h-5 w-fit items-center rounded-full bg-surface-2 px-2 font-mono text-[11px] font-medium text-ink">
+                            {t.name}
+                          </span>
+                          <span class="text-[12px] font-medium leading-5 text-muted">{t.desc}</span>
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                </>
               )}
             </For>
-          </ul>
+          </div>
         </div>
 
         <div>
