@@ -8,6 +8,7 @@ import { ModelDownloadDialog } from "../ui/ModelDownloadDialog";
 import { OcrSetupDialog } from "../ui/OcrSetupDialog";
 import { Sidebar } from "./Sidebar";
 import { StatusStrip } from "./StatusStrip";
+import { WindowTitleBar } from "./WindowTitleBar";
 import { SearchView } from "../search/SearchView";
 import { LibraryView } from "../library/LibraryView";
 import { BrowseView } from "../library/BrowseView";
@@ -43,31 +44,35 @@ export function AppShell() {
   });
 
   return (
-    <div class="relative flex h-full overflow-hidden bg-paper text-ink">
-      <Sidebar />
+    <div class="relative flex h-full flex-col overflow-hidden bg-paper text-ink">
+      <WindowTitleBar />
 
-      <div class="relative flex min-w-0 flex-1 flex-col">
-        <StatusStrip version={version() ?? undefined} />
-        {/* One non-scrolling frame; each view owns its scroll (per-view scroll) */}
-        <main class="relative min-h-0 flex-1 overflow-hidden">
-          <div class="relative mx-auto h-full w-full max-w-[61.25rem] px-5 py-7 md:px-8">
-            <Show when={store.view() === "search"}>
-              <SearchView />
-            </Show>
-            <Show when={store.view() === "library"}>
-              <LibraryView />
-            </Show>
-            <Show when={store.view() === "browse"}>
-              <BrowseView />
-            </Show>
-            <Show when={store.view() === "index"}>
-              <IndexView />
-            </Show>
-            <Show when={store.view() === "settings"}>
-              <SettingsView />
-            </Show>
-          </div>
-        </main>
+      <div class="relative flex min-h-0 flex-1 overflow-hidden">
+        <Sidebar />
+
+        <div class="relative flex min-w-0 flex-1 flex-col">
+          <StatusStrip version={version() ?? undefined} />
+          {/* One non-scrolling frame; each view owns its scroll (per-view scroll) */}
+          <main class="relative min-h-0 flex-1 overflow-hidden">
+            <div class="relative mx-auto h-full w-full max-w-[61.25rem] px-5 py-7 md:px-8">
+              <Show when={store.view() === "search"}>
+                <SearchView />
+              </Show>
+              <Show when={store.view() === "library"}>
+                <LibraryView />
+              </Show>
+              <Show when={store.view() === "browse"}>
+                <BrowseView />
+              </Show>
+              <Show when={store.view() === "index"}>
+                <IndexView />
+              </Show>
+              <Show when={store.view() === "settings"}>
+                <SettingsView />
+              </Show>
+            </div>
+          </main>
+        </div>
       </div>
 
       <UpdateDialog

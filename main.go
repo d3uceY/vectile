@@ -136,7 +136,10 @@ func main() {
 		MinWidth:  680,
 		MinHeight: 600,
 		Mac: application.MacWindow{
-			InvisibleTitleBarHeight: 50,
+			// Matches the frontend's WindowTitleBar strip (h-10). The strip
+			// gives the traffic lights a place of their own and keeps the
+			// status strip's controls out of the native drag zone.
+			InvisibleTitleBarHeight: 40,
 			Backdrop:                application.MacBackdropTranslucent,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
