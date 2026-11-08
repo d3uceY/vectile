@@ -12,7 +12,7 @@
 
 I built something i genuinely think is cool and useful for managing personal knowledge locally.
 
-**Vectile** is a private, fully local RAG desktop app for Windows, macOS, and Linux. It indexes your personal knowledge into a local SQLite database and combines vector search with full-text search, letting you find information by meaning rather than exact words.
+**Vectile** is a local RAG desktop app for Windows, macOS, and Linux. It indexes your personal knowledge into a local SQLite database and combines vector search with full-text search, letting you find information by meaning rather than exact words.
 The data can be exposed with MCP to AI agents.
 
 It can index Obsidian vaults, documents, code repositories, Calibre libraries, and more. Embeddings run locally from `.gguf` models, so there is no server, cloud service, API key, or remote inference involved.
@@ -22,4 +22,3 @@ and a model or Tesseract download when you start one.
 
 It supports OCR for scanned PDFs (Tesseract installs as a plugin), and models are downloaded or imported
 inside the app.
-Please, give this is a star if you think it is cool
