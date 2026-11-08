@@ -229,6 +229,13 @@ html[data-theme="dark"] {
     box-shadow: var(--shadow-xs);
   }
 
+  /* macOS window chrome: the strip reserved for the native traffic lights.
+     Wails reads this variable to make the empty strip drag the window and
+     zoom it on double-click. */
+  .window-titlebar {
+    --wails-draggable: drag;
+  }
+
 
   .slider {
     -webkit-appearance: none;
