@@ -10,7 +10,7 @@ export function ChunkingSection() {
     <Section
       icon={<ChunkNavIcon size={16} />}
       title="Chunking"
-      note="Smaller chunks match more precisely; overlap keeps sentences intact."
+      note="Smaller chunks match more precisely; overlap keeps sentences intact"
     >
       <FieldList>
         <NumField

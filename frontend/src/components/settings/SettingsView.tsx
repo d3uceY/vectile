@@ -69,7 +69,7 @@ export function SettingsView() {
   return (
     <div class="relative flex h-full flex-col">
       <div class="px-5 pt-6 md:px-8">
-        <ViewHeading title="Settings" note="Everything stays on this machine." />
+        <ViewHeading title="Settings" note="Everything stays on this machine" />
       </div>
 
       <Show when={draft()} fallback={<p class="px-6 text-[13px] font-medium text-muted">Loading settings…</p>}>
@@ -89,7 +89,7 @@ export function SettingsView() {
                       type="button"
                       onClick={() => setSection(it.key)}
                       aria-current={active() ? "page" : undefined}
-                      class={`group flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors duration-100 ${
+                      class={`group flex shrink-0 items-center gap-1.5 rounded-control border px-3 py-1 text-[12px] font-medium transition-colors duration-150 ${
                         active() ? "border-leaf-deep bg-mint text-leaf-deep" : "border-line-control bg-paper text-ink-soft"
                       }`}
                     >
@@ -116,7 +116,7 @@ export function SettingsView() {
               <For each={NAV_GROUPS}>
                 {(g) => (
                   <div class="mb-5">
-                    <p class="mb-1.5 px-2.5 text-[12px] font-semibold text-muted">
+                    <p class="mb-1.5 px-2.5 text-[12px] font-medium text-muted">
                       {g.label}
                     </p>
                     <For each={g.items}>
@@ -127,7 +127,7 @@ export function SettingsView() {
                             type="button"
                             onClick={() => setSection(it.key)}
                             aria-current={active() ? "page" : undefined}
-                            class={`group flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-[13px] font-semibold transition-colors duration-100 ease-snappy ${
+                            class={`group flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
                               active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
                             }`}
                           >
@@ -171,13 +171,13 @@ export function SettingsView() {
       {/* Sticky save bar: pinned to the bottom of the view so saving doesn't
           mean scrolling back to the top. Only appears while the draft is dirty. */}
       <Show when={store.settingsDirty()}>
-        <div class="absolute inset-x-0 bottom-0 flex items-center gap-3 border-t border-line bg-paper px-6 py-3.5">
+        <div class="absolute inset-x-0 bottom-0 flex items-center gap-3 border-t border-line bg-paper px-6 py-3">
           <span
-            class="inline-flex items-center gap-1.5 rounded-full border border-amber-warm bg-amber-soft px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-amber-deep"
+            class="inline-flex items-center gap-1.5 text-[12px] font-medium text-amber-deep"
             role="status"
           >
             <span class="h-1.5 w-1.5 rounded-full bg-amber" aria-hidden="true" />
-            unsaved
+            Unsaved changes
           </span>
           <span class="ml-auto flex items-center gap-2">
             <Button variant="ghost" onClick={() => store.confirmLeave({ discard: true })}>
@@ -197,10 +197,10 @@ export function SettingsView() {
           onClick={() => store.cancelLeave()}
         >
           <div
-            class="od-scale-in w-[26rem] rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+            class="od-scale-in w-[26rem] rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 id={leaveTitleId} class="text-[17px] font-semibold tracking-[-0.01em] text-ink">
+            <h3 id={leaveTitleId} class="text-[17px] font-semibold text-ink">
               Save your changes before leaving?
             </h3>
             <p class="mt-2 text-[13px] font-medium leading-[1.7] text-muted">

@@ -32,7 +32,7 @@ function ModelPlate(props: { state: ModelState; name?: string }) {
       <span class="relative flex h-2 w-2 shrink-0">
         <span class={`h-2 w-2 rounded-full ${m().dot} ${props.state === "loaded" ? "pulse-dot" : ""}`} />
       </span>
-      <span class={`shrink-0 text-[12px] font-semibold ${m().text}`}>{props.state}</span>
+      <span class={`shrink-0 text-[12px] font-medium capitalize ${m().text}`}>{props.state}</span>
       <span class="min-w-0 truncate text-[12px] font-medium text-muted">{props.name ?? "…"}</span>
     </span>
   );
@@ -63,7 +63,7 @@ export function Sidebar() {
               return (
                 <li>
                   <button
-                    class={`group flex w-full items-center justify-center gap-2.5 rounded-[12px] py-2.5 text-[13px] font-semibold transition-colors duration-100 ease-snappy md:justify-start md:pl-4 md:pr-2.5 ${
+                    class={`group flex w-full items-center justify-center gap-2.5 rounded-[8px] py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy md:justify-start md:pl-4 md:pr-2.5 ${
                       active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
                     }`}
                     aria-current={active() ? "page" : undefined}

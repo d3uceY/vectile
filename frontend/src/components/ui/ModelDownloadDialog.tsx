@@ -26,11 +26,11 @@ export function ModelDownloadDialog(props: {
         onClick={props.onDismiss}
       >
         <div
-          class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
           onClick={(e) => e.stopPropagation()}
         >
          
-          <h3 class="mt-2 text-[17px] font-semibold tracking-[-0.01em] text-ink">Add an embedding model</h3>
+          <h3 class="mt-2 text-[17px] font-semibold text-ink">Add an embedding model</h3>
           <p class="mt-2.5 text-[13px] font-medium leading-[1.7] text-muted">
             Pick one, or bring your own.
           </p>

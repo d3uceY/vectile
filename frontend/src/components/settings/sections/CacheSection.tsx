@@ -30,19 +30,19 @@ export function CacheSection() {
     <Section
       icon={<CacheNavIcon size={16} />}
       title="Cache"
-      note="Repeated searches reuse the query embedding instead of computing it again."
+      note="Repeated searches reuse the query embedding instead of computing it again"
     >
       <div class="space-y-6">
-        <div class="rounded-[8px] border border-line bg-surface px-4 py-3.5">
+        <div class="rounded-[8px] border border-line bg-surface px-4 py-3">
           <div class="flex items-center gap-2">
             <span
               class={`h-2 w-2 shrink-0 rounded-full ${cacheCount() > 0 ? "bg-leaf" : "bg-ghost"}`}
             />
-            <span class="text-[12px] font-semibold leading-none text-ink-soft">
+            <span class="text-[12px] font-medium leading-none tabular-nums text-ink-soft">
               {cacheCount() === 0
                 ? cacheLoaded()
-                  ? "nothing cached yet"
-                  : "checking…"
+                  ? "Nothing cached yet"
+                  : "Checking…"
                 : `${cacheCount().toLocaleString()} quer${cacheCount() === 1 ? "y" : "ies"} cached`}
             </span>
             <Show when={cacheBytes() > 0}>
@@ -53,8 +53,8 @@ export function CacheSection() {
           </div>
           <div class="mt-2.5 border-t border-line" aria-hidden="true" />
           <p class="mt-2 text-[11px] font-medium leading-4 text-muted">
-            only the query embedding is stored, never your results · cleared when you
-            reindex or change the active model
+            Only the query embedding is stored, never your results. It clears when you
+            reindex or change the active model.
           </p>
         </div>
 

@@ -92,15 +92,15 @@ function SourceTabs(props: {
               tabindex={active() ? 0 : -1}
               onClick={() => props.onChange(k.id)}
               onKeyDown={(e) => onKey(e, i())}
-              class={`flex min-w-0 items-center gap-2 rounded-[8px] px-2.5 py-2 text-[13px] font-semibold transition-colors duration-100 ease-snappy ${
+              class={`flex min-w-0 items-center gap-2 rounded-[4px] px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
                 active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
               }`}
             >
               <k.icon size={15} />
               <span class="min-w-0 flex-1 truncate text-left">{k.label}</span>
               <span
-                class={`shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[11px] tabular-nums ${
-                  active() ? "bg-paper text-leaf-deep" : "bg-surface-2 text-muted"
+                class={`shrink-0 font-mono text-[11px] tabular-nums ${
+                  active() ? "text-leaf-deep" : "text-muted"
                 }`}
               >
                 {props.counts[k.id]}
@@ -127,9 +127,9 @@ function ExcludeBlock(props: {
     <div class="mt-5 border-t border-line pt-4">
       <div class="flex items-center gap-2">
         <SlashIcon size={14} class="shrink-0 text-muted" />
-        <h4 class="text-[13px] font-semibold text-ink">Skip folders or files</h4>
+        <h4 class="text-[13px] font-medium text-ink">Skip folders or files</h4>
         <InfoTip text={props.hint} />
-        <span class="ml-auto shrink-0 rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-muted tabular-nums">
+        <span class="ml-auto shrink-0 font-mono text-[11px] text-muted tabular-nums">
           {props.values.length}
         </span>
       </div>
@@ -164,7 +164,7 @@ export function SourcesSection() {
     <Section
       icon={<SourcesNavIcon size={16} />}
       title="Sources"
-      note="Choose what gets indexed."
+      note="Choose what gets indexed"
     >
       <SourceTabs value={sourceKind()} counts={sourceCounts()} onChange={setSourceKind} />
 
@@ -182,7 +182,7 @@ export function SourcesSection() {
             {activeKind().icon({ size: 18 })}
           </span>
           <div class="min-w-0">
-            <h3 class="text-[15px] font-semibold tracking-[-0.01em] text-ink">
+            <h3 class="text-[15px] font-semibold text-ink">
               {activeKind().label}
             </h3>
             <p class="mt-1 max-w-[64ch] text-[13px] font-medium leading-5 text-muted">
@@ -195,7 +195,7 @@ export function SourcesSection() {
           <p class="mt-2.5 max-w-[64ch] text-[12px] font-medium leading-5 text-muted">
             Each group becomes one collection, named after the group.
           </p>
-          <div class="mt-3.5">
+          <div class="mt-4">
             <GroupList
               groups={draft()!.projects}
               onAddPath={(n, v) => addGroupPath("projects", n, v)}
@@ -211,7 +211,7 @@ export function SourcesSection() {
             onAdd={(v) => addPath("project_exclude_folders", v)}
             onRemove={(v) => removePath("project_exclude_folders", v)}
             hint="node_modules is always skipped. Add any other name you never want in results."
-            note="Names skipped at any depth, inside every project collection."
+            note="Names skipped at any depth, inside every project collection"
             empty="None. Only node_modules is skipped."
           />
         </Show>
@@ -221,7 +221,7 @@ export function SourcesSection() {
             Each group becomes one collection. How far back commit history reaches is
             set under Indexing.
           </p>
-          <div class="mt-3.5">
+          <div class="mt-4">
             <GroupList
               groups={draft()!.repositories}
               onAddPath={(n, v) => addGroupPath("repositories", n, v)}
@@ -237,7 +237,7 @@ export function SourcesSection() {
             onAdd={(v) => addPath("repository_exclude_folders", v)}
             onRemove={(v) => removePath("repository_exclude_folders", v)}
             hint="Build output and lock files are already skipped. Filters the file tree only; commit history is indexed in full."
-            note="Names skipped at any depth, inside every repository."
+            note="Names skipped at any depth, inside every repository"
             empty="None. Only the built-in list is skipped."
           />
         </Show>
@@ -247,7 +247,7 @@ export function SourcesSection() {
             Every vault lands in one collection called{" "}
             <span class="font-mono text-[12px] text-ink-soft">obsidian</span>.
           </p>
-          <div class="mt-3.5">
+          <div class="mt-4">
             <PathList
               values={draft()!.obsidian_vaults}
               onAdd={(v) => addPath("obsidian_vaults", v)}
@@ -266,7 +266,7 @@ export function SourcesSection() {
             onAdd={(v) => addPath("obsidian_exclude_folders", v)}
             onRemove={(v) => removePath("obsidian_exclude_folders", v)}
             hint="Hides attachments, templates, .trash, or a stray file from results."
-            note="Names skipped at any depth, inside every vault."
+            note="Names skipped at any depth, inside every vault"
             empty="None. Every folder inside a vault is indexed."
           />
         </Show>
@@ -276,7 +276,7 @@ export function SourcesSection() {
             Every library lands in one collection called{" "}
             <span class="font-mono text-[12px] text-ink-soft">calibre</span>.
           </p>
-          <div class="mt-3.5">
+          <div class="mt-4">
             <PathList
               values={draft()!.calibre_libraries}
               onAdd={(v) => addPath("calibre_libraries", v)}
@@ -295,7 +295,7 @@ export function SourcesSection() {
             onAdd={(v) => addPath("calibre_exclude_folders", v)}
             onRemove={(v) => removePath("calibre_exclude_folders", v)}
             hint="A book's folder is its author and title, so one entry drops a whole author or a single book."
-            note="Names skipped at any depth, inside every library."
+            note="Names skipped at any depth, inside every library"
             empty="None. Every book in the library is indexed."
           />
         </Show>

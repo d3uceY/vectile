@@ -64,7 +64,7 @@ export function ThemeToggle(props: { compact?: boolean }) {
     <div
       role="radiogroup"
       aria-label="Theme"
-      class="flex items-center gap-0.5 rounded-full border border-line bg-surface-2 p-0.5"
+      class="flex items-center gap-0.5 rounded-control border border-line bg-surface-2 p-0.5"
     >
       <For each={OPTIONS}>
         {(o) => {
@@ -77,8 +77,8 @@ export function ThemeToggle(props: { compact?: boolean }) {
               aria-label={o.title}
               title={o.title}
               onClick={() => choose(o.id)}
-              class={`flex h-7 min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-full px-1 text-[11px] font-semibold transition-colors duration-100 ease-snappy ${
-                active() ? "bg-mint text-leaf-deep" : "text-muted hover:text-ink"
+              class={`flex h-7 min-w-0 flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-[3px] px-1 text-[11px] font-medium transition-colors duration-150 ease-snappy ${
+                active() ? "bg-paper text-ink shadow-xs ring-1 ring-line-strong" : "text-muted hover:text-ink"
               }`}
             >
               <span class="shrink-0">{o.icon({ size: 14 })}</span>

@@ -10,7 +10,7 @@ export function SearchSection() {
     <Section
       icon={<SearchNavIcon size={16} />}
       title="Search"
-      note="Hybrid ranking blends exact-term and meaning results."
+      note="Hybrid ranking blends exact-term and meaning results"
     >
       <div class="space-y-6">
         <div>

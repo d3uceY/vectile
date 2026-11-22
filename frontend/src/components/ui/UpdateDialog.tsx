@@ -23,23 +23,23 @@ export function UpdateDialog(props: {
         onClick={props.onDismiss}
       >
         <div
-          class="od-scale-in w-[23rem] rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          class="od-scale-in w-[23rem] rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
           onClick={(e) => e.stopPropagation()}
         >
-          <p class="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-deep">
+          <p class="flex items-center gap-2 font-mono text-[11px] font-medium text-amber-deep">
             <span class="h-1.5 w-1.5 rounded-full bg-amber" aria-hidden="true" />
-            update
+            Update
           </p>
-          <h3 class="mt-2 text-[17px] font-semibold tracking-[-0.01em] text-ink">A new version is here</h3>
+          <h3 class="mt-2 text-[17px] font-semibold text-ink">A new version is here</h3>
 
           <div class="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[8px] border border-line bg-line">
-            <div class="bg-surface-2 px-3.5 py-2.5">
-              <p class="font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted">installed</p>
+            <div class="bg-surface-2 px-4 py-3">
+              <p class="font-mono text-[11px] text-muted">Installed</p>
               <p class="mt-1 font-mono text-[12px] text-muted">{props.current}</p>
             </div>
-            <div class="bg-mint px-3.5 py-2.5">
-              <p class="font-mono text-[10.5px] uppercase tracking-[0.1em] text-leaf-deep">latest</p>
-              <p class="mt-1 font-mono text-[12px] font-semibold text-leaf-deep">{props.latest}</p>
+            <div class="bg-mint px-4 py-3">
+              <p class="font-mono text-[11px] text-leaf-deep">Latest</p>
+              <p class="mt-1 font-mono text-[12px] font-medium text-leaf-deep">{props.latest}</p>
             </div>
           </div>
 

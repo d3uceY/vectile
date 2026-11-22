@@ -38,7 +38,7 @@ export function OcrCard(props: {
     <div class="rounded-[8px] border border-line bg-surface p-4">
       <div class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
         <span class={`h-2 w-2 shrink-0 rounded-full ${status().dot}`} aria-hidden="true" />
-        <span class="text-[13px] font-semibold text-ink">{status().word}</span>
+        <span class="text-[13px] font-medium text-ink">{status().word}</span>
         <Show when={s()?.supported}>
           <span class="font-mono text-[11px] text-muted">
             tesseract {s()!.version} · {s()!.platform} · {fmtBytes(s()!.sizeBytes)}
@@ -67,8 +67,8 @@ export function OcrCard(props: {
       </Show>
 
       <Show when={ready()}>
-        <div class="mt-3 rounded-[8px] border border-line bg-surface-2 px-3 py-2">
-          <p class="font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted">Downloaded from</p>
+        <div class="mt-3 rounded-[6px] border border-line bg-surface-2 px-3 py-2">
+          <p class="font-mono text-[11px] text-muted">Downloaded from</p>
           <p class="mt-0.5 truncate font-mono text-[11px] text-ink-soft" title={s()!.downloadUrl}>
             {s()!.downloadUrl}
           </p>

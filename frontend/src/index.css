@@ -27,7 +27,7 @@
   --color-ghost: #bdbdbd; /* decoration only, never text */
   --color-line: #ededed; /* decorative hairline: card edges, dividers */
   --color-line-strong: #dbdbdb; /* standard card / section border */
-  --color-line-control: var(--color-line-strong); /* controls sit on the card edge; no separate 3:1 box */
+  --color-line-control: #8c8c8c; /* control boundary; 3.2:1 on paper */
 
   --color-mint: #e5f3e8;
   --color-mint-strong: #caecd3;
@@ -37,6 +37,7 @@
   --color-leaf-soft: #46a06c;
 
   --color-accent: #15703e;
+  --color-accent-hover: #0f5c33;
   --color-accent-ink: #ffffff;
 
   --color-amber: #b45309;
@@ -98,7 +99,7 @@ html[data-theme="dark"] {
 
   --color-line: #333333;
   --color-line-strong: #454545;
-  --color-line-control: var(--color-line-strong);
+  --color-line-control: #7a7a7a;
 
   --color-leaf: #4ecb8c;
   --color-leaf-deep: #3bbf7d;
@@ -108,6 +109,7 @@ html[data-theme="dark"] {
   --color-mint-deep: #2a5338;
 
   --color-accent: #3bbf7d;
+  --color-accent-hover: #35b375;
   --color-accent-ink: #14201a;
 
   /* Legacy alias: still green, never a second accent. */
@@ -219,7 +221,6 @@ html[data-theme="dark"] {
     font-family: var(--font-mono);
     font-size: 0.75rem;
     line-height: 1.4;
-    letter-spacing: -0.01em;
   }
 
   .sheet {
@@ -433,46 +434,28 @@ html[data-theme="dark"] {
     }
   }
 
-  /* Inline indexing loader on the collection row being indexed. The fill is
-     capped at 96% so it looks like it's about to finish while the backend
-     wraps up the last batch; a leaf-green shine sweeps across it and a soft
-     glow pulses underneath, so it reads as "pushing" rather than idle. */
+  /* Inline indexing loader. The fill is capped at 96% until the backend
+     wraps up; it states progress and nothing else, with no glow or shine. */
   .index-progress__track {
     position: relative;
-    height: 10px;
-    border-radius: 9999px;
+    height: 8px;
+    border-radius: 4px;
     border: 1px solid var(--color-line);
-    background: var(--color-surface);
+    background: var(--color-surface-2);
     overflow: hidden;
   }
   .index-progress__fill {
     position: relative;
     height: 100%;
-    border-radius: 9999px;
-    overflow: hidden;
-    background: linear-gradient(
-      90deg,
-      var(--color-leaf-deep),
-      var(--color-leaf) 55%,
-      var(--color-leaf-soft)
-    );
-    /* Linear, and long enough that the fill is still travelling when the next
-       per-file event lands. A slow-start easing over a shorter duration means
-       the fill renders no change at all for a fifth of frames and then lurches,
-       which reads as a stuttering bar rather than a working one. Measured by
-       sampling the rendered width every frame: 20% of frames motionless and a
-       per-frame step deviation of 1.9x the mean for the old
-       cubic-bezier(0.5, 0, 0.2, 1) at 480ms, against 3% and 0.8x for linear at
-       600ms. The 96% cap below still holds it back at the end. */
-    transition: width 600ms linear;
-    animation: index-progress-pulse 1.8s ease-in-out infinite;
+    border-radius: 3px;
+    background: var(--color-accent);
+    transition: width 480ms linear;
   }
-  /* Indeterminate "Preparing…" state shown before the backend has counted any
-     files (total is unknown / 0): a short fill sliding across the track so it
-     reads as activity rather than a stalled 0/0. */
+  /* Indeterminate "Preparing…" state before the backend has counted any files
+     (total is unknown / 0): a short fill sliding across the track so it reads
+     as activity rather than a stalled 0/0. */
   .index-progress__fill--preparing {
-    animation: index-progress-slide 1.6s ease-in-out infinite,
-      index-progress-pulse 1.8s ease-in-out infinite;
+    animation: index-progress-slide 1.6s ease-in-out infinite;
   }
   @keyframes index-progress-slide {
     0% {
@@ -482,41 +465,7 @@ html[data-theme="dark"] {
       transform: translateX(400%);
     }
   }
-  .index-progress__shine {
-    position: absolute;
-    top: -60%;
-    left: -150%; 
-    width: 300%;
-    height: 200%;
-    background-image: linear-gradient(
-      to right,
-      transparent 0%,
-      rgb(255 255 255 / 0.55) 50%,
-      transparent 100%
-    );
-    background-repeat: no-repeat;
-    background-size: 60% 100%;
-    animation: index-progress-shine 1.5s ease-in-out infinite;
-  }
-  @keyframes index-progress-shine {
-    0% {
-      background-position: -10% center;
-    }
-    100% {
-      background-position: 200% center;
-    }
-  }
-  @keyframes index-progress-pulse {
-    0%,
-    100% {
-      box-shadow: 0 0 6px rgb(31 138 80 / 0.35);
-    }
-    50% {
-      box-shadow: 0 0 14px rgb(31 138 80 / 0.6);
-    }
-  }
   @media (prefers-reduced-motion: reduce) {
-    .index-progress__shine,
     .index-progress__fill {
       animation: none;
     }
@@ -558,13 +507,12 @@ html[data-theme="dark"] {
   color: var(--color-ink);
   min-width: 260px;
   max-width: 330px;
-  padding: 18px 18px 14px;
+  padding: 20px 20px 16px;
 }
 .driver-popover-title {
   font-family: var(--font-sans);
   font-weight: 600;
   font-size: 17px;
-  letter-spacing: -0.01em;
   line-height: 1.35;
   color: var(--color-ink);
   padding-right: 24px;
@@ -579,8 +527,6 @@ html[data-theme="dark"] {
 .driver-popover-progress-text {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
   color: var(--color-muted);
 }
 .driver-popover-close-btn {
@@ -596,27 +542,27 @@ html[data-theme="dark"] {
   border-radius: var(--radius-control);
   color: var(--color-ink-soft);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   padding: 6px 12px;
-  transition: background-color 100ms var(--ease-snappy), border-color 100ms var(--ease-snappy),
-    color 100ms var(--ease-snappy);
+  transition: background-color 150ms var(--ease-snappy), border-color 150ms var(--ease-snappy),
+    color 150ms var(--ease-snappy);
 }
 .driver-popover-footer-btn:hover,
 .driver-popover-footer-btn:focus {
   background: var(--color-surface-2);
-  border-color: var(--color-line-strong);
+  border-color: var(--color-faint);
   color: var(--color-ink);
 }
 .driver-popover .setup-next {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  border-radius: 9999px;
+  border-radius: var(--radius-control);
   color: var(--color-accent-ink);
 }
 .driver-popover .setup-next:hover,
 .driver-popover .setup-next:focus {
-  background: var(--color-leaf);
-  border-color: var(--color-leaf);
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
   color: var(--color-accent-ink);
 }
 .driver-popover .driver-popover-btn-disabled {

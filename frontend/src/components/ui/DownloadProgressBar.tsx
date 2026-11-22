@@ -30,7 +30,7 @@ export function DownloadProgressBar(props: {
       onCancel={props.onCancel}
     >
       <Show when={!preparing()}>
-        <span class="shrink-0 font-mono text-[12px] text-leaf-deep">{Math.round(pct())}%</span>
+        <span class="shrink-0 font-mono text-[12px] text-muted">{Math.round(pct())}%</span>
         <span class="truncate font-mono text-[12px] text-muted">
           {fmtBytes(props.progress.downloaded)} / {fmtBytes(props.progress.total)}
         </span>

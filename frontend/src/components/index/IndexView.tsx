@@ -1,7 +1,7 @@
 import { createSignal, For, Show, type JSX } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import type { AppConfig } from "../../lib/types";
-import { Button, Chip, ConfirmDialog, EmptyState, Switch, ViewHeading } from "../ui/primitives";
+import { Button, ConfirmDialog, EmptyState, Switch, ViewHeading } from "../ui/primitives";
 import { CodeIcon, FileIcon, FolderOpenIcon, IndexIcon, LibraryIcon, PruneIcon, ReindexIcon } from "../ui/icons";
 import { IndexProgressBar } from "./IndexProgressBar";
 
@@ -59,7 +59,7 @@ export function IndexView() {
     <div class="relative flex h-full flex-col">
       <ViewHeading
         title="Index"
-        note="Index all picks up changed files. Re-index all re-embeds everything. Deleted files are pruned automatically."
+        note="Index all picks up changed files. Re-index all rebuilds the embeddings. Deleted files drop out automatically."
       >
         <Button variant="outline" onClick={() => store.openSettings("sources")}>
           <FolderOpenIcon size={15} />
@@ -98,17 +98,21 @@ export function IndexView() {
 
       {/* Last run summary */}
       <Show when={!store.indexing() && store.indexLast()}>
-        <div class="mb-5 flex flex-wrap items-center gap-2 rounded-[8px] border border-line bg-surface px-4 py-2.5">
-          <span class="font-mono text-[12px] text-muted">last: {store.indexLast()!.collection}</span>
-          <Chip tone="mint">{store.indexLast()!.indexed} new</Chip>
+        <div class="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-[6px] border border-line bg-surface px-4 py-2.5 font-mono text-[11px] text-muted">
+          <span>Last run</span>
+          <span class="text-ink-soft">{store.indexLast()!.collection}</span>
+          <span class="text-ghost" aria-hidden="true">·</span>
+          <span class="text-ink-soft">{store.indexLast()!.indexed} new</span>
           <Show when={store.indexLast()!.failed > 0}>
-            <Chip tone="amber">{store.indexLast()!.failed} could not be read</Chip>
+            <span class="text-amber-deep">
+              · {store.indexLast()!.failed} could not be read
+            </span>
           </Show>
           <Show when={store.indexLast()!.skipped > 0}>
-            <Chip>{store.indexLast()!.skipped} skipped</Chip>
+            <span>· {store.indexLast()!.skipped} skipped</span>
           </Show>
           <Show when={store.indexLast()!.errors > 0}>
-            <Chip tone="neutral">{store.indexLast()!.errors} errors</Chip>
+            <span class="text-danger">· {store.indexLast()!.errors} errors</span>
           </Show>
         </div>
       </Show>
@@ -141,19 +145,24 @@ export function IndexView() {
                     </span>
                     <div class="min-w-[12rem] flex-1">
                       <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span class="truncate text-[14px] font-semibold tracking-[-0.01em] text-ink">{item.name}</span>
-                        <Chip tone={item.type === "code" ? "code" : "neutral"}>{kindOf(item).label}</Chip>
-                        {!item.enabled && <Chip>disabled</Chip>}
-                        {col()?.needsReindex && <Chip tone="amber">needs reindex</Chip>}
+                        <span class="truncate text-[14px] font-semibold text-ink">{item.name}</span>
+                        <span class="font-mono text-[11px] text-muted">{kindOf(item).label}</span>
+                        {!item.enabled && <span class="text-[11px] font-medium text-muted">Disabled</span>}
+                        {col()?.needsReindex && (
+                          <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-deep">
+                            <span class="h-1.5 w-1.5 rounded-full bg-amber" aria-hidden="true" />
+                            Needs re-index
+                          </span>
+                        )}
                       </div>
-                      <p class="mt-1 font-mono text-[12px] text-muted">
-                        {col() ? `${col()!.sources} sources · ${col()!.chunks.toLocaleString()} chunks` : "not indexed yet"}
+                      <p class="mt-1 font-mono text-[11px] text-muted">
+                        {col() ? `${col()!.sources} sources · ${col()!.chunks.toLocaleString()} chunks` : "Not indexed yet"}
                       </p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
-                        variant="primary"
+                        variant="outline"
                         disabled={store.indexing() || !item.enabled || !store.canIndex()}
                         onClick={() => store.startIndex(item.name, false)}
                       >
@@ -207,10 +216,10 @@ export function IndexView() {
       <Show when={configured().length > 0 && missingKinds().length > 0}>
         <div class="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-card border border-dashed border-line-strong px-4 py-2.5">
           <span class="text-[12px] font-medium text-muted">Not indexing yet:</span>
-          <span class="text-[12px] font-semibold text-ink-soft">{missingKinds().join(" · ")}</span>
+          <span class="text-[12px] font-medium text-ink-soft">{missingKinds().join(" · ")}</span>
           <button
             type="button"
-            class="ml-auto text-[12px] font-semibold text-leaf-deep hover:underline"
+            class="ml-auto text-[12px] font-medium text-leaf-deep hover:underline"
             onClick={() => store.openSettings("sources")}
           >
             Add in Settings

@@ -5,26 +5,15 @@ import { useAppStore } from "../../lib/store";
 import type { Source } from "../../lib/types";
 import { ChevronDown, LibraryIcon, TrashIcon } from "../ui/icons";
 import { ScrollSentinel } from "../ui/ScrollSentinel";
-import { Button, Chip, ConfirmDialog, EmptyState, ViewHeading } from "../ui/primitives";
+import { Button, ConfirmDialog, EmptyState, ViewHeading } from "../ui/primitives";
 
 /* Pages of sources kept in memory while a collection is expanded. A calibre
    group can hold thousands of them, and only the expanded one is ever loaded. */
 const MAX_PAGES = 5;
 
-const typeLabel: Record<string, string> = {
-  system: "system",
-  project: "project",
-  code: "code",
-};
-
-function TypeBadge(props: { type: string }) {
-  const label = typeLabel[props.type] ?? props.type;
-  return props.type === "code" ? (
-    <Chip tone="code">{label}</Chip>
-  ) : props.type === "project" ? (
-    <Chip tone="mint">{label}</Chip>
-  ) : (
-    <Chip>{label}</Chip>
+function TypeLabel(props: { type: string }) {
+  return (
+    <span class="shrink-0 font-mono text-[11px] text-muted">{props.type}</span>
   );
 }
 
@@ -86,7 +75,7 @@ export function LibraryView() {
   return (
     <div class="relative flex h-full flex-col">
       <div class="relative">
-        <ViewHeading title="Library" note="What's indexed." />
+        <ViewHeading title="Library" note="What's indexed" />
       </div>
 
       <div ref={scroller} class="scroll-quiet relative min-h-0 flex-1 overflow-y-auto">
@@ -97,7 +86,7 @@ export function LibraryView() {
               <EmptyState
                 icon={<LibraryIcon size={20} />}
                 title="No collections yet"
-                note="Index a folder or library to see it here."
+                note="Index a folder or library to see it here"
               >
                 <Button onClick={() => store.setView("settings")}>Add sources in Settings</Button>
               </EmptyState>
@@ -106,13 +95,13 @@ export function LibraryView() {
         >
           <div class="rounded-card border border-line-strong bg-surface shadow-xs @container overflow-hidden">
             <div class="flex items-stretch border-b border-line bg-surface-2/60">
-              <div class="grid flex-1 grid-cols-12 gap-2 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
+              <div class="grid flex-1 grid-cols-12 gap-2 px-4 py-2.5 text-[12px] font-medium text-muted">
                 <span class="col-span-8 @lg:col-span-6">Collection</span>
                 <span class="hidden @lg:block @lg:col-span-2">Files</span>
                 <span class="col-span-4 text-right @lg:col-span-2">Chunks</span>
                 <span class="hidden text-right @lg:block @lg:col-span-2">Indexed</span>
               </div>
-              <div class="w-[43px] shrink-0" aria-hidden="true" />
+              <div class="w-11 shrink-0" aria-hidden="true" />
             </div>
             <ul class="divide-y divide-line">
               <For each={store.collections()}>
@@ -137,13 +126,14 @@ export function LibraryView() {
                             />
                             <span class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                               <span class="truncate text-[13px] font-semibold text-ink">{c.name}</span>
-                              <TypeBadge type={c.type} />
+                              <TypeLabel type={c.type} />
                               {c.needsReindex && (
                                 <span
-                                  class="shrink-0 whitespace-nowrap rounded-full border border-amber-warm bg-amber-soft px-[7px] py-[1px] text-[12px] font-semibold text-amber-deep"
+                                  class="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[11px] font-medium text-amber-deep"
                                   title="No embeddings yet. Re-index after switching to a model with a different embedding dimension."
                                 >
-                                  needs reindex
+                                  <span class="h-1.5 w-1.5 rounded-full bg-amber" aria-hidden="true" />
+                                  Needs re-index
                                 </span>
                               )}
                             </span>
@@ -160,7 +150,7 @@ export function LibraryView() {
                         </button>
                         <button
                           type="button"
-                          class="flex shrink-0 items-center px-3.5 text-faint opacity-0 transition-opacity duration-100 ease-snappy hover:text-danger focus-visible:opacity-100 group-hover:opacity-100"
+                          class="flex w-11 shrink-0 items-center justify-center text-faint opacity-0 transition-opacity duration-150 ease-snappy hover:text-danger focus-visible:opacity-100 group-hover:opacity-100"
                           onClick={() =>
                             setConfirm({
                               kind: "collection",
@@ -213,7 +203,7 @@ export function LibraryView() {
                                     </div>
                                     <button
                                       type="button"
-                                      class="flex shrink-0 items-center px-3.5 text-faint opacity-0 transition-opacity duration-100 ease-snappy hover:text-danger focus-visible:opacity-100 group-hover:opacity-100"
+                                      class="flex w-11 shrink-0 items-center justify-center text-faint opacity-0 transition-opacity duration-150 ease-snappy hover:text-danger focus-visible:opacity-100 group-hover:opacity-100"
                                       onClick={() =>
                                         setConfirm({
                                           kind: "source",
@@ -265,7 +255,7 @@ export function LibraryView() {
 
           <div class="mt-4 flex items-center gap-2 text-[12px] font-medium text-muted">
             <LibraryIcon size={14} class="text-muted" />
-            <span>Deleted files are pruned automatically.</span>
+            <span>Deleted files are pruned automatically</span>
           </div>
         </Show>
       </div>

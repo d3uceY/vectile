@@ -115,7 +115,7 @@ const MCP_TRANSPORTS: { id: MCPTransport; label: string; path: string; desc: str
     id: "streamable-http",
     label: "Streamable HTTP",
     path: "/mcp",
-    desc: "The current MCP transport, and what most assistants expect. Recommended.",
+    desc: "The current standard. Most assistants expect it.",
   },
   {
     id: "sse",
@@ -144,7 +144,7 @@ function TransportTabs(props: { value: MCPTransport; onChange: (id: MCPTransport
     <div
       role="radiogroup"
       aria-label="MCP transport"
-      class="grid grid-cols-1 gap-1 rounded-[8px] border border-line-control bg-surface-2 p-1 min-[430px]:grid-cols-2"
+      class="grid grid-cols-1 gap-1 rounded-[4px] border border-line-control bg-surface-2 p-1 min-[430px]:grid-cols-2"
     >
       <For each={MCP_TRANSPORTS}>
         {(t, i) => {
@@ -158,16 +158,12 @@ function TransportTabs(props: { value: MCPTransport; onChange: (id: MCPTransport
               tabindex={active() ? 0 : -1}
               onClick={() => props.onChange(t.id)}
               onKeyDown={(e) => onKey(e, i())}
-              class={`flex min-w-0 items-center gap-2 rounded-[6px] px-2.5 py-2 text-[13px] font-semibold transition-colors duration-100 ease-snappy ${
-                active() ? "bg-mint text-leaf-deep" : "text-muted hover:bg-surface-2 hover:text-ink"
+              class={`flex min-w-0 items-center gap-2 rounded-[4px] px-2.5 py-2 text-[13px] font-medium transition-colors duration-150 ease-snappy ${
+                active() ? "bg-paper text-ink shadow-xs ring-1 ring-line-strong" : "text-muted hover:bg-surface-2 hover:text-ink"
               }`}
             >
               <span class="min-w-0 flex-1 truncate text-left">{t.label}</span>
-              <span
-                class={`shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[11px] ${
-                  active() ? "bg-paper text-leaf-deep" : "bg-surface-2 text-muted"
-                }`}
-              >
+              <span class="shrink-0 font-mono text-[11px] text-muted">
                 {t.path}
               </span>
             </button>
@@ -210,7 +206,7 @@ function ClientTabs(props: { value: string; onChange: (id: string) => void }) {
             tabindex={props.value === c.id ? 0 : -1}
             class={`-mb-px whitespace-nowrap border-b-2 px-2 py-2 text-[12px] outline-offset-2 transition-colors focus-visible:outline-2 focus-visible:outline-leaf-deep ${
               props.value === c.id
-                ? "border-leaf-deep font-semibold text-leaf-deep"
+                ? "border-leaf-deep font-medium text-leaf-deep"
                 : "border-transparent text-muted hover:text-ink-soft"
             }`}
             onClick={() => props.onChange(c.id)}
@@ -236,19 +232,19 @@ function ClientSetup(props: { client: MCPClient; url: string; transport: MCPTran
   };
   return (
     <div>
-      <div class="flex items-start gap-3 px-4 pb-3 pt-3.5">
+      <div class="flex items-start gap-3 px-4 pb-3 pt-4">
         <div class="min-w-0 flex-1">
-          <p class="text-[13px] font-semibold leading-5 text-ink">{props.client.title ?? props.client.label}</p>
+          <p class="text-[13px] font-medium leading-5 text-ink">{props.client.title ?? props.client.label}</p>
           <p class="mt-0.5 text-[12px] font-medium leading-4 text-muted">{props.client.where}</p>
         </div>
         <button
-          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-control px-2 py-1.5 text-[12px] font-semibold text-ink-soft outline-offset-2 transition-colors duration-100 hover:border-line-strong hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
+          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-control px-2 py-1.5 text-[12px] font-medium text-ink-soft outline-offset-2 transition-colors duration-150 hover:border-faint hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
           onClick={() => void copy()}
           aria-label={`Copy setup for ${props.client.label}`}
           title="Copy"
         >
           {copied() ? <CheckIcon size={14} /> : <CopyIcon size={14} />}
-          {copied() ? "copied" : "copy"}
+          {copied() ? "Copied" : "Copy"}
         </button>
       </div>
       <pre class="select-text overflow-x-auto border-t border-line px-4 py-3 font-mono text-[12px] leading-[1.6] text-ink">
@@ -374,12 +370,12 @@ export function ConnectSection() {
   const mcpStopping = () => !draft()?.mcp.enabled && running() && store.settingsDirty();
   const mcpStateLabel = () =>
     mcpStopping()
-      ? "stops when you save"
+      ? "Stops when you save"
       : running()
-        ? "running"
+        ? "Running"
         : mcpPending()
-          ? "starts when you save"
-          : "stopped";
+          ? "Starts when you save"
+          : "Stopped";
   const mcpDot = () =>
     running() && !mcpStopping() ? "bg-leaf" : mcpPending() || mcpStopping() ? "bg-amber" : "bg-ghost";
   const mcpStateText = () =>
@@ -426,15 +422,15 @@ export function ConnectSection() {
     <Section
       icon={<ConnectNavIcon size={16} />}
       title="Connect"
-      note="Let AI assistants on this machine search your library."
+      note="Let AI assistants on this machine search your library"
     >
       <div class="space-y-6">
-        <div class="rounded-[8px] border border-line bg-surface px-4 py-3.5">
+        <div class="rounded-[8px] border border-line bg-surface px-4 py-3">
           <div class="flex items-center gap-2">
             <span class="relative flex h-2 w-2 shrink-0">
               <span class={`h-2 w-2 rounded-full ${mcpDot()}`} />
             </span>
-            <span class={`text-[12px] font-semibold leading-none ${mcpStateText()}`}>
+            <span class={`text-[12px] font-medium leading-none ${mcpStateText()}`}>
               {mcpStateLabel()}
             </span>
             <Show when={running()}>
@@ -442,13 +438,13 @@ export function ConnectSection() {
             </Show>
             <Show when={running()}>
               <button
-                class="ml-auto -mr-1 flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-[12px] font-semibold text-muted outline-offset-2 transition-colors duration-100 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
+                class="ml-auto -mr-1 flex h-6 shrink-0 items-center gap-1 rounded-[4px] px-2 text-[12px] font-medium text-muted outline-offset-2 transition-colors duration-150 hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
                 onClick={() => void copyUrl()}
                 aria-label="Copy server URL"
                 title="Copy URL"
               >
                 {urlCopied() ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
-                {urlCopied() ? "copied" : "copy URL"}
+                {urlCopied() ? "Copied" : "Copy URL"}
               </button>
             </Show>
           </div>
@@ -472,7 +468,7 @@ export function ConnectSection() {
             hint="Starts a local MCP server for AI assistants on this machine. Applies when you save settings."
           />
           <Show when={draft()!.mcp.enabled}>
-            <div class="py-3.5">
+            <div class="py-3">
               <p class="mb-2 flex items-center gap-1.5 text-[13px] font-medium text-ink">
                 Transport
                 <InfoTip text="How AI clients talk to the server. Streamable HTTP is the current standard and what most assistants probe first; SSE is the older transport. Applies when you save." />
@@ -515,16 +511,14 @@ export function ConnectSection() {
             <For each={MCP_TOOL_GROUPS}>
               {(g) => (
                 <>
-                  <div class="flex items-center gap-2 border-y border-line bg-surface-2/60 px-3.5 py-1.5 first:border-t-0">
-                    <p class="min-w-0 flex-1 truncate text-[12px] font-semibold text-ink-soft">
+                  <div class="flex items-center gap-2 border-y border-line bg-surface-2/60 px-4 py-2 first:border-t-0">
+                    <p class="min-w-0 flex-1 truncate text-[12px] font-medium text-ink-soft">
                       {g.label}
                     </p>
                     <Show when={g.id === "change"}>
                       <span
-                        class={`shrink-0 rounded-full border px-2 py-0.5 font-mono text-[11px] ${
-                          mcpWriteAllowed()
-                            ? "border-amber-warm bg-amber-soft text-amber-deep"
-                            : "border-line-strong text-muted"
+                        class={`shrink-0 font-mono text-[11px] ${
+                          mcpWriteAllowed() ? "text-amber-deep" : "text-muted"
                         }`}
                         title={
                           mcpWriteAllowed()
@@ -532,15 +526,15 @@ export function ConnectSection() {
                             : "Turn on Allow write tools above to make these two callable."
                         }
                       >
-                        {mcpWriteAllowed() ? "on" : "off"}
+                        {mcpWriteAllowed() ? "On" : "Off"}
                       </span>
                     </Show>
                   </div>
                   <ul class="divide-y divide-line" aria-label={`${g.label} tools`}>
                     <For each={g.tools}>
                       {(t) => (
-                        <li class="grid grid-cols-1 gap-x-3 gap-y-1 px-3.5 py-2 @lg:grid-cols-[168px_minmax(0,1fr)] @lg:items-start">
-                          <span class="inline-flex h-5 w-fit items-center rounded-full bg-surface-2 px-2 font-mono text-[11px] font-medium text-ink">
+                        <li class="grid grid-cols-1 gap-x-3 gap-y-1 px-4 py-2 @lg:grid-cols-[168px_minmax(0,1fr)] @lg:items-start">
+                          <span class="inline-flex h-5 w-fit items-center font-mono text-[11px] font-medium text-ink">
                             {t.name}
                           </span>
                           <span class="text-[12px] font-medium leading-5 text-muted">{t.desc}</span>

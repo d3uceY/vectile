@@ -25,11 +25,11 @@ export function OcrSetupDialog(props: {
         onClick={props.onDismiss}
       >
         <div
-          class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
           onClick={(e) => e.stopPropagation()}
         >
-          <p class="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Optional</p>
-          <h2 class="mt-1 text-[20px] font-semibold leading-tight tracking-[-0.015em] text-ink">Read scanned PDFs</h2>
+          <p class="font-mono text-[11px] text-muted">Optional</p>
+          <h2 class="mt-1 text-[20px] font-semibold leading-tight text-ink">Read scanned PDFs</h2>
           <p class="mt-2 text-[13px] font-medium leading-[1.7] text-ink-soft">
             Scanned pages have no text layer, so search can't see them. This plugin reads them.
           </p>

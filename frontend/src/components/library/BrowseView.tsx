@@ -280,7 +280,7 @@ export function BrowseView() {
   return (
     <div class="relative flex h-full flex-col">
       <div class="relative">
-        <ViewHeading title="Browse" note="Open a source to read its chunks." />
+        <ViewHeading title="Browse" note="Open a source to read its chunks" />
       </div>
 
       <div class="relative flex min-h-0 flex-1 flex-col pb-8">
@@ -323,10 +323,9 @@ export function BrowseView() {
               options={store.collections().map((c) => ({ value: String(c.id), label: c.name }))}
             />
             <Show when={collection()}>
-              <Button
-                size="sm"
-                variant="danger"
-                class="ml-auto"
+              <button
+                type="button"
+                class="ml-auto inline-flex h-8 items-center gap-1.5 rounded-control px-2 text-[12px] font-medium text-muted transition-colors duration-150 ease-snappy hover:bg-danger-soft hover:text-danger"
                 onClick={() =>
                   setConfirm({
                     kind: "library",
@@ -336,7 +335,7 @@ export function BrowseView() {
                 }
               >
                 <TrashIcon size={14} /> Delete library
-              </Button>
+              </button>
             </Show>
           </div>
 
@@ -399,11 +398,11 @@ export function BrowseView() {
               tabindex={-1}
               class="drawer-in fixed bottom-4 right-4 top-16 z-50 flex w-full max-w-[30rem] flex-col overflow-hidden rounded-[12px] border border-line-strong bg-paper shadow-overlay"
             >
-              <header class="flex items-start gap-2 border-b border-line px-[18px] pb-3.5 pt-4">
+              <header class="flex items-start gap-2 border-b border-line px-5 pb-4 pt-4">
                 <Show when={chunkView() === "content"}>
                   <button
                     type="button"
-                    class="-ml-1 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:bg-surface-2 hover:text-ink"
+                    class="-ml-1 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink"
                     onClick={() => setChunkView("list")}
                     aria-label="Back to the chunk list"
                   >
@@ -413,7 +412,7 @@ export function BrowseView() {
                 <div class="min-w-0 flex-1">
                   <h2
                     id={drawerTitleId}
-                    class="truncate text-[17px] font-semibold leading-tight tracking-[-0.01em] text-ink"
+                    class="truncate text-[17px] font-semibold leading-tight text-ink"
                   >
                     {baseName(s().path)}
                   </h2>
@@ -423,7 +422,7 @@ export function BrowseView() {
                 </div>
                 <button
                   type="button"
-                  class="-mr-1 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:bg-surface-2 hover:text-ink"
+                  class="-mr-1 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink"
                   onClick={closeDrawer}
                   aria-label="Close"
                 >
@@ -434,12 +433,12 @@ export function BrowseView() {
               <Show
                 when={chunkView() === "list"}
                 fallback={
-                  <div class="scroll-quiet min-h-0 flex-1 overflow-y-auto px-[18px] py-4">
+                  <div class="scroll-quiet min-h-0 flex-1 overflow-y-auto px-5 py-4">
                     <Show when={content()}>
                       {(doc) => (
                         <>
-                          <p class="mb-2 font-mono text-[11px] uppercase tracking-[0.04em] text-muted">
-                            chunk {doc().chunkIndex + 1}
+                          <p class="mb-2 font-mono text-[11px] text-muted">
+                            Chunk {doc().chunkIndex + 1}
                           </p>
                           <p class="read max-w-[68ch] whitespace-pre-wrap text-[13px] leading-[1.75] text-ink-soft">
                             {doc().content}
@@ -473,18 +472,18 @@ export function BrowseView() {
                 }
               >
                 <div
-                  class={`flex flex-wrap items-center gap-x-3 gap-y-1 px-[14px] py-1.5 ${
+                  class={`flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-1.5 ${
                     nChecked() > 0 ? "bg-mint" : ""
                   }`}
                 >
                   <Show when={nChecked() > 0}>
-                    <span class="whitespace-nowrap text-[12px] font-semibold text-ink">
+                    <span class="whitespace-nowrap text-[12px] font-medium text-ink">
                       {nChecked()} selected
                     </span>
                   </Show>
                   <button
                     type="button"
-                    class="text-[12px] font-semibold text-leaf-deep hover:underline"
+                    class="text-[12px] font-medium text-leaf-deep hover:underline"
                     onClick={selectAll}
                   >
                     {allLoaded() ? "Select all" : "Select loaded"}
@@ -492,7 +491,7 @@ export function BrowseView() {
                   <Show when={nChecked() > 0}>
                     <button
                       type="button"
-                      class="text-[12px] font-semibold text-leaf-deep hover:underline"
+                      class="text-[12px] font-medium text-leaf-deep hover:underline"
                       onClick={() => setChecked(new Set<number>())}
                     >
                       Clear
@@ -551,9 +550,9 @@ export function BrowseView() {
                               onClick={() => openChunk(d.id)}
                               class="flex min-w-0 flex-1 items-center text-left"
                             >
-                              <span class="truncate text-[13px] font-semibold text-ink-soft">{d.title}</span>
+                              <span class="truncate text-[13px] font-medium text-ink-soft">{d.title}</span>
                             </button>
-                            <span class="shrink-0 font-mono text-[11px] text-muted">chunk {d.chunkIndex + 1}</span>
+                            <span class="shrink-0 font-mono text-[11px] text-muted">Chunk {d.chunkIndex + 1}</span>
                           </li>
                         )}
                       </For>
@@ -590,8 +589,8 @@ export function BrowseView() {
 
 /* ---- pieces ---------------------------------------------------------- */
 
-/** One source as a folder: the pinned folder art, its chunk count on the flap,
-    its name under it. Nothing else, because nothing else is asked for. */
+/** One source as a folder: the pinned folder art, its name and chunk count
+    under it. Nothing else, because nothing else is asked for. */
 function FileTile(props: { source: Source; onOpen: () => void }) {
   return (
     <li data-row-id={props.source.id} class="min-w-0">
@@ -599,23 +598,22 @@ function FileTile(props: { source: Source; onOpen: () => void }) {
         type="button"
         onClick={props.onOpen}
         title={props.source.path}
-        class="group flex w-full flex-col overflow-hidden rounded-[8px] border border-line bg-surface text-left transition-[border-color,box-shadow,transform] duration-150 ease-snappy hover:-translate-y-0.5 hover:border-line-strong hover:shadow-card"
+        class="group flex h-full w-full flex-col overflow-hidden rounded-[8px] border border-line bg-surface text-left shadow-xs transition-colors duration-150 ease-snappy hover:border-line-strong"
       >
-        <span class="relative flex aspect-[4/3] w-full items-center justify-center bg-surface-2">
+        <span class="flex aspect-[4/3] w-full items-center justify-center bg-surface-2">
           <img
             src="/folder.svg"
             alt=""
             draggable={false}
             class="block w-[62%] max-w-24"
           />
-          <span class="pointer-events-none absolute left-1/2 top-[64%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-line-strong bg-paper px-1.5 py-px font-mono text-[11px] font-semibold tabular-nums text-ink">
-            {props.source.chunks.toLocaleString()}
-            <span class="sr-only"> chunks</span>
-          </span>
         </span>
-        <span class="flex items-center gap-2 border-t border-line px-2.5 py-2">
-          <span class="line-clamp-2 min-w-0 flex-1 text-[12px] font-semibold leading-[1.3] text-ink-soft group-hover:text-ink">
+        <span class="flex flex-1 flex-col justify-between gap-0.5 border-t border-line px-3 py-2">
+          <span class="line-clamp-2 min-w-0 text-[12px] font-medium leading-[1.35] text-ink-soft group-hover:text-ink">
             {baseName(props.source.path)}
+          </span>
+          <span class="font-mono text-[11px] tabular-nums text-muted">
+            {props.source.chunks.toLocaleString()} {props.source.chunks === 1 ? "chunk" : "chunks"}
           </span>
         </span>
       </button>

@@ -73,7 +73,7 @@ export function OcrSection() {
     <Section
       icon={<OcrNavIcon size={16} />}
       title="OCR"
-      note="Optional plugin for PDFs that are photos of pages."
+      note="Optional plugin for PDFs that are photos of pages"
     >
       <div class="space-y-6">
         <OcrCard
@@ -121,7 +121,7 @@ export function OcrSection() {
                         <span class="truncate text-[13px] font-medium text-ink">{nameOf(code)}</span>
                         <span class="shrink-0 font-mono text-[11px] text-muted">{code}</span>
                         <Show when={!has(code) && store.ocrLangInstall()?.code !== code}>
-                          <Chip tone="amber">no data</Chip>
+                          <Chip tone="amber">No data</Chip>
                         </Show>
                       </div>
 

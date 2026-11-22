@@ -122,7 +122,7 @@ export function SetupTour() {
           popover: {
             title: "Search your library",
             description:
-              "Ask anything you half-remember. Cmd/Ctrl+K focuses this box from anywhere.",
+              "Search anything you half-remember. Cmd/Ctrl+K focuses this box from anywhere.",
             doneBtnText: "Done",
             onDoneClick: (_el, _step, opts) => opts.driver.destroy(),
           },

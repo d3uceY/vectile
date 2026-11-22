@@ -13,13 +13,13 @@ type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
 export function Button(props: ButtonProps) {
   const variant = props.variant ?? "primary";
   const size = props.size ?? "md";
-  const cls = `inline-flex items-center justify-center gap-2 rounded-control font-semibold leading-none whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] duration-100 ease-snappy select-none active:translate-y-px disabled:opacity-45 disabled:pointer-events-none ${
+  const cls = `inline-flex items-center justify-center gap-2 rounded-control font-medium leading-none whitespace-nowrap transition-[background-color,border-color,color,transform] duration-150 ease-snappy select-none active:translate-y-px disabled:opacity-45 disabled:pointer-events-none ${
     size === "sm" ? "h-8 px-3 text-[13px]" : "h-9 px-4 text-[14px]"
   } ${
     variant === "primary"
-      ? "rounded-full bg-accent text-accent-ink hover:bg-leaf shadow-[0_1px_2px_rgb(21_112_62/0.25)]"
+      ? "bg-accent text-accent-ink hover:bg-accent-hover"
       : variant === "outline"
-        ? "border border-line-control bg-paper text-ink-soft hover:border-line-strong hover:bg-surface-2 hover:text-ink"
+        ? "border border-line-control bg-paper text-ink-soft hover:border-faint hover:bg-surface-2 hover:text-ink"
         : variant === "ghost"
           ? "text-ink-soft hover:bg-surface-2 hover:text-ink"
           : variant === "danger"
@@ -72,7 +72,7 @@ export function Chip(props: {
               : "border border-line bg-surface-2 text-muted";
   return (
     <span
-      class={`inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-full px-[7px] py-[1px] text-[12px] font-semibold leading-[1.5] ${cls} ${props.class ?? ""}`}
+      class={`inline-flex max-w-full items-center gap-1 whitespace-nowrap rounded-[4px] px-1.5 py-0 text-[11px] font-medium leading-[1.7] ${cls} ${props.class ?? ""}`}
     >
       {props.children}
     </span>
@@ -247,7 +247,7 @@ export function Select(props: SelectProps) {
           ref={trigger}
           type="button"
           class={`inline-flex h-9 min-w-0 flex-1 items-center rounded-control border bg-surface pl-2.5 pr-8 text-left text-[13px] transition-colors duration-100 ease-snappy disabled:pointer-events-none disabled:opacity-45 ${
-            open() ? "border-ink" : "border-line-control hover:border-line-strong"
+            open() ? "border-ink" : "border-line-control hover:border-faint"
           } ${selected() ? "text-ink" : "text-muted"}`}
           aria-label={props["aria-label"]}
           aria-haspopup="listbox"
@@ -286,7 +286,7 @@ export function Select(props: SelectProps) {
                   title={o.label}
                   class={`flex min-h-[30px] cursor-pointer items-center gap-2 rounded-[4px] px-2 py-1.5 text-[13px] ${
                     i() === activeIdx() ? "bg-surface-2" : ""
-                  } ${o.value === props.value ? "font-semibold text-ink" : "text-ink-soft"}`}
+                  } ${o.value === props.value ? "font-medium text-ink" : "text-ink-soft"}`}
                   onMouseEnter={() => setActiveIdx(i())}
                   onMouseDown={(e) => {
                     e.preventDefault();
@@ -321,13 +321,13 @@ export function Switch(props: {
       aria-checked={props.checked}
       aria-label={props.label}
       onClick={() => props.onChange(!props.checked)}
-      class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-100 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
-        props.checked ? "border-accent bg-accent" : "border-line-control bg-surface-2"
+      class={`relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-150 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
+        props.checked ? "border-ink bg-ink" : "border-line-control bg-surface-2 hover:border-faint"
       }`}
     >
       <span
-        class={`absolute left-0.5 top-0.5 h-4.5 w-4.5 rounded-full transition-transform duration-150 ease-snappy ${
-          props.checked ? "translate-x-4 bg-accent-ink" : "bg-leaf"
+        class={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-paper shadow-xs transition-transform duration-150 ease-snappy ${
+          props.checked ? "translate-x-4" : ""
         }`}
       />
     </button>
@@ -347,7 +347,7 @@ export function Toggle(props: {
     <div class="flex items-center justify-between gap-4 py-2">
       <span>
         <span class="flex items-center gap-1.5">
-          <span class="block text-[13px] font-semibold text-ink">{props.label}</span>
+          <span class="block text-[13px] font-medium text-ink">{props.label}</span>
           {props.hint && <InfoTip text={props.hint} />}
         </span>
         {props.description && <span class="block text-[12px] font-medium text-muted">{props.description}</span>}
@@ -421,16 +421,16 @@ export function InfoTip(props: { text: string; class?: string }) {
 /* ---------------- StatusPill (in-process model engine) ---------------- */
 
 /** Shared model-state → dot/text mapping, used by StatusPill and the sidebar plate. */
-export const modelStateMeta: Record<ModelState, { dot: string; text: string; pill: string }> = {
-  loaded: { dot: "bg-leaf", text: "text-leaf-deep", pill: "border-leaf/40 bg-mint" },
-  idle: { dot: "bg-faint", text: "text-muted", pill: "border-line bg-surface-2" },
-  failed: { dot: "bg-danger-strong", text: "text-danger", pill: "border-danger/40 bg-danger-soft" },
+export const modelStateMeta: Record<ModelState, { dot: string; text: string }> = {
+  loaded: { dot: "bg-leaf", text: "text-leaf-deep" },
+  idle: { dot: "bg-faint", text: "text-muted" },
+  failed: { dot: "bg-danger-strong", text: "text-danger" },
 };
 
 const modelLabel: Record<ModelState, string> = {
-  loaded: "model loaded",
-  idle: "model idle",
-  failed: "model failed",
+  loaded: "Model loaded",
+  idle: "Model idle",
+  failed: "Model failed",
 };
 
 export function StatusPill(props: {
@@ -453,15 +453,10 @@ export function StatusPill(props: {
     );
   }
   return (
-    <span
-      class={`inline-flex items-center gap-1.5 rounded-full border px-[7px] py-0.5 text-[12px] font-bold uppercase tracking-[0.02em] ${m().pill} ${m().text}`}
-      title={tip}
-    >
+    <span class="inline-flex items-center gap-1.5 text-[12px] font-medium" title={tip}>
       {dot}
-      <span>{modelLabel[props.state]}</span>
-      {props.name && (
-        <span class="font-medium normal-case tracking-normal text-muted">· {props.name}</span>
-      )}
+      <span class={m().text}>{modelLabel[props.state]}</span>
+      {props.name && <span class="text-muted">· {props.name}</span>}
     </span>
   );
 }
@@ -481,7 +476,7 @@ export function EmptyState(props: {
           {props.icon}
         </div>
       )}
-      <h3 class="text-[15px] font-semibold tracking-[-0.01em] text-ink">{props.title}</h3>
+      <h3 class="text-[15px] font-semibold text-ink">{props.title}</h3>
       {props.note && (
         <p class="mt-2 max-w-[42ch] text-[13px] font-medium leading-[1.7] text-muted">{props.note}</p>
       )}
@@ -507,7 +502,7 @@ export function ViewHeading(props: { title: string; note?: string; children?: JS
   return (
     <div class="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div>
-        <h1 class="text-[24px] font-semibold leading-tight tracking-[-0.02em] text-ink">
+        <h1 class="text-[24px] font-semibold leading-tight text-ink">
           {props.title}
         </h1>
         {props.note && <p class="mt-1.5 text-[13px] font-medium text-muted">{props.note}</p>}
@@ -533,7 +528,7 @@ export function ToastStack(props: {
       <For each={props.toasts}>
         {(t) => (
           <div
-            class={`od-fade-slide-up pointer-events-auto flex items-center gap-3 rounded-full border px-4 py-2.5 text-paper shadow-overlay ${
+            class={`od-fade-slide-up pointer-events-auto flex items-center gap-3 rounded-[8px] border px-4 py-2.5 text-paper shadow-overlay ${
               t.tone === "danger"
                 ? "border-danger/60 bg-ink"
                 : t.tone === "success"
@@ -549,7 +544,7 @@ export function ToastStack(props: {
             <p class="text-[13px] font-medium leading-5">{t.message}</p>
             <Show when={t.action}>
               <button
-                class="shrink-0 text-[12px] font-semibold underline"
+                class="shrink-0 text-[12px] font-medium underline"
                 onClick={() => {
                   t.action?.run();
                   props.onDismiss(t.id);
@@ -611,15 +606,15 @@ export function ConfirmDialog(props: {
         onClick={props.busy ? undefined : props.onCancel}
       >
         <div
-          class="od-scale-in w-[26.25rem] rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          class="od-scale-in w-[26.25rem] rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 id={titleId} class="text-[17px] font-semibold tracking-[-0.01em] text-ink">
+          <h3 id={titleId} class="text-[17px] font-semibold text-ink">
             {props.title}
           </h3>
           <div class="mt-2 text-[13px] font-medium leading-[1.7] text-muted">{props.body}</div>
           <div class="mt-5 flex justify-end gap-2">
-            <Button size="sm" variant="ghost" class="rounded-full" onClick={props.onCancel} disabled={props.busy}>
+            <Button size="sm" variant="ghost" onClick={props.onCancel} disabled={props.busy}>
               {props.cancelLabel ?? "Keep"}
             </Button>
             <Show
@@ -629,7 +624,7 @@ export function ConfirmDialog(props: {
                   type="button"
                   onClick={props.onConfirm}
                   disabled={blocked()}
-                  class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-full bg-danger-strong px-4 text-[13px] font-semibold leading-none text-white transition-[background-color,transform] duration-100 ease-snappy active:translate-y-px disabled:opacity-45 disabled:pointer-events-none"
+                  class="inline-flex h-8 select-none items-center justify-center gap-2 rounded-control bg-danger-strong px-4 text-[13px] font-medium leading-none text-white transition-[background-color,transform] duration-150 ease-snappy active:translate-y-px disabled:opacity-45 disabled:pointer-events-none"
                 >
                   {props.busy ? (props.busyLabel ?? "Deleting…") : (props.confirmLabel ?? "Delete")}
                 </button>
