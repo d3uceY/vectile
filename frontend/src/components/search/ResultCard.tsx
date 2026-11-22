@@ -103,7 +103,7 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
             <span class="ml-auto flex items-center gap-1.5">
               <button
                 type="button"
-                class="inline-flex h-8 items-center gap-1.5 rounded-control border border-line-control bg-paper px-2.5 text-[12px] font-medium text-ink-soft transition-colors duration-150 ease-snappy hover:border-faint hover:bg-surface-2 hover:text-ink"
+                class="inline-flex h-8 items-center gap-1.5 rounded-control border border-line-control bg-paper px-2.5 text-[12px] font-medium text-ink-soft transition-colors duration-150 ease-snappy hover:border-line-strong hover:bg-surface-2 hover:text-ink"
                 onClick={() => void onOpen()}
               >
                 <FolderOpenIcon size={14} class="text-leaf-deep" />
@@ -111,7 +111,7 @@ export function ResultCard(props: { result: SearchResult; terms: string[]; rank:
               </button>
               <button
                 type="button"
-                class="flex h-8 w-8 items-center justify-center rounded-control border border-line-control bg-paper text-muted transition-colors duration-150 ease-snappy hover:border-faint hover:bg-surface-2 hover:text-ink"
+                class="flex h-8 w-8 items-center justify-center rounded-control border border-line-control bg-paper text-muted transition-colors duration-150 ease-snappy hover:border-line-strong hover:bg-surface-2 hover:text-ink"
                 onClick={() => void onReveal()}
                 aria-label="Reveal in folder"
                 title="Reveal in folder"

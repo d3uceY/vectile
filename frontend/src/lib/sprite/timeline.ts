@@ -60,3 +60,13 @@ function clampRange([first, last]: FrameRange, total: number): FrameRange {
 function clampFrame(frame: number, total: number): number {
   return Math.min(total, Math.max(1, Math.round(frame) || 1));
 }
+
+/** Frame shown at a scrub position: 0 is the first intro frame, 1 the last.
+    A scrubbed clip is positioned by the pointer, not the clock, so frames are
+    sampled uniformly and their hold times are ignored. */
+export function frameForProgress(plan: FramePlan, progress: number): number {
+  const steps = plan.intro;
+  if (steps.length === 0) return 1;
+  const p = Math.min(1, Math.max(0, Number.isFinite(progress) ? progress : 0));
+  return steps[Math.round(p * (steps.length - 1))].frame;
+}

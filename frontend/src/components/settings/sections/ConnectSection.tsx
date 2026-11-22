@@ -238,7 +238,7 @@ function ClientSetup(props: { client: MCPClient; url: string; transport: MCPTran
           <p class="mt-0.5 text-[12px] font-medium leading-4 text-muted">{props.client.where}</p>
         </div>
         <button
-          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-control px-2 py-1.5 text-[12px] font-medium text-ink-soft outline-offset-2 transition-colors duration-150 hover:border-faint hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
+          class="flex shrink-0 items-center gap-1.5 rounded-control border border-line-control px-2 py-1.5 text-[12px] font-medium text-ink-soft outline-offset-2 transition-colors duration-150 hover:border-line-strong hover:bg-surface-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-leaf-deep"
           onClick={() => void copy()}
           aria-label={`Copy setup for ${props.client.label}`}
           title="Copy"

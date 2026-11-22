@@ -32,7 +32,8 @@ One pinned exception sits outside this palette. The **source folder art** in Bro
 | `ghost` | `#bdbdbd` | decoration only, never text or icons (dashes, dot fills) |
 | `line` | `#ededed` | decorative hairline: dividers, separators, card edges |
 | `line-strong` | `#dbdbdb` | standard card / section border, dashed empty states |
-| `line-control` | `#8c8c8c` | control boundary: inputs, selects, switches, outline buttons (3.2:1+) |
+| `line-control` | `#dbdbdb` | quiet control edge; fill, shadow, and focus carry the boundary |
+| `line-control-strong` | `#8c8c8c` | the one deliberate strong edge: Index new |
 | `leaf` / `leaf-deep` | `#1e8a4e` / `#15703e` | brand, primary buttons, active/selected, links, success |
 | `mint` / `mint-strong` | `#e5f3e8` / `#caecd3` | light green fills (active rows, selection) |
 | `amber` / `amber-deep` | `#b45309` / `#92400e` | attention: unsaved, needs-reindex, recommended, write tools |
@@ -43,7 +44,7 @@ One pinned exception sits outside this palette. The **source folder art** in Bro
 **Three rules follow from the ramp:**
 
 - **`faint` and `ghost` are not text colors.** `muted` is the lightest text token (6.4:1 worst case). `faint` is for chevrons, remove buttons, folder and file icons, and dot fills; `ghost` is for hairlines under dashes and idle dot fills only.
-- **`line-control` is the only border that carries meaning.** A field fill is white on a white desk, so the border is the whole boundary; `line` and `line-strong` are decoration and stay light. Focus rings are `leaf-deep` at 2px.
+- **Control edges stay quiet.** Fields, selects, and outline buttons use `line-control` (the same soft hairline as `line-strong`); fill, shadow, and the focus ring carry the boundary. `line-control-strong` is the one deliberate exception, reserved for **Index new** on the Index page. Focus rings are `leaf-deep` at 2px.
 - **Publish measured numbers, not eyeballed ones.** Every pair above was gated with `retna contrast` at 4.5:1 for text and 3:1 for non-text (20 pairs, 0 text failures).
 
 One dark-green accent (`leaf-deep`) is the interaction color: active nav, selected tabs, links, and primary buttons all read green, so "you can act here" keeps a single consistent meaning. Compact selectors and switches are neutral ink: their position already states the choice, and repeating green in every row would spend the accent on chrome. Warm amber is reserved for things that need attention. The `indigo*` token family is aliased to the green values for legacy class-name compatibility; it is no longer used in new code.
@@ -66,7 +67,8 @@ Preference is `system` (default), `light`, or `dark`, stored in `localStorage` u
 | `faint` | `#848484` | `#8f8f8f` |
 | `ghost` | `#bdbdbd` | `#5c5c5c` |
 | `line` / `line-strong` | `#ededed` / `#dbdbdb` | `#333333` / `#454545` |
-| `line-control` | `#8c8c8c` | `#7a7a7a` |
+| `line-control` | `#dbdbdb` | `#454545` |
+| `line-control-strong` | `#8c8c8c` | `#7a7a7a` |
 | `leaf-deep` (ink) | `#15703e` | `#3bbf7d` |
 | `accent` / `accent-hover` / `accent-ink` (fill) | `#15703e` / `#0f5c33` / `#ffffff` | `#3bbf7d` / `#35b375` / `#14201a` |
 | `leaf` | `#1e8a4e` | `#4ecb8c` |
@@ -79,7 +81,7 @@ Preference is `system` (default), `light`, or `dark`, stored in `localStorage` u
 
 The toast plate inverts with the theme by construction (`bg-ink` + `text-paper`), rather than hardcoding white text on a dark plate.
 
-Dark pairs were gated with `retna contrast` (20 pairs). Every text pair clears 4.5:1: ink 16.3, ink-soft 11.5, muted 9.1 / 8.1 / 7.0, leaf-deep 7.3 / 6.4 / 6.1, accent-ink on accent 7.1, amber 9.2, amber-deep on amber-soft 8.9, danger 6.8, white on danger-strong 5.3, ink on highlighter 6.5, paper on ink 16.3. `faint` (5.3) is comfortable as text in dark but stays documented as icons-only for parity with light; `ghost` (2.6) and `line-control` (4.0) are non-text and clear the 3:1 rule.
+Dark pairs were gated with `retna contrast` (20 pairs). Every text pair clears 4.5:1: ink 16.3, ink-soft 11.5, muted 9.1 / 8.1 / 7.0, leaf-deep 7.3 / 6.4 / 6.1, accent-ink on accent 7.1, amber 9.2, amber-deep on amber-soft 8.9, danger 6.8, white on danger-strong 5.3, ink on highlighter 6.5, paper on ink 16.3. `faint` (5.3) is comfortable as text in dark but stays documented as icons-only for parity with light; `ghost` and `line-control` are decorative edges. Focus rings are the state boundary.
 
 `main.go`'s window `BackgroundColour` matches the light ground; the webview paints the themed ground immediately, so the native colour only shows for a frame on window resize.
 
@@ -124,15 +126,15 @@ OpenDesign's motion vocabulary. Durations are `100 / 150 / 200 / 250ms`; enter i
 
 ## Views
 
-- **Search** (home): a 44px search bar with ⌘K and a green focus boundary; a filter row (collection, source type, advanced: path, sender/author, date, top-k); result cards with title, highlighted snippet (yellow highlighter), a muted rank (toggleable to score with a neutral segmented key), quiet mono collection · type metadata, mono path, and a "Read full passage" expander revealing Open file / Reveal in folder; a quiet stale-library hint under the filter bar; a 32px idle headline with a quiet "Try a search" row of underlined example queries; skeleton loading; honest dashed empty state.
+- **Search** (home): a 44px search bar with ⌘K and a green focus boundary; a filter row (collection, source type, advanced: path, sender/author, date, top-k); result cards with title, highlighted snippet (yellow highlighter), a muted rank (toggleable to score with a neutral segmented key), quiet mono collection · type metadata, mono path, and a "Read full passage" expander revealing Open file / Reveal in folder; a quiet stale-library hint under the filter bar; a 32px "Ask your library" idle hero with a bolt tile and staggered example chips; skeleton loading; honest dashed empty state.
 - **Library**: collections as an expandable panel table (sentence-case 12px/500 column heads on `surface-2`, 13px/600 names, mono type metadata, an amber needs-reindex note with a dot, mono counts) revealing per-source file rows.
 - **Browse**: a collection as a gallery grid of source cards — the pinned folder art on a `surface-2` plate, the source name and mono chunk count in a quiet hairline footer (no sticker on the art) — that opens a **floating rounded drawer** (480px, mono chunk count under a 17px/600 title) with that file's chunks; opening a chunk swaps the drawer to its text at a 68ch measure. Delete library is a quiet muted text button in the collection bar above the grid; chunk selection and deletion live in the drawer.
-- **Index**: per-collection cards (icon tile, 14px/600 name, mono kind metadata, mono `sources · chunks`), outline "Index new", quiet "Re-index all" and "Prune", a neutral enable switch, and an inline solid progress bar. One primary "Index all" lives in the header beside outline "Add sources" and "Re-index all"; a dashed footer names any kind this library is not indexing yet. **Settings**: a grouped left rail (Engine / Library / Companions, 12px/500 labels, 18px icons, 8px-radius rows, green active) beside a `paper` pane of `surface` section cards — Model, OCR, Chunking, Search, Cache, Sources, Indexing, Vexter, Connect. Fields are `field-row`s divided by hairlines with mono readouts; a sticky bar with amber "Unsaved changes" text and a dot appears while the draft is dirty. **Sources**: one tab per source type in a two-column picker carrying a mono count per type; the active panel states what its paths become and nests its own skip list under a hairline. **Connect**: a status plate (state dot, mono URL, copy button, scope line), enable/transport/port/allow-write controls, the write-tagged `vectile_*` tools as mono rows, and copyable setup snippets per client. **Dialogs**: 420–480px panels, 12px radius, 24px padding, `shadow-overlay`, 17px/600 title, 13px muted body, right-aligned control-radius footer buttons. **Toasts**: a single bottom-center dark plate at 8px radius, 13px, rising 8px over 200ms. **First run**: a driver.js tour on an empty library walks Settings → Index → Search and never shows again.
+- **Index**: per-collection cards (icon tile, 14px/600 name, mono kind metadata, mono `sources · chunks`), strong-outline "Index new" (the one `line-control-strong` edge), quiet "Re-index all" and "Prune", a neutral enable switch, and an inline solid progress bar. One primary "Index all" lives in the header beside outline "Add sources" and "Re-index all"; a dashed footer names any kind this library is not indexing yet. **Settings**: a grouped left rail (Engine / Library / Companions, 12px/500 labels, 18px icons, 8px-radius rows, green active) beside a `paper` pane of `surface` section cards — Model, OCR, Chunking, Search, Cache, Sources, Indexing, Vexter, Connect. Fields are `field-row`s divided by hairlines with mono readouts; a sticky bar with amber "Unsaved changes" text and a dot appears while the draft is dirty. **Sources**: one tab per source type in a two-column picker carrying a mono count per type; the active panel states what its paths become and nests its own skip list under a hairline. **Connect**: a status plate (state dot, mono URL, copy button, scope line), enable/transport/port/allow-write controls, the write-tagged `vectile_*` tools as mono rows, and copyable setup snippets per client. **Dialogs**: 420–480px panels, 12px radius, 24px padding, `shadow-overlay`, 17px/600 title, 13px muted body, right-aligned control-radius footer buttons. **Toasts**: a single bottom-center dark plate at 8px radius, 13px, rising 8px over 200ms. **First run**: a driver.js tour on an empty library walks Settings → Index → Search and never shows again.
 
 ## Direction contract
 
 - THESIS: a local knowledge library that feels like a calm, cool-neutral reference desk — bright, precise, quietly clever; it refuses the dark "AI retrieval" default and the neon-glass dashboard.
 - OWN-WORLD: white ground, panel cards, hairline borders, a five-stop text ladder, Albert Sans type, mono data lines, one dark-green interaction accent for active destinations, selection and primary actions (brightened to emerald in dark); neutral ink for compact selectors and switches; a warm amber for attention; flat surfaces and OpenDesign motion. Light and dark share one token set; only values swap.
 - STORY: the user's whole private library is searchable in one calm, fast surface; nothing leaves the machine.
-- FIRST VIEWPORT: rail wordmark and nav, 44px chrome strip, one search bar, a filter row, and a centered "Find what you half-remember" idle state with underlined example queries.
+- FIRST VIEWPORT: rail wordmark and nav, 44px chrome strip, one search bar, a filter row, and a centered "Ask your library" idle state with example chips.
 - FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md.

@@ -6,7 +6,7 @@ import { CheckIcon, ChevronDown, CloseIcon, InfoIcon } from "./icons";
 /* ---------------- Button ---------------- */
 
 type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "outline" | "ghost" | "quiet" | "danger";
+  variant?: "primary" | "outline" | "outline-strong" | "ghost" | "quiet" | "danger";
   size?: "sm" | "md";
 };
 
@@ -19,8 +19,10 @@ export function Button(props: ButtonProps) {
     variant === "primary"
       ? "bg-accent text-accent-ink hover:bg-accent-hover"
       : variant === "outline"
-        ? "border border-line-control bg-paper text-ink-soft hover:border-faint hover:bg-surface-2 hover:text-ink"
-        : variant === "ghost"
+        ? "border border-line-control bg-paper text-ink-soft hover:border-line-strong hover:bg-surface-2 hover:text-ink"
+        : variant === "outline-strong"
+          ? "border border-line-control-strong bg-paper text-ink-soft hover:bg-surface-2 hover:text-ink"
+          : variant === "ghost"
           ? "text-ink-soft hover:bg-surface-2 hover:text-ink"
           : variant === "danger"
             ? "border border-danger/40 bg-paper text-danger hover:border-danger hover:bg-danger-soft"
@@ -247,7 +249,7 @@ export function Select(props: SelectProps) {
           ref={trigger}
           type="button"
           class={`inline-flex h-9 min-w-0 flex-1 items-center rounded-control border bg-surface pl-2.5 pr-8 text-left text-[13px] transition-colors duration-100 ease-snappy disabled:pointer-events-none disabled:opacity-45 ${
-            open() ? "border-ink" : "border-line-control hover:border-faint"
+            open() ? "border-ink" : "border-line-control hover:border-line-strong"
           } ${selected() ? "text-ink" : "text-muted"}`}
           aria-label={props["aria-label"]}
           aria-haspopup="listbox"
@@ -321,12 +323,12 @@ export function Switch(props: {
       aria-checked={props.checked}
       aria-label={props.label}
       onClick={() => props.onChange(!props.checked)}
-      class={`relative h-5 w-9 shrink-0 rounded-full border transition-colors duration-150 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
-        props.checked ? "border-ink bg-ink" : "border-line-control bg-surface-2 hover:border-faint"
+      class={`relative h-6 w-10 shrink-0 rounded-full border transition-colors duration-150 ease-snappy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-leaf/50 focus-visible:ring-offset-2 focus-visible:ring-offset-paper ${
+        props.checked ? "border-ink bg-ink" : "border-line-control bg-surface-2"
       }`}
     >
       <span
-        class={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-paper shadow-xs transition-transform duration-150 ease-snappy ${
+        class={`absolute left-0.5 top-0.5 h-4.5 w-4.5 rounded-full bg-paper transition-transform duration-150 ease-snappy ${
           props.checked ? "translate-x-4" : ""
         }`}
       />

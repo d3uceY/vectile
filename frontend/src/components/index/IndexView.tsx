@@ -162,7 +162,7 @@ export function IndexView() {
                     <div class="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="outline-strong"
                         disabled={store.indexing() || !item.enabled || !store.canIndex()}
                         onClick={() => store.startIndex(item.name, false)}
                       >

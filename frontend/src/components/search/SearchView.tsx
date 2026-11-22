@@ -3,7 +3,7 @@ import { useAppStore } from "../../lib/store";
 import { daysSince } from "../../lib/time";
 import type { SearchFilters } from "../../lib/types";
 import { exampleQueries, termsOf } from "../../lib/mock";
-import { SearchIcon, CloseIcon, ReindexIcon, DownloadIcon } from "../ui/icons";
+import { SearchIcon, CloseIcon, BoltIcon, ReindexIcon, DownloadIcon } from "../ui/icons";
 import { EmptyState, Button, Kbd, Select, Skeleton } from "../ui/primitives";
 import { ResultCard } from "./ResultCard";
 
@@ -108,7 +108,7 @@ export function SearchView() {
       {/* The search bar */}
       <div class="relative z-10">
         <div
-          class={`flex items-center gap-3 rounded-[12px] border border-line-control bg-surface px-4 transition-[border-color,box-shadow] duration-150 ease-snappy focus-within:border-leaf-deep focus-within:ring-1 focus-within:ring-leaf/40 ${
+          class={`flex items-center gap-3 rounded-[12px] border border-line-strong bg-surface px-4 transition-[border-color,box-shadow] duration-150 ease-snappy focus-within:border-leaf-deep focus-within:ring-1 focus-within:ring-leaf/40 ${
             value() ? "shadow-card" : "shadow-xs"
           }`}
         >
@@ -163,7 +163,7 @@ export function SearchView() {
             class={`inline-flex h-9 items-center gap-1.5 rounded-control border px-3 text-[13px] font-medium transition-colors duration-150 ${
               showAdvanced()
                 ? "border-ink bg-surface-2 text-ink"
-                : "border-line-control bg-surface text-ink-soft hover:border-faint"
+                : "border-line-control bg-surface text-ink-soft hover:border-line-strong"
             }`}
             onClick={() => setShowAdvanced((v) => !v)}
             aria-expanded={showAdvanced()}
@@ -275,26 +275,26 @@ function IdleState(props: { onPick: (q: string) => void }) {
   return (
     <div class="relative flex h-full flex-col items-center justify-center">
       <div class="relative flex flex-col items-center text-center">
-        <h2 class="od-fade-slide-up text-[32px] font-semibold leading-[1.2] tracking-[-0.02em] text-ink">
-          Find what you half-remember
+        <div class="od-fade-in mb-5 flex h-12 w-12 items-center justify-center rounded-[12px] border border-line bg-surface-2 text-leaf-deep">
+          <BoltIcon size={20} />
+        </div>
+        <h2 class="od-fade-slide-up text-[32px] font-semibold leading-[1.24] tracking-[-0.02em] text-ink">
+          Ask your library
         </h2>
-        <p class="od-fade-slide-up mt-2.5 max-w-[60ch] text-[14px] font-medium leading-6 text-muted">
-          Search notes, books, and code by meaning, not just exact words
+        <p class="od-fade-slide-up mt-2 max-w-[44ch] text-[14px] font-medium leading-6 text-muted">
+          Meaning and exact words, ranked together.
         </p>
-        <div class="mt-8 flex flex-col items-center gap-3">
-          <span class="font-mono text-[11px] text-muted">Try a search</span>
-          <div class="od-stagger flex max-w-xl flex-wrap items-center justify-center gap-x-5 gap-y-2.5">
-            <For each={exampleQueries}>
-              {(q) => (
-                <button
-                  class="text-[13px] font-medium text-ink-soft underline decoration-line-strong underline-offset-4 transition-colors duration-150 ease-snappy hover:text-ink hover:decoration-ink active:translate-y-px"
-                  onClick={() => props.onPick(q)}
-                >
-                  {q}
-                </button>
-              )}
-            </For>
-          </div>
+        <div class="od-stagger mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
+          <For each={exampleQueries}>
+            {(q) => (
+              <button
+                class="rounded-full border border-line bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors duration-100 ease-snappy hover:border-leaf/40 hover:bg-mint hover:text-leaf-deep active:translate-y-px"
+                onClick={() => props.onPick(q)}
+              >
+                {q}
+              </button>
+            )}
+          </For>
         </div>
       </div>
     </div>

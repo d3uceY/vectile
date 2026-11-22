@@ -27,7 +27,8 @@
   --color-ghost: #bdbdbd; /* decoration only, never text */
   --color-line: #ededed; /* decorative hairline: card edges, dividers */
   --color-line-strong: #dbdbdb; /* standard card / section border */
-  --color-line-control: #8c8c8c; /* control boundary; 3.2:1 on paper */
+  --color-line-control: var(--color-line-strong); /* quiet control edge; fill and shadow carry the boundary */
+  --color-line-control-strong: #8c8c8c; /* explicit exception: Index new */
 
   --color-mint: #e5f3e8;
   --color-mint-strong: #caecd3;
@@ -99,7 +100,8 @@ html[data-theme="dark"] {
 
   --color-line: #333333;
   --color-line-strong: #454545;
-  --color-line-control: #7a7a7a;
+  --color-line-control: var(--color-line-strong);
+  --color-line-control-strong: #7a7a7a;
 
   --color-leaf: #4ecb8c;
   --color-leaf-deep: #3bbf7d;
@@ -550,7 +552,7 @@ html[data-theme="dark"] {
 .driver-popover-footer-btn:hover,
 .driver-popover-footer-btn:focus {
   background: var(--color-surface-2);
-  border-color: var(--color-faint);
+  border-color: var(--color-line-strong);
   color: var(--color-ink);
 }
 .driver-popover .setup-next {
