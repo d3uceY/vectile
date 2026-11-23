@@ -1,4 +1,4 @@
-import { Show } from "solid-js";
+import { createEffect, onCleanup, Show } from "solid-js";
 import type { OCRState } from "../../lib/types";
 import { OcrCard } from "./OcrCard";
 import { Button } from "./primitives";
@@ -15,6 +15,16 @@ export function OcrSetupDialog(props: {
   onCancel: () => void;
   onDismiss: () => void;
 }) {
+  const installing = () => props.state?.installing === true;
+  createEffect(() => {
+    if (!props.open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !installing()) props.onDismiss();
+    };
+    document.addEventListener("keydown", onKey);
+    onCleanup(() => document.removeEventListener("keydown", onKey));
+  });
+
   return (
     <Show when={props.open}>
       <div
@@ -25,11 +35,11 @@ export function OcrSetupDialog(props: {
         onClick={props.onDismiss}
       >
         <div
-          class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
           onClick={(e) => e.stopPropagation()}
         >
-          <p class="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">Optional</p>
-          <h2 class="mt-1 text-[20px] font-semibold leading-tight tracking-[-0.015em] text-ink">Read scanned PDFs</h2>
+          <p class="font-mono text-[11px] text-muted">Optional</p>
+          <h2 class="mt-1 text-[20px] font-semibold leading-tight text-ink">Read scanned PDFs</h2>
           <p class="mt-2 text-[13px] font-medium leading-[1.7] text-ink-soft">
             Scanned pages have no text layer, so search can't see them. This plugin reads them.
           </p>
@@ -46,7 +56,7 @@ export function OcrSetupDialog(props: {
             <p class="max-w-[34ch] text-[12px] font-medium leading-4 text-muted">
               English is included. Other languages are a click in Settings → OCR.
             </p>
-            <Button variant="ghost" onClick={props.onDismiss}>
+            <Button variant="ghost" onClick={props.onDismiss} disabled={installing()}>
               Not now
             </Button>
           </div>

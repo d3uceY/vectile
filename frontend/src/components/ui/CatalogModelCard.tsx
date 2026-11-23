@@ -21,14 +21,15 @@ export function CatalogModelCard(props: {
   const active = () => props.downloadState?.key === m().key;
 
   return (
-    <div class="rounded-[8px] border border-line bg-surface p-3">
+    <div class="rounded-[6px] border border-line bg-surface p-3">
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <p class="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+          <p class="flex items-center gap-1.5 text-[13px] font-medium text-ink">
             {m().name}
             <Show when={m().recommended}>
-              <span class="rounded-full border border-amber-warm bg-amber-soft px-[7px] py-[1px] text-[11px] font-semibold text-amber-deep">
-                recommended
+              <span class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-deep">
+                <span class="h-1.5 w-1.5 rounded-full bg-amber" aria-hidden="true" />
+                Recommended
               </span>
             </Show>
           </p>
@@ -49,7 +50,11 @@ export function CatalogModelCard(props: {
               </div>
             }
           >
-            <Button size="sm" onClick={() => props.onDownload(m().key)}>
+            <Button
+              size="sm"
+              variant={m().recommended ? "primary" : "outline"}
+              onClick={() => props.onDownload(m().key)}
+            >
               <DownloadIcon size={14} />
               Download
             </Button>

@@ -100,7 +100,7 @@ export function ModelSection() {
     <Section
       icon={<ModelNavIcon size={16} />}
       title="Model"
-      note="Drop a .gguf into the models folder, or import one below."
+      note="Drop a .gguf into the models folder, or import one below"
     >
       <div class="space-y-6">
         <div class="space-y-2">
@@ -113,7 +113,7 @@ export function ModelSection() {
         </div>
 
         <FieldList>
-          <div class="flex items-center justify-between gap-4 py-3.5">
+          <div class="flex items-center justify-between gap-4 py-3">
             <span class="text-[13px] font-medium text-ink">Active model</span>
             <Select
               aria-label="Active model"
@@ -123,7 +123,7 @@ export function ModelSection() {
               onChange={(v) => void switchModel(v)}
             />
           </div>
-          <div class="flex items-center justify-between gap-4 py-3.5">
+          <div class="flex items-center justify-between gap-4 py-3">
             <span class="text-[13px] font-medium text-ink">Add a model file</span>
             <Button size="sm" variant="outline" onClick={() => void importModelFlow()}>
               <UploadIcon size={14} />
@@ -137,7 +137,7 @@ export function ModelSection() {
             action={
               <button
                 type="button"
-                class="text-[12px] font-semibold text-leaf-deep hover:underline"
+                class="text-[12px] font-medium text-leaf-deep hover:underline"
                 onClick={() =>
                   openExternal(
                     "https://huggingface.co/models?library=gguf&sort=trending&search=embedding",
@@ -168,8 +168,8 @@ export function ModelSection() {
 
         <Show when={activeModel()}>
           {(m) => (
-            <div class="rounded-[8px] border border-line bg-surface p-5">
-              <p class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+            <div class="rounded-[6px] border border-line bg-surface p-5">
+              <p class="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-ink">
                 {m().name} settings
                 <InfoTip text="Each model carries its own settings. Context window 0 falls back to the model's native maximum (shown here when the .gguf reports one); threads 0 uses all cores." />
               </p>
@@ -219,7 +219,7 @@ export function ModelSection() {
         <Show when={store.models().length > 0}>
           <div>
             <SubHeading>Installed models</SubHeading>
-            <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-surface pb-1.5">
+            <ul class="divide-y divide-line overflow-hidden rounded-[6px] border border-line bg-surface pb-1.5">
               <For each={store.models()}>
                 {(m) => (
                   <li class="flex items-center gap-2 px-3 py-2">
@@ -227,8 +227,9 @@ export function ModelSection() {
                       {modelLabel(m)}
                     </span>
                     {m.isActive && (
-                      <span class="shrink-0 rounded-full border border-transparent bg-mint px-2 py-0.5 text-[11px] font-semibold text-leaf-deep">
-                        active
+                      <span class="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium text-leaf-deep">
+                        <span class="h-1.5 w-1.5 rounded-full bg-leaf" aria-hidden="true" />
+                        Active
                       </span>
                     )}
                     <button

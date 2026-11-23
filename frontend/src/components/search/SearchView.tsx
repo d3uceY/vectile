@@ -4,7 +4,7 @@ import { daysSince } from "../../lib/time";
 import type { SearchFilters } from "../../lib/types";
 import { exampleQueries, termsOf } from "../../lib/mock";
 import { SearchIcon, CloseIcon, BoltIcon, ReindexIcon, DownloadIcon } from "../ui/icons";
-import { EmptyState, Button, Chip, Kbd, Select, Skeleton } from "../ui/primitives";
+import { EmptyState, Button, Kbd, Select, Skeleton } from "../ui/primitives";
 import { ResultCard } from "./ResultCard";
 
 const typeOptions = [
@@ -108,7 +108,7 @@ export function SearchView() {
       {/* The search bar */}
       <div class="relative z-10">
         <div
-          class={`flex items-center gap-3 rounded-[12px] border border-line-strong bg-surface px-4 transition-shadow duration-150 ease-snappy ${
+          class={`flex items-center gap-3 rounded-[12px] border border-line-strong bg-surface px-4 transition-[border-color,box-shadow] duration-150 ease-snappy focus-within:border-leaf-deep focus-within:ring-1 focus-within:ring-leaf/40 ${
             value() ? "shadow-card" : "shadow-xs"
           }`}
         >
@@ -116,7 +116,7 @@ export function SearchView() {
           <input
             id="search-input"
             ref={(el) => store.registerSearchInput(el)}
-            class="h-11 w-full bg-transparent text-[14px] font-medium text-ink outline-none placeholder:text-faint disabled:cursor-not-allowed"
+            class="h-11 w-full bg-transparent text-[14px] font-medium text-ink outline-none placeholder:text-muted disabled:cursor-not-allowed"
             placeholder={
               store.noModel()
                 ? "Add a model to turn search on"
@@ -134,7 +134,7 @@ export function SearchView() {
           />
           <Show when={value()}>
             <button
-              class="shrink-0 rounded-full p-1 text-faint transition-colors duration-100 hover:bg-surface-2 hover:text-ink"
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-[4px] text-faint transition-colors duration-150 hover:bg-surface-2 hover:text-ink"
               onClick={clearAll}
               aria-label="Clear search"
             >
@@ -160,7 +160,7 @@ export function SearchView() {
             aria-label="Filter by source type"
           />
           <button
-            class={`inline-flex h-9 items-center gap-1.5 rounded-control border px-3 text-[13px] font-semibold transition-colors duration-100 ${
+            class={`inline-flex h-9 items-center gap-1.5 rounded-control border px-3 text-[13px] font-medium transition-colors duration-150 ${
               showAdvanced()
                 ? "border-ink bg-surface-2 text-ink"
                 : "border-line-control bg-surface text-ink-soft hover:border-line-strong"
@@ -180,7 +180,7 @@ export function SearchView() {
           <div class="mt-3 grid grid-cols-2 gap-3 rounded-card border border-line-strong bg-surface p-4 md:grid-cols-4">
             <FilterField label="Path contains">
               <input
-                class="h-9 w-full rounded-control border border-line-control bg-paper px-3 text-[13px] font-medium outline-none placeholder:text-faint focus:border-ink"
+                class="h-9 w-full rounded-control border border-line-control bg-paper px-3 text-[13px] font-medium outline-none placeholder:text-muted focus:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-deep"
                 placeholder="e.g. rustyquill"
                 value={store.filters().path ?? ""}
                 onInput={(e) => applyFilter({ path: e.currentTarget.value }, true)}
@@ -188,7 +188,7 @@ export function SearchView() {
             </FilterField>
             <FilterField label="Sender / author">
               <input
-                class="h-9 w-full rounded-control border border-line-control bg-paper px-3 text-[13px] font-medium outline-none placeholder:text-faint focus:border-ink"
+                class="h-9 w-full rounded-control border border-line-control bg-paper px-3 text-[13px] font-medium outline-none placeholder:text-muted focus:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-deep"
                 placeholder="e.g. orders@…"
                 value={store.filters().sender ?? ""}
                 onInput={(e) => applyFilter({ sender: e.currentTarget.value }, true)}
@@ -197,7 +197,7 @@ export function SearchView() {
             <FilterField label="From">
               <input
                 type="date"
-                class="h-9 w-full rounded-control border border-line-control bg-paper px-2 text-[13px] font-medium outline-none focus:border-ink"
+                class="h-9 w-full rounded-control border border-line-control bg-paper px-2 text-[13px] font-medium outline-none focus:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf-deep"
                 value={store.filters().dateFrom ?? ""}
                 onChange={(e) => applyFilter({ dateFrom: e.currentTarget.value })}
               />
@@ -250,9 +250,7 @@ export function SearchView() {
 function FilterField(props: { label: string; children: JSX.Element }) {
   return (
     <label class="flex flex-col gap-1.5">
-      <span class="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-        {props.label}
-      </span>
+      <span class="text-[12px] font-medium text-muted">{props.label}</span>
       {props.children}
     </label>
   );
@@ -274,6 +272,7 @@ function NoModelState() {
 }
 
 function IdleState(props: { onPick: (q: string) => void }) {
+  const store = useAppStore();
   return (
     <div class="relative flex h-full flex-col items-center justify-center">
       <div class="relative flex flex-col items-center text-center">
@@ -286,18 +285,31 @@ function IdleState(props: { onPick: (q: string) => void }) {
         <p class="od-fade-slide-up mt-2 max-w-[44ch] text-[14px] font-medium leading-6 text-muted">
           Meaning and exact words, ranked together.
         </p>
-        <div class="od-stagger mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
-          <For each={exampleQueries}>
-            {(q) => (
-              <button
-                class="rounded-full border border-line bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors duration-100 ease-snappy hover:border-leaf/40 hover:bg-mint hover:text-leaf-deep active:translate-y-px"
-                onClick={() => props.onPick(q)}
-              >
-                {q}
-              </button>
-            )}
-          </For>
-        </div>
+        {/* Example queries only make sense once there is something to find. */}
+        <Show
+          when={store.collections().length > 0}
+          fallback={
+            <div class="od-stagger mt-6 flex flex-col items-center gap-3">
+              <p class="max-w-[44ch] text-[13px] font-medium leading-5 text-muted">
+                Nothing is indexed yet. Add a folder, vault, or library in Settings, then index it.
+              </p>
+              <Button onClick={() => store.openSettings("sources")}>Add sources</Button>
+            </div>
+          }
+        >
+          <div class="od-stagger mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
+            <For each={exampleQueries}>
+              {(q) => (
+                <button
+                  class="rounded-full border border-line bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors duration-100 ease-snappy hover:border-leaf/40 hover:bg-mint hover:text-leaf-deep active:translate-y-px"
+                  onClick={() => props.onPick(q)}
+                >
+                  {q}
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
       </div>
     </div>
   );
@@ -327,47 +339,63 @@ function ResultList() {
     <Show
       when={results().length > 0}
       fallback={
-        <EmptyState
-          icon={<SearchIcon size={20} />}
-          title="Nothing matched"
-          note="Try fewer words or drop a filter."
-        />
+        <Show
+          when={store.collections().length === 0}
+          fallback={
+            <EmptyState
+              icon={<SearchIcon size={20} />}
+              title="Nothing matched"
+              note="Try fewer words or drop a filter"
+            />
+          }
+        >
+          <EmptyState
+            icon={<SearchIcon size={20} />}
+            title="Nothing indexed yet"
+            note="Search ranks what is in your library. Add a folder, vault, or library in Settings, then index it."
+          >
+            <Button onClick={() => store.openSettings("sources")}>Add sources</Button>
+          </EmptyState>
+        </Show>
       }
     >
       <div class="enter-stagger space-y-3">
         <div class="flex items-center justify-between gap-3">
           <p class="flex items-center gap-2 text-[12px] font-medium text-muted">
-            {results().length} result{results().length === 1 ? "" : "s"} · hybrid ranked
+            {results().length} result{results().length === 1 ? "" : "s"}
             <Show when={store.searchCached()}>
-              <span title="Embedding reused from cache. Ranking is still fresh.">
-                <Chip tone="mint">cached</Chip>
+              <span
+                class="font-mono text-[11px]"
+                title="Embedding reused from cache. Ranking is still fresh."
+              >
+                · Cached
               </span>
             </Show>
           </p>
           <div
-            class="flex items-center rounded-full border border-line bg-surface-2 p-0.5"
+            class="flex items-center rounded-[4px] border border-line bg-surface-2 p-0.5"
             role="group"
             aria-label="Result score display"
           >
             <button
               type="button"
-              class={`h-7 rounded-full px-3 text-[12px] font-semibold transition-colors duration-100 ease-snappy ${
-                store.scoreDisplay() === "rank" ? "bg-mint text-leaf-deep" : "text-muted hover:text-ink"
+              class={`h-7 rounded-[3px] px-2.5 text-[11px] font-medium transition-colors duration-150 ease-snappy ${
+                store.scoreDisplay() === "rank" ? "bg-paper text-ink shadow-xs ring-1 ring-line-strong" : "text-muted hover:text-ink"
               }`}
               onClick={() => store.setScoreDisplay("rank")}
               aria-pressed={store.scoreDisplay() === "rank"}
             >
-              # rank
+              Rank
             </button>
             <button
               type="button"
-              class={`h-7 rounded-full px-3 text-[12px] font-semibold transition-colors duration-100 ease-snappy ${
-                store.scoreDisplay() === "percent" ? "bg-mint text-leaf-deep" : "text-muted hover:text-ink"
+              class={`h-7 rounded-[3px] px-2.5 text-[11px] font-medium transition-colors duration-150 ease-snappy ${
+                store.scoreDisplay() === "percent" ? "bg-paper text-ink shadow-xs ring-1 ring-line-strong" : "text-muted hover:text-ink"
               }`}
               onClick={() => store.setScoreDisplay("percent")}
               aria-pressed={store.scoreDisplay() === "percent"}
             >
-              % score
+              Score
             </button>
           </div>
         </div>
@@ -381,7 +409,7 @@ function ResultList() {
 
 function FreshnessBar(props: { days: number; disabled?: boolean; onReindex: () => void }) {
   return (
-    <div class="mt-3 flex items-center gap-3 rounded-[8px] border border-line bg-surface py-2 pl-3 pr-2">
+    <div class="mt-3 flex items-center gap-3 rounded-card border border-line bg-surface py-2 pl-3 pr-2">
       <span class="text-[13px] font-medium leading-5 text-muted">
         Last indexed {props.days} day{props.days === 1 ? "" : "s"} ago
       </span>

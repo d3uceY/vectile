@@ -9,12 +9,12 @@ export function Section(props: {
 }) {
   return (
     <section class="rounded-card border border-line bg-surface shadow-xs">
-      <header class="flex items-start gap-3 px-5 pb-3.5 pt-4">
+      <header class="flex items-start gap-3 px-5 pb-4 pt-4">
         <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-mint text-leaf-deep">
           {props.icon}
         </span>
         <div class="min-w-0">
-          <h2 class="text-[16px] font-semibold leading-tight tracking-[-0.01em] text-ink">{props.title}</h2>
+          <h2 class="text-[16px] font-semibold leading-tight text-ink">{props.title}</h2>
           {props.note && <p class="mt-1 text-[12px] font-medium leading-5 text-muted">{props.note}</p>}
         </div>
       </header>
@@ -26,7 +26,7 @@ export function Section(props: {
 export function SubHeading(props: { children: JSX.Element; action?: JSX.Element }) {
   return (
     <div class="mb-3 flex items-center justify-between gap-3">
-      <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">{props.children}</p>
+      <p class="text-[12px] font-medium text-muted">{props.children}</p>
       {props.action}
     </div>
   );
@@ -47,7 +47,7 @@ export function NumField(props: {
 }) {
   const uid = createUniqueId();
   return (
-    <div class="flex items-center justify-between gap-4 py-3.5">
+    <div class="flex items-center justify-between gap-4 py-3">
       <span class="flex items-center gap-1.5 text-[13px] font-medium text-ink">
         <label for={uid} class="cursor-pointer">
           {props.label}
@@ -86,7 +86,7 @@ export function RangeField(props: {
   const max = props.max ?? 1;
   const pct = () => ((props.value - min) / (max - min)) * 100;
   return (
-    <div class="flex items-center justify-between gap-4 py-3.5">
+    <div class="flex items-center justify-between gap-4 py-3">
       <span class="flex items-center gap-1.5 text-[13px] font-medium text-ink">
         <label for={uid} class="cursor-pointer">
           {props.label}

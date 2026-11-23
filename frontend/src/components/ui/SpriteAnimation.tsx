@@ -1,4 +1,4 @@
-import { createEffect } from "solid-js";
+import { createEffect, type Accessor } from "solid-js";
 import {
   createSpritePlayer,
   spriteAnchor,
@@ -26,11 +26,15 @@ export function SpriteAnimation(props: {
   lift?: number;
   /** Called once a clip with `loop: false` reaches its last frame. */
   onDone?: () => void;
+  /** Optional scrub position 0..1. When set, the player follows it instead of
+      its own clock, so an interaction can drive the frames forward and back. */
+  progress?: Accessor<number | null>;
   class?: string;
 }) {
   const player = createSpritePlayer(
     () => props.clip,
     useReducedMotion(),
+    () => props.progress?.() ?? null,
   );
 
   createEffect(() => {

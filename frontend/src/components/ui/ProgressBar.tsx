@@ -26,9 +26,7 @@ export function ProgressBar(props: {
           class="index-progress__fill"
           classList={{ "index-progress__fill--preparing": props.preparing }}
           style={{ width: props.preparing ? "36%" : `${props.percent}%` }}
-        >
-          <span class="index-progress__shine" aria-hidden="true" />
-        </div>
+        />
       </div>
       <div class="mt-1.5 flex items-center gap-2">
         {props.children}
@@ -36,7 +34,7 @@ export function ProgressBar(props: {
           <button
             type="button"
             onClick={props.onCancel}
-            class="ml-auto inline-flex h-6 shrink-0 items-center rounded-full px-2.5 text-[12px] font-semibold text-danger transition-colors duration-100 hover:bg-danger-soft"
+            class="ml-auto inline-flex h-7 shrink-0 items-center rounded-[4px] px-2.5 text-[12px] font-medium text-danger transition-colors duration-150 hover:bg-danger-soft"
           >
             Cancel
           </button>

@@ -15,7 +15,7 @@ function AccordionToggle(props: {
   return (
     <button
       type="button"
-      class="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1.5 py-1.5 text-left transition-colors duration-100 ease-snappy hover:bg-surface-2"
+      class="flex min-w-0 flex-1 items-center gap-2 rounded-[4px] px-1.5 py-1.5 text-left transition-colors duration-150 ease-snappy hover:bg-surface-2"
       onClick={props.onToggle}
       aria-expanded={props.open}
       aria-controls={props.controls}
@@ -26,10 +26,8 @@ function AccordionToggle(props: {
           props.open ? "rotate-0" : "-rotate-90"
         }`}
       />
-      <span class="min-w-0 truncate text-[13px] font-semibold text-ink">{props.label}</span>
-      <span class="shrink-0 rounded-full border border-line bg-surface-2 px-2 py-0.5 font-mono text-[11px] tabular-nums text-muted">
-        {props.count}
-      </span>
+      <span class="min-w-0 truncate text-[13px] font-medium text-ink">{props.label}</span>
+      <span class="shrink-0 font-mono text-[11px] tabular-nums text-muted">{props.count}</span>
     </button>
   );
 }
@@ -55,7 +53,7 @@ function PathRows(props: { values: string[]; onRemove: (v: string) => void; empt
       {props.values.length === 0 ? (
         <p class="py-1 font-mono text-[12px] text-muted">{props.empty}</p>
       ) : (
-        <ul class="divide-y divide-line overflow-hidden rounded-[8px] border border-line bg-paper">
+        <ul class="divide-y divide-line overflow-hidden rounded-[4px] border border-line bg-paper">
           <For each={props.values}>
             {(v) => (
               <li class="od-fade-slide-up group/row flex items-center gap-2 px-3 py-1.5">
@@ -157,8 +155,8 @@ export function ChipList(props: {
         <ul class="flex flex-wrap gap-1.5">
           <For each={props.values}>
             {(v) => (
-              <li class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-line-control bg-surface px-2.5 py-1">
-                <span class="min-w-0 truncate font-mono text-[12px] text-ink-soft" title={v}>
+              <li class="inline-flex max-w-full items-center gap-1.5 rounded-[4px] border border-line-control bg-surface px-2 py-1">
+                <span class="min-w-0 truncate font-mono text-[11px] text-ink-soft" title={v}>
                   {v}
                 </span>
                 <button
@@ -184,7 +182,7 @@ export function ChipList(props: {
           class="h-9 min-w-0 flex-1 rounded-control border border-line-control bg-paper px-2.5 text-[13px] placeholder:text-muted transition-colors duration-100 focus:border-ink"
           spellcheck={false}
         />
-        <Button size="sm" onClick={addInput}>
+        <Button size="sm" variant="outline" onClick={addInput}>
           <PlusIcon size={14} />
           Add
         </Button>
@@ -241,7 +239,7 @@ function AddPathDialog(props: {
       onConfirm={submit}
       body={
         <div>
-          <label for={fieldId} class="block text-[12px] font-semibold text-ink-soft">
+          <label for={fieldId} class="block text-[12px] font-medium text-ink-soft">
             {props.label}
           </label>
           <div class="mt-1.5 flex gap-2">
@@ -382,7 +380,7 @@ export function GroupList(props: {
       >
         <div class="overflow-hidden rounded-[8px] border border-line bg-surface">
           <div class="flex items-center gap-2 border-b border-line bg-surface-2/60 px-3 py-2">
-            <span class="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
+            <span class="text-[12px] font-medium text-muted">
               {count()} {count() === 1 ? "collection" : "collections"}
             </span>
             <Button size="sm" class="ml-auto" onClick={() => setCreating(true)}>
@@ -421,7 +419,7 @@ export function GroupList(props: {
         onConfirm={create}
         body={
           <div>
-            <label for={nameFieldId} class="block text-[12px] font-semibold text-ink-soft">
+            <label for={nameFieldId} class="block text-[12px] font-medium text-ink-soft">
               Collection name
             </label>
             <input
@@ -441,7 +439,7 @@ export function GroupList(props: {
                 <p class="mt-2 text-[12px] font-medium leading-4">Then add its folders.</p>
               }
             >
-              <p class="mt-2 text-[12px] font-semibold leading-4 text-danger">
+              <p class="mt-2 text-[12px] font-medium leading-4 text-danger">
                 That name is already in use.
               </p>
             </Show>

@@ -44,19 +44,19 @@ export function OcrLanguageDialog(props: {
         onClick={props.onDismiss}
       >
         <div
-          class="od-scale-in flex max-h-[74vh] w-104 flex-col rounded-[12px] border border-line bg-paper p-[22px] shadow-overlay"
+          class="od-scale-in flex max-h-[74vh] w-104 flex-col rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 class="text-[17px] font-semibold tracking-[-0.01em] text-ink">Add a language</h3>
+          <h3 class="text-[17px] font-semibold text-ink">Add a language</h3>
           <p class="mt-2 text-[13px] font-medium leading-[1.7] text-muted">
             Tesseract reads the languages you add here. The data downloads once and stays
             on this machine.
           </p>
 
-          <div class="mt-3 flex items-center gap-2 rounded-[8px] border border-line-control bg-surface px-3">
+          <div class="mt-3 flex items-center gap-2 rounded-[8px] border border-line-control bg-surface px-3 focus-within:border-leaf-deep focus-within:ring-1 focus-within:ring-leaf/40">
             <SearchIcon size={15} class="shrink-0 text-muted" />
             <input
-              class="h-9 w-full bg-transparent text-[13px] font-medium text-ink outline-none placeholder:text-faint"
+              class="h-9 w-full bg-transparent text-[13px] font-medium text-ink outline-none placeholder:text-muted"
               placeholder="Search languages"
               value={query()}
               onInput={(e) => setQuery(e.currentTarget.value)}
@@ -74,21 +74,21 @@ export function OcrLanguageDialog(props: {
                   <li>
                     <button
                       type="button"
-                      class="flex w-full items-center gap-3 rounded-md px-1.5 py-2 text-left transition-colors duration-100 ease-snappy enabled:hover:bg-surface-2 disabled:opacity-45"
+                      class="flex w-full items-center gap-3 rounded-[4px] px-1.5 py-2 text-left transition-colors duration-150 ease-snappy enabled:hover:bg-surface-2 disabled:opacity-45"
                       disabled={busy()}
                       onClick={() => props.onPick(l.code)}
                     >
                       <span class="min-w-0 flex-1">
-                        <span class="block truncate text-[13px] font-semibold text-ink">
+                        <span class="block truncate text-[13px] font-medium text-ink">
                           {l.name}
                         </span>
                         <span class="block font-mono text-[11px] text-muted">{l.code}</span>
                       </span>
                       <Show when={downloading(l.code)}>
-                        <span class="shrink-0 font-mono text-[11px] text-leaf-deep">downloading</span>
+                        <span class="shrink-0 font-mono text-[11px] text-leaf-deep">Downloading</span>
                       </Show>
                       <Show when={!downloading(l.code) && isInstalled(l.code)}>
-                        <Chip tone="mint">installed</Chip>
+                        <Chip tone="mint">Installed</Chip>
                       </Show>
                       <Show when={!downloading(l.code) && !isInstalled(l.code)}>
                         <DownloadIcon size={14} class="shrink-0 text-faint" />

@@ -1,5 +1,5 @@
 import { createEffect, createSignal, onCleanup, type Accessor } from "solid-js";
-import { framePlan } from "./timeline";
+import { frameForProgress, framePlan } from "./timeline";
 import type { FrameStep, SpriteClip } from "./types";
 
 export interface SpritePlayer {
@@ -16,12 +16,23 @@ export interface SpritePlayer {
 export function createSpritePlayer(
   clip: Accessor<SpriteClip>,
   paused?: Accessor<boolean>,
+  progress?: Accessor<number | null>,
 ): SpritePlayer {
   const [frame, setFrame] = createSignal(framePlan(clip()).intro[0].frame);
   const [done, setDone] = createSignal(false);
 
   createEffect(() => {
     const plan = framePlan(clip());
+    const scrub = progress?.() ?? null;
+
+    // A scrubbed player has no clock: the caller's progress owns the frame, so
+    // it can run forward on hover and back out from wherever it was.
+    if (scrub !== null) {
+      setFrame(frameForProgress(plan, scrub));
+      setDone(scrub >= 1);
+      return;
+    }
+
     const still = paused?.() ?? false;
     setDone(false);
 

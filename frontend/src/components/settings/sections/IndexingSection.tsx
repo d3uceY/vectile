@@ -12,7 +12,7 @@ export function IndexingSection() {
     <Section
       icon={<IndexNavIcon size={16} />}
       title="Indexing"
-      note="How far back git history reaches, and whether the library refreshes itself."
+      note="How far back git history reaches, and whether the library refreshes itself"
     >
       <FieldList>
         <NumField

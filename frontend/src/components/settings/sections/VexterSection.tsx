@@ -63,7 +63,7 @@ export function VexterSection() {
                   <SpriteAnimation clip={s.clip} artPx={1} lift={mascotLift(s.clip, 1)} />
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="text-[13px] font-semibold leading-tight text-ink">{s.label}</p>
+                  <p class="text-[13px] font-medium leading-tight text-ink">{s.label}</p>
                   <p class="text-[12px] font-medium leading-5 text-muted">{s.desc}</p>
                 </div>
                 <Switch

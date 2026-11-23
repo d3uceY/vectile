@@ -416,17 +416,22 @@ export function createAppStore() {
       await api.importModel(p);
       await loadModels();
       await refresh();
-      setModelDialogOpen(false);
-      pushToast("Model imported", "success");
+      batch(() => {
+        setModelDialogOpen(false);
+        pushToast("Model imported", "success");
+        maybePromptOCR();
+      });
     } catch (err) {
       pushToast(`Import failed: ${err}`, "danger");
     }
   };
 
   const closeModelDialog = () => {
-    setModelDialogOpen(false);
-    setModelDialogDismissed(true);
-    maybePromptOCR();
+    batch(() => {
+      setModelDialogOpen(false);
+      setModelDialogDismissed(true);
+      maybePromptOCR();
+    });
   };
 
   const uninstallCatalogFile = async (file: string) => {
@@ -779,12 +784,14 @@ export function createAppStore() {
   });
   const offDlComplete = Events.On("model:download-complete", (ev) => {
     const m = ev.data as ModelInfo;
-    pushToast(`Model ready: ${m?.name ?? "Embedding model"}`, "success");
     void loadModels();
     void refresh();
-    setDownloadState(null);
-    setModelDialogOpen(false);
-    maybePromptOCR();
+    batch(() => {
+      pushToast(`Model ready: ${m?.name ?? "Embedding model"}`, "success");
+      setDownloadState(null);
+      setModelDialogOpen(false);
+      maybePromptOCR();
+    });
   });
   const offDlFailed = Events.On("model:download-failed", (ev) => {
     const e = ev.data as ModelDownloadError;
