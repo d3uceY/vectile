@@ -68,14 +68,14 @@ export function SettingsView() {
 
   return (
     <div class="relative flex h-full flex-col">
-      <div class="px-5 pt-6 md:px-8">
+      <div class="relative shrink-0">
         <ViewHeading title="Settings" note="Everything stays on this machine" />
       </div>
 
-      <Show when={draft()} fallback={<p class="px-6 text-[13px] font-medium text-muted">Loading settings…</p>}>
+      <Show when={draft()} fallback={<p class="text-[13px] font-medium text-muted">Loading settings…</p>}>
         <SettingsProvider>
           <div class="flex min-h-0 flex-1 flex-col">
-            <div class="scroll-quiet flex w-full shrink-0 items-center gap-1.5 overflow-x-auto px-4 pb-3 md:hidden">
+            <div class="scroll-quiet flex w-full shrink-0 items-center gap-1.5 overflow-x-auto pb-3 md:hidden">
               <For each={NAV_GROUPS.flatMap((g) => g.items)}>
                 {(it) => {
                   const active = () => section() === it.key;
@@ -110,7 +110,7 @@ export function SettingsView() {
             <div class="flex min-h-0 min-w-0 flex-1">
             {/* Left rail: grouped sections, active on a mint pill */}
             <nav
-              class="scroll-quiet hidden w-52 shrink-0 overflow-y-auto border-r border-line py-3 pr-3 md:block"
+              class="scroll-quiet hidden w-52 shrink-0 overflow-y-auto border-r border-line pb-3 pr-3 md:block"
               aria-label="Settings sections"
             >
               <For each={NAV_GROUPS}>
@@ -149,11 +149,11 @@ export function SettingsView() {
             </nav>
 
               <div
-                class={`scroll-quiet min-w-0 flex-1 overflow-y-auto bg-paper ${
+                class={`scroll-quiet -mr-2 min-w-0 flex-1 overflow-y-auto bg-paper pr-2 ${
                   store.settingsDirty() ? "pb-20" : "pb-4"
                 }`}
               >
-              <div class="px-4 py-5 md:px-6 md:py-6">
+              <div class="px-4 pb-5 md:pl-6 md:pr-0 md:pb-6">
                 <Show when={section()} keyed>
                   {(key) => (
                     <div class={paneClass(key)}>
