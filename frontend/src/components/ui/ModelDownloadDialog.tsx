@@ -1,4 +1,4 @@
-import { For, Show } from "solid-js";
+import { createEffect, For, onCleanup, Show } from "solid-js";
 import { openExternal } from "../../lib/update";
 import type { CatalogModel, ModelDownloadState, ModelInfo } from "../../lib/types";
 import { Button } from "./primitives";
@@ -16,6 +16,19 @@ export function ModelDownloadDialog(props: {
   onImport: () => void;
   onDismiss: () => void;
 }) {
+  
+  const busy = () => props.downloadState?.active === true;
+
+
+  createEffect(() => {
+    if (!props.open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !busy()) props.onDismiss();
+    };
+    document.addEventListener("keydown", onKey);
+    onCleanup(() => document.removeEventListener("keydown", onKey));
+  });
+
   return (
     <Show when={props.open}>
       <div
@@ -23,7 +36,7 @@ export function ModelDownloadDialog(props: {
         role="dialog"
         aria-modal="true"
         aria-label="Add an embedding model"
-        onClick={props.onDismiss}
+        onClick={() => { if (!busy()) props.onDismiss(); }}
       >
         <div
           class="od-scale-in w-104 rounded-[12px] border border-line bg-paper p-6 shadow-overlay"
@@ -64,7 +77,7 @@ export function ModelDownloadDialog(props: {
                 <ExternalLinkIcon size={14} />
                 Browse Hugging Face
               </Button>
-              <Button size="sm" variant="outline" onClick={props.onDismiss}>
+              <Button size="sm" variant="outline" onClick={props.onDismiss} disabled={busy()}>
                 Not now
               </Button>
             </div>

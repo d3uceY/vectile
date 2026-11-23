@@ -272,6 +272,7 @@ function NoModelState() {
 }
 
 function IdleState(props: { onPick: (q: string) => void }) {
+  const store = useAppStore();
   return (
     <div class="relative flex h-full flex-col items-center justify-center">
       <div class="relative flex flex-col items-center text-center">
@@ -284,18 +285,31 @@ function IdleState(props: { onPick: (q: string) => void }) {
         <p class="od-fade-slide-up mt-2 max-w-[44ch] text-[14px] font-medium leading-6 text-muted">
           Meaning and exact words, ranked together.
         </p>
-        <div class="od-stagger mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
-          <For each={exampleQueries}>
-            {(q) => (
-              <button
-                class="rounded-full border border-line bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors duration-100 ease-snappy hover:border-leaf/40 hover:bg-mint hover:text-leaf-deep active:translate-y-px"
-                onClick={() => props.onPick(q)}
-              >
-                {q}
-              </button>
-            )}
-          </For>
-        </div>
+        {/* Example queries only make sense once there is something to find. */}
+        <Show
+          when={store.collections().length > 0}
+          fallback={
+            <div class="od-stagger mt-6 flex flex-col items-center gap-3">
+              <p class="max-w-[44ch] text-[13px] font-medium leading-5 text-muted">
+                Nothing is indexed yet. Add a folder, vault, or library in Settings, then index it.
+              </p>
+              <Button onClick={() => store.openSettings("sources")}>Add sources</Button>
+            </div>
+          }
+        >
+          <div class="od-stagger mt-6 flex max-w-md flex-wrap items-center justify-center gap-2">
+            <For each={exampleQueries}>
+              {(q) => (
+                <button
+                  class="rounded-full border border-line bg-surface-2 px-3 py-1.5 text-[13px] font-semibold text-ink-soft transition-colors duration-100 ease-snappy hover:border-leaf/40 hover:bg-mint hover:text-leaf-deep active:translate-y-px"
+                  onClick={() => props.onPick(q)}
+                >
+                  {q}
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
       </div>
     </div>
   );
@@ -325,11 +339,24 @@ function ResultList() {
     <Show
       when={results().length > 0}
       fallback={
-        <EmptyState
-          icon={<SearchIcon size={20} />}
-          title="Nothing matched"
-          note="Try fewer words or drop a filter"
-        />
+        <Show
+          when={store.collections().length === 0}
+          fallback={
+            <EmptyState
+              icon={<SearchIcon size={20} />}
+              title="Nothing matched"
+              note="Try fewer words or drop a filter"
+            />
+          }
+        >
+          <EmptyState
+            icon={<SearchIcon size={20} />}
+            title="Nothing indexed yet"
+            note="Search ranks what is in your library. Add a folder, vault, or library in Settings, then index it."
+          >
+            <Button onClick={() => store.openSettings("sources")}>Add sources</Button>
+          </EmptyState>
+        </Show>
       }
     >
       <div class="enter-stagger space-y-3">

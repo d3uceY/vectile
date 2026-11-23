@@ -32,10 +32,14 @@ export function SetupTour() {
     // they close; the tour then starts on its own.
     if (store.modelDialogOpen() || store.ocrSetupOpen()) return;
     started = true;
-    start();
+    window.setTimeout(start, 0);
   });
 
   const start = () => {
+    if (store.modelDialogOpen() || store.ocrSetupOpen()) {
+      started = false;
+      return;
+    }
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const needsModel = !store.canIndex();
     store.openSettings(needsModel ? "model" : "sources");
@@ -87,6 +91,10 @@ export function SetupTour() {
             description:
               "A folder of notes, books, or project files. It lands in the My Library collection, under Project folders.",
             nextBtnText: "Choose a folder",
+            onPrevClick: (_el, _step, opts) => {
+              store.openSettings("model");
+              opts.driver.movePrevious();
+            },
             onNextClick: async (_el, _step, opts) => {
               const dir = await pickFolder("Choose a folder to index");
               if (!dir) return; // cancelled; stay on this step
@@ -105,6 +113,10 @@ export function SetupTour() {
             description:
               "Index all turns that folder into a searchable collection.",
             nextBtnText: "Index now",
+            onPrevClick: (_el, _step, opts) => {
+              store.openSettings("sources");
+              opts.driver.movePrevious();
+            },
             onNextClick: (_el, _step, opts) => {
               if (!store.canIndex()) {
                 store.pushToast("Indexing needs an active model", "neutral");
@@ -124,6 +136,10 @@ export function SetupTour() {
             description:
               "Search anything you half-remember. Cmd/Ctrl+K focuses this box from anywhere.",
             doneBtnText: "Done",
+            onPrevClick: (_el, _step, opts) => {
+              store.setView("index");
+              opts.driver.movePrevious();
+            },
             onDoneClick: (_el, _step, opts) => opts.driver.destroy(),
           },
         },

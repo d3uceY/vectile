@@ -1,4 +1,4 @@
-import { Show } from "solid-js";
+import { createEffect, onCleanup, Show } from "solid-js";
 import type { OCRState } from "../../lib/types";
 import { OcrCard } from "./OcrCard";
 import { Button } from "./primitives";
@@ -15,6 +15,16 @@ export function OcrSetupDialog(props: {
   onCancel: () => void;
   onDismiss: () => void;
 }) {
+  const installing = () => props.state?.installing === true;
+  createEffect(() => {
+    if (!props.open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !installing()) props.onDismiss();
+    };
+    document.addEventListener("keydown", onKey);
+    onCleanup(() => document.removeEventListener("keydown", onKey));
+  });
+
   return (
     <Show when={props.open}>
       <div
@@ -46,7 +56,7 @@ export function OcrSetupDialog(props: {
             <p class="max-w-[34ch] text-[12px] font-medium leading-4 text-muted">
               English is included. Other languages are a click in Settings → OCR.
             </p>
-            <Button variant="ghost" onClick={props.onDismiss}>
+            <Button variant="ghost" onClick={props.onDismiss} disabled={installing()}>
               Not now
             </Button>
           </div>
