@@ -87,18 +87,24 @@ func indexItemsBatched(
 			if end > len(batch.texts) {
 				end = len(batch.texts)
 			}
-			sliceVecs, err := embedder.EmbedBatch(batch.texts[start:end])
+			sliceVecs, err := embedCancellable(ctx, embedder, batch.texts[start:end])
+			if cancelled(ctx) {
+				return
+			}
 			if err != nil {
 				// The slice failed as a batch — retry its texts one at a time
 				// so a single unembeddable chunk only costs itself.
-				sliceVecs = embedTextsIndividually(embedder, batch.texts[start:end])
+				sliceVecs = embedTextsIndividually(ctx, embedder, batch.texts[start:end])
+				if cancelled(ctx) {
+					return
+				}
 			}
 			batch.vecs = append(batch.vecs, sliceVecs...)
 		}
 
 		// Progress fires once per successfully indexed file so the frontend can
 		// increment a per-collection count from a scoped event.
-		for _, t := range writeItemBatch(conn, collectionID, batch, result, preCleared) {
+		for _, t := range writeItemBatch(ctx, conn, collectionID, batch, result, preCleared) {
 			indexed++
 			if progress != nil {
 				progress(indexed, total, t)
@@ -110,22 +116,62 @@ func indexItemsBatched(
 // embedSliceCap bounds how many chunk texts go into one EmbedBatch call.
 // llama.cpp already processes a call's texts in parallel rounds of n_seq_max,
 // so splitting a big batch into slices of this size does not change the total
-// work — it only adds a cancellation checkpoint between slices, so a cancel
-// lands within embedSliceCap chunks (~a few seconds on CPU) instead of after
-// the whole batch.
+// work. It bounds how much model work a cancel can leave running in the
+// background (see embedCancellable) and how long the next embed waits behind it.
 const embedSliceCap = 8
+
+// cancelled reports whether the run's context is done. ctx may be nil.
+func cancelled(ctx context.Context) bool {
+	return ctx != nil && ctx.Err() != nil
+}
+
+// embedCancellable embeds texts but returns as soon as ctx is cancelled. The
+// llama.cpp call cannot be interrupted, so on cancel it is abandoned: it runs
+// to the end in the background (holding the embedder's inference lock, so the
+// next embed simply queues behind it) and its vectors are discarded. That is
+// what lets Cancel take effect at once instead of after the current slice.
+func embedCancellable(ctx context.Context, embedder Embedder, texts []string) ([][]float32, error) {
+	if ctx == nil {
+		return embedder.EmbedBatch(texts)
+	}
+	type outcome struct {
+		vecs [][]float32
+		err  error
+	}
+	ch := make(chan outcome, 1) // buffered: an abandoned call must not block forever
+	go func() {
+		// A panic here would otherwise take down the whole process.
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- outcome{err: fmt.Errorf("embedder panicked: %v", r)}
+			}
+		}()
+		v, err := embedder.EmbedBatch(texts)
+		ch <- outcome{v, err}
+	}()
+	select {
+	case o := <-ch:
+		return o.vecs, o.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
 
 // embedTextsIndividually retries one slice of a batch's texts one at a time,
 // so a single unembeddable chunk only costs itself. Returns vectors aligned
 // with texts; entries that still fail are nil, and writeItemBatch drops the
-// whole item those chunks belong to (an item can't be stored partially).
-func embedTextsIndividually(embedder Embedder, texts []string) [][]float32 {
+// whole item those chunks belong to (an item can't be stored partially). Stops
+// early when ctx is cancelled; the caller discards the result then.
+func embedTextsIndividually(ctx context.Context, embedder Embedder, texts []string) [][]float32 {
 	slog.Warn("embedding slice failed, retrying texts individually",
 		"texts", len(texts))
 
 	out := make([][]float32, len(texts))
 	for i, t := range texts {
-		v, err := embedder.EmbedBatch([]string{t})
+		v, err := embedCancellable(ctx, embedder, []string{t})
+		if cancelled(ctx) {
+			return out
+		}
 		if err != nil || len(v) != 1 {
 			slog.Warn("skipping chunk that cannot be embedded", "err", err)
 			continue
@@ -205,7 +251,14 @@ func hasNilVec(vecs [][]float32) bool {
 // writeItemBatch stores an embedded batch, attributing failures per item so
 // one bad item does not sink the rest. It returns a display name for each item
 // that was successfully stored, so the caller can emit per-file progress.
-func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *IndexResult, preCleared bool) []string {
+//
+// The whole batch (purge of the old chunks, then every item's rows) is one
+// transaction, and each item sits in its own savepoint. A file is therefore
+// either fully stored with its hash recorded or not stored at all, and a cancel
+// that lands mid-write rolls everything back, including the purge, so a file
+// that was being re-indexed keeps its previous chunks and the next run picks it
+// up again.
+func writeItemBatch(ctx context.Context, conn *sql.DB, collectionID int64, b *itemBatch, result *IndexResult, preCleared bool) []string {
 	// Offsets into b.vecs are only meaningful if one vector came back per text.
 	if len(b.vecs) != len(b.texts) {
 		msg := fmt.Sprintf("embedding count mismatch: got %d vectors for %d chunks", len(b.vecs), len(b.texts))
@@ -240,27 +293,75 @@ func writeItemBatch(conn *sql.DB, collectionID int64, b *itemBatch, result *Inde
 		keep = append(keep, storable{item: item, vecs: vecs})
 	}
 
+	if len(keep) == 0 || cancelled(ctx) {
+		return nil
+	}
+
+	tx, err := conn.Begin()
+	if err != nil {
+		msg := fmt.Sprintf("cannot start write transaction: %v", err)
+		slog.Error(msg)
+		result.Errors += len(keep)
+		result.ErrorMessages = append(result.ErrorMessages, msg)
+		return nil
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
 	if !preCleared {
 		items := make([]*indexItem, len(keep))
 		for i, s := range keep {
 			items[i] = s.item
 		}
-		purgeSourceDocuments(conn, collectionID, items)
+		purgeSourceDocuments(tx, collectionID, items)
 	}
 
-	var indexedNames []string
+	var indexedNames, failures []string
 	for _, s := range keep {
-		if err := storeItem(conn, collectionID, s.item, s.vecs); err != nil {
-			result.Errors++
-			if result.Errors <= 10 {
-				msg := fmt.Sprintf("error indexing %s %s: %v", s.item.SourceType, s.item.SourcePath, err)
-				slog.Warn(msg)
-				result.ErrorMessages = append(result.ErrorMessages, msg)
-			}
+		if cancelled(ctx) {
+			return nil // deferred rollback undoes the purge and every item stored so far
+		}
+		if _, err := tx.Exec("SAVEPOINT item"); err != nil {
+			failures = append(failures, fmt.Sprintf("error indexing %s %s: %v", s.item.SourceType, s.item.SourcePath, err))
 			continue
 		}
-		result.Indexed++
+		if err := storeItem(tx, collectionID, s.item, s.vecs); err != nil {
+			_, _ = tx.Exec("ROLLBACK TO item")
+			_, _ = tx.Exec("RELEASE item")
+			failures = append(failures, fmt.Sprintf("error indexing %s %s: %v", s.item.SourceType, s.item.SourcePath, err))
+			continue
+		}
+		if _, err := tx.Exec("RELEASE item"); err != nil {
+			failures = append(failures, fmt.Sprintf("error indexing %s %s: %v", s.item.SourceType, s.item.SourcePath, err))
+			continue
+		}
 		indexedNames = append(indexedNames, itemProgressName(s.item))
+	}
+
+	if cancelled(ctx) {
+		return nil
+	}
+	if err := tx.Commit(); err != nil {
+		committed = true // a failed Commit already ended the transaction
+		msg := fmt.Sprintf("cannot commit batch: %v", err)
+		slog.Error(msg)
+		result.Errors += len(keep)
+		result.ErrorMessages = append(result.ErrorMessages, msg)
+		return nil
+	}
+	committed = true
+
+	result.Indexed += len(indexedNames)
+	for _, msg := range failures {
+		result.Errors++
+		if result.Errors <= 10 {
+			slog.Warn(msg)
+			result.ErrorMessages = append(result.ErrorMessages, msg)
+		}
 	}
 	return indexedNames
 }
@@ -288,7 +389,7 @@ const sqlParamLimit = 500
 // item in a batch, in as few statements as possible. Batched because the vec0
 // tables have no index on document_id, so per-item deletes would each scan the
 // whole vector table.
-func purgeSourceDocuments(conn *sql.DB, collectionID int64, items []*indexItem) {
+func purgeSourceDocuments(conn dbConn, collectionID int64, items []*indexItem) {
 	if len(items) == 0 {
 		return
 	}
@@ -346,7 +447,7 @@ func purgeSourceDocuments(conn *sql.DB, collectionID int64, items []*indexItem) 
 // storeItem writes one item's chunks and their embeddings. vecs is parallel
 // to item.Chunks. purged=true skips the per-source cleanup because the batch
 // was already purged.
-func storeItem(conn *sql.DB, collectionID int64, item *indexItem, vecs [][]float32) error {
+func storeItem(conn dbConn, collectionID int64, item *indexItem, vecs [][]float32) error {
 	sourceID, err := upsertSourceRow(conn, collectionID, item.SourcePath, item.SourceType,
 		item.FileHash, item.Mtime, true)
 	if err != nil {

@@ -208,9 +208,15 @@ func backfillBinaryVectors(db *sql.DB) error {
 	return err
 }
 
+// Execer is the part of *sql.DB and *sql.Tx that the embedding helpers need,
+// so they can run inside a transaction.
+type Execer interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
 // InsertEmbedding inserts an embedding for a document into both the float
 // vector table and its binary-quantized mirror, keeping rowids aligned.
-func InsertEmbedding(conn *sql.DB, documentID int64, vecBytes []byte) error {
+func InsertEmbedding(conn Execer, documentID int64, vecBytes []byte) error {
 	res, err := conn.Exec(
 		"INSERT INTO vec_documents (embedding, document_id) VALUES (?, ?)",
 		vecBytes, documentID,
@@ -274,7 +280,7 @@ func intList(ids []int64) string {
 
 // DeleteEmbeddings removes embeddings for the given document IDs from both
 // the float vector table and its binary-quantized mirror.
-func DeleteEmbeddings(conn *sql.DB, documentIDs []any) error {
+func DeleteEmbeddings(conn Execer, documentIDs []any) error {
 	if len(documentIDs) == 0 {
 		return nil
 	}

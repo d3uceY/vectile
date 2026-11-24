@@ -109,10 +109,12 @@ func (s *IndexService) IndexCollection(name string, force bool) (bool, error) {
 	if !s.startIndexRun() {
 		return false, nil
 	}
+	// Registered before the goroutine starts, so a Cancel that arrives right
+	// after the click is never lost to the goroutine's startup.
+	ctx := s.core.newIndexContext()
 	go func() {
 		defer s.finishIndexRun(name)
 		s.core.resetIndexRun(false)
-		ctx := s.core.newIndexContext()
 		defer s.core.clearIndexContext()
 		s.runIndex(ctx, name, force)
 	}()
@@ -124,16 +126,17 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 	if !s.startIndexRun() {
 		return false, nil
 	}
+	ctx := s.core.newIndexContext()
 	go func() {
 		defer s.finishIndexRun("")
 		s.core.resetIndexRun(true)
-		ctx := s.core.newIndexContext()
 		defer s.core.clearIndexContext()
 		if pr := indexer.PruneAll(db.DB, s.core.Config()); pr.Pruned > 0 {
 			s.core.App.Event.Emit("indexing:pruned", pr.Pruned)
 		}
 		noText := 0
 		failed := 0
+		announced := false // a collection's run already told the frontend about the cancel
 		for _, name := range s.configuredCollections() {
 			if ctx.Err() != nil {
 				break
@@ -141,14 +144,19 @@ func (s *IndexService) IndexAll(force bool) (bool, error) {
 			r := s.runIndex(ctx, name, force)
 			noText += r.PDFNoTextPages
 			failed += r.Failed
+			announced = r.Cancelled
 		}
 		// The whole index-all run is done (all collections, or the first
 		// cancellation): the frontend reloads the library exactly once here
-		// instead of once per collection. Only announce a finished run; a
-		// cancellation already told the frontend its state.
-		if ctx.Err() == nil {
+		// instead of once per collection. A cancel that landed between
+		// collections (or before the first) was never announced by a collection
+		// run, so announce it here or the UI would sit on "indexing" forever.
+		switch {
+		case ctx.Err() == nil:
 			s.core.App.Event.Emit("indexing:all-done", IndexAllDone{PDFNoTextPages: noText, Failed: failed})
 			s.core.sendNotification("index-all", "Indexing finished", "All collections indexed")
+		case !announced:
+			s.core.App.Event.Emit("indexing:cancelled", IndexCancelled{})
 		}
 	}()
 	return true, nil
@@ -427,6 +435,7 @@ func (s *IndexService) runIndex(ctx context.Context, name string, force bool) *i
 	}
 
 	if ctx.Err() != nil {
+		result.Cancelled = true
 		s.core.App.Event.Emit("indexing:cancelled", IndexCancelled{
 			Collection: name, Indexed: result.Indexed, Skipped: result.Skipped,
 			Failed: result.Failed, Errors: result.Errors,

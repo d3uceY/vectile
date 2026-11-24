@@ -42,7 +42,7 @@ type Core struct {
 	allRun     bool
 
 	// cancelMu guards the active run's cancel func, so the user can abort an
-	// index from the frontend between batches.
+	// index from the frontend at any point in the run.
 	cancelMu sync.Mutex
 	cancel   context.CancelFunc
 }

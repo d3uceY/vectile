@@ -29,6 +29,14 @@ type Embedder interface {
 // ProgressCallback is called per item with (current, total, itemName).
 type ProgressCallback func(current, total int, itemName string)
 
+// dbConn is the slice of *sql.DB and *sql.Tx the storage helpers use, so the
+// same code can write inside a transaction.
+type dbConn interface {
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
+}
+
 // IndexResult summarises an indexing run.
 //
 // Skipped and Failed are deliberately separate. Skipped means "already up to
@@ -48,6 +56,9 @@ type IndexResult struct {
 	// to install OCR instead of leaving the user with an empty collection.
 	PDFNoTextPages int
 	ErrorMessages  []string
+	// Cancelled is set by the caller that ran the indexer once it has told the
+	// frontend the run was cancelled.
+	Cancelled bool `json:"-"`
 }
 
 func (r *IndexResult) String() string {
@@ -407,7 +418,7 @@ func isSourceUnchanged(conn *sql.DB, collectionID int64, sourcePath, currentHash
 
 // upsertSourceRow inserts or updates a source row. When purged is true the
 // caller already deleted the old documents and vectors for the batch.
-func upsertSourceRow(conn *sql.DB, collectionID int64, sourcePath, sourceType, fileH, mtime string, purged bool) (int64, error) {
+func upsertSourceRow(conn dbConn, collectionID int64, sourcePath, sourceType, fileH, mtime string, purged bool) (int64, error) {
 	now := time.Now().UTC().Format(time.RFC3339)
 
 	var existingID sql.NullInt64
@@ -442,7 +453,7 @@ func upsertSourceRow(conn *sql.DB, collectionID int64, sourcePath, sourceType, f
 }
 
 // deleteOldDocs removes documents and their vector entries for a source.
-func deleteOldDocs(conn *sql.DB, sourceID int64) {
+func deleteOldDocs(conn dbConn, sourceID int64) {
 	rows, err := conn.Query("SELECT id FROM documents WHERE source_id = ?", sourceID)
 	if err != nil {
 		return
