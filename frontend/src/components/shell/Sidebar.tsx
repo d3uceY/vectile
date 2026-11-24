@@ -1,4 +1,4 @@
-import { For, type JSX } from "solid-js";
+import { For, Show, type JSX } from "solid-js";
 import { useAppStore } from "../../lib/store";
 import type { ModelState, ViewId } from "../../lib/types";
 import { modelStateMeta } from "../ui/primitives";
@@ -35,6 +35,20 @@ function ModelPlate(props: { state: ModelState; name?: string }) {
       <span class={`shrink-0 text-[12px] font-medium capitalize ${m().text}`}>{props.state}</span>
       <span class="min-w-0 truncate text-[12px] font-medium text-muted">{props.name ?? "…"}</span>
     </span>
+  );
+}
+
+function NavSpinner() {
+  return (
+    <svg
+      class="ml-auto hidden h-4 w-4 shrink-0 animate-spin text-leaf-deep md:block"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" opacity="0.2" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>
   );
 }
 
@@ -79,6 +93,9 @@ export function Sidebar() {
                       <item.icon size={18} active={active()} />
                     </span>
                     <span class="hidden md:inline">{item.label}</span>
+                    <Show when={item.id === "index" && store.indexing()}>
+                      <NavSpinner />
+                    </Show>
                   </button>
                 </li>
               );
