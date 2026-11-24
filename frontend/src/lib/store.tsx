@@ -1,4 +1,4 @@
-import { batch, createContext, createSignal, onCleanup, onMount, useContext, type JSX } from "solid-js";
+import { batch, createContext, createEffect, createSignal, onCleanup, onMount, useContext, type JSX } from "solid-js";
 import { Events } from "@wailsio/runtime";
 import * as api from "./api";
 import { baseName } from "./format";
@@ -187,6 +187,11 @@ export function createAppStore() {
   const [indexLast, setIndexLast] = createSignal<IndexComplete | null>(null);
   const [indexByCollection, setIndexByCollection] = createSignal<Record<string, IndexFileProgress>>({});
   const [indexAllActive, setIndexAllActive] = createSignal(false);
+  // True from the Cancel click until the run reports it has stopped.
+  const [indexCancelling, setIndexCancelling] = createSignal(false);
+  createEffect(() => {
+    if (!indexing()) setIndexCancelling(false);
+  });
 
   const [toasts, setToasts] = createSignal<Toast[]>([]);
   let toastSeq = 0;
@@ -578,6 +583,7 @@ export function createAppStore() {
   const startIndex = async (name: string, force = false) => {
     setIndexLast(null);
     setIndexProgress(null);
+    setIndexCancelling(false);
     setIndexAllActive(false); // a single-collection run reloads on its own complete
     setIndexByCollection((m) => {
       const n = { ...m };
@@ -596,6 +602,7 @@ export function createAppStore() {
   const startIndexAll = async (force = false) => {
     setIndexLast(null);
     setIndexProgress(null);
+    setIndexCancelling(false);
     const started = await api.indexAll(force);
     if (!started) {
       pushToast("Another index is already running", "neutral");
@@ -611,7 +618,10 @@ export function createAppStore() {
   };
 
   const cancelIndex = async () => {
-    if (await api.cancelIndexing()) pushToast("Cancelling index…", "neutral");
+    if (indexCancelling()) return;
+    const ok = await api.cancelIndexing();
+    // The cancelled event can land before this resolves; only mark a run that is still live.
+    if (ok && indexing()) setIndexCancelling(true);
   };
 
   const runPrune = async (name: string) => {
@@ -738,16 +748,20 @@ export function createAppStore() {
   });
   const offCancelled = Events.On("indexing:cancelled", (ev) => {
     const e = ev.data as IndexCancelled;
-    setIndexByCollection((m) => {
-      const n = { ...m };
-      delete n[e.collection];
-      return n;
-    });
+    // A cancelled run is over for every collection in it, so bars still
+    // showing "Preparing" for collections that never started must go too.
+    setIndexByCollection({});
     setIndexProgress(null);
     setIndexing(false);
-    setIndexAllActive(false); 
+    setIndexAllActive(false);
     void refresh();
-    pushToast(`Indexing ${e.collection} cancelled · ${e.indexed} indexed`, "neutral");
+    bumpLibraryEpoch();
+    pushToast(
+      e.collection
+        ? `Indexing ${e.collection} cancelled · ${e.indexed} indexed`
+        : "Indexing cancelled",
+      "neutral",
+    );
   });
   const offFailed = Events.On("indexing:failed", (ev) => {
     const e = ev.data as IndexFailed;
@@ -978,6 +992,7 @@ export function createAppStore() {
     indexing,
     indexProgress,
     indexByCollection,
+    indexCancelling,
     indexLast,
     startIndex,
     startIndexAll,

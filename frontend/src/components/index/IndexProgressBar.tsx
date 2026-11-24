@@ -13,6 +13,7 @@ export function IndexProgressBar(props: {
   total: number;
   file?: string;
   onCancel?: () => void;
+  cancelling?: boolean;
 }) {
   const pct = () => {
     if (props.total <= 0) return 0;
@@ -23,7 +24,13 @@ export function IndexProgressBar(props: {
   const preparing = () => props.total <= 0;
 
   return (
-    <ProgressBar label={`Indexing ${props.collection}`} percent={pct()} preparing={preparing()} onCancel={props.onCancel}>
+    <ProgressBar
+      label={`Indexing ${props.collection}`}
+      percent={pct()}
+      preparing={preparing()}
+      onCancel={props.onCancel}
+      cancelling={props.cancelling}
+    >
       <span class="truncate font-mono text-[12px] text-muted">{props.file ?? ""}</span>
       <Show when={!preparing()}>
         <span class="shrink-0 font-mono text-[12px] text-muted">

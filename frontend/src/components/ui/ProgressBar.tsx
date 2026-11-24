@@ -12,16 +12,18 @@ export function ProgressBar(props: {
   preparing: boolean;
   children?: JSX.Element;
   onCancel?: () => void;
+  cancelling?: boolean;
 }) {
   return (
-    <div
-      role="progressbar"
-      aria-label={props.label}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={props.preparing ? undefined : Math.round(props.percent)}
-    >
-      <div class="index-progress__track">
+    <div>
+      <div
+        class="index-progress__track"
+        role="progressbar"
+        aria-label={props.label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={props.preparing ? undefined : Math.round(props.percent)}
+      >
         <div
           class="index-progress__fill"
           classList={{ "index-progress__fill--preparing": props.preparing }}
@@ -36,9 +38,10 @@ export function ProgressBar(props: {
           <button
             type="button"
             onClick={props.onCancel}
-            class="ml-auto inline-flex h-7 shrink-0 items-center rounded-[4px] px-2.5 text-[12px] font-medium text-danger transition-colors duration-150 hover:bg-danger-soft"
+            disabled={props.cancelling}
+            class="ml-auto inline-flex h-7 shrink-0 items-center rounded-[4px] px-2.5 text-[12px] font-medium text-danger transition-colors duration-150 hover:bg-danger-soft disabled:cursor-default disabled:text-muted disabled:hover:bg-transparent"
           >
-            Cancel
+            {props.cancelling ? "Cancelling…" : "Cancel"}
           </button>
         </Show>
       </div>

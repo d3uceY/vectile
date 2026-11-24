@@ -202,6 +202,7 @@ export function IndexView() {
                           total={p().total}
                           file={p().file}
                           onCancel={() => setConfirming(item.name)}
+                          cancelling={store.indexCancelling()}
                         />
                       </div>
                     )}
@@ -231,7 +232,7 @@ export function IndexView() {
       <ConfirmDialog
         open={confirming() !== null}
         title={`Cancel indexing ${confirming()}?`}
-        body={<p>Files already indexed are kept. The rest of this run will stop.</p>}
+        body={<p>Stops right away. Files already indexed are kept; the file being indexed is dropped and picked up on the next run.</p>}
         confirmLabel="Cancel run"
         cancelLabel="Keep going"
         onCancel={() => setConfirming(null)}
