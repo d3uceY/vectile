@@ -26,7 +26,9 @@ export function ProgressBar(props: {
           class="index-progress__fill"
           classList={{ "index-progress__fill--preparing": props.preparing }}
           style={{ width: props.preparing ? "36%" : `${props.percent}%` }}
-        />
+        >
+          <span class="index-progress__shine" aria-hidden="true" />
+        </div>
       </div>
       <div class="mt-1.5 flex items-center gap-2">
         {props.children}

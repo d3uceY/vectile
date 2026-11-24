@@ -436,28 +436,39 @@ html[data-theme="dark"] {
     }
   }
 
-  /* Inline indexing loader. The fill is capped at 96% until the backend
-     wraps up; it states progress and nothing else, with no glow or shine. */
+  /* Inline indexing loader. The fill is capped at 96% so it looks like it's
+     about to finish while the backend wraps up the last batch; a leaf-green
+     shine sweeps across it and a soft glow pulses underneath. */
   .index-progress__track {
     position: relative;
-    height: 8px;
-    border-radius: 4px;
+    height: 10px;
+    border-radius: 9999px;
     border: 1px solid var(--color-line);
-    background: var(--color-surface-2);
+    background: var(--color-surface);
     overflow: hidden;
   }
   .index-progress__fill {
     position: relative;
     height: 100%;
-    border-radius: 3px;
-    background: var(--color-accent);
-    transition: width 480ms linear;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: linear-gradient(
+      90deg,
+      var(--color-leaf-deep),
+      var(--color-leaf) 55%,
+      var(--color-leaf-soft)
+    );
+    /* Linear over 600ms keeps the fill travelling between per-file events; an
+       ease-in curve at 480ms left ~20% of frames motionless, then lurched. */
+    transition: width 600ms linear;
+    animation: index-progress-pulse 1.8s ease-in-out infinite;
   }
   /* Indeterminate "Preparing…" state before the backend has counted any files
      (total is unknown / 0): a short fill sliding across the track so it reads
      as activity rather than a stalled 0/0. */
   .index-progress__fill--preparing {
-    animation: index-progress-slide 1.6s ease-in-out infinite;
+    animation: index-progress-slide 1.6s ease-in-out infinite,
+      index-progress-pulse 1.8s ease-in-out infinite;
   }
   @keyframes index-progress-slide {
     0% {
@@ -467,7 +478,41 @@ html[data-theme="dark"] {
       transform: translateX(400%);
     }
   }
+  .index-progress__shine {
+    position: absolute;
+    top: -60%;
+    left: -150%;
+    width: 300%;
+    height: 200%;
+    background-image: linear-gradient(
+      to right,
+      transparent 0%,
+      rgb(255 255 255 / 0.55) 50%,
+      transparent 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 60% 100%;
+    animation: index-progress-shine 1.5s ease-in-out infinite;
+  }
+  @keyframes index-progress-shine {
+    0% {
+      background-position: -10% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+  @keyframes index-progress-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 6px rgb(31 138 80 / 0.35);
+    }
+    50% {
+      box-shadow: 0 0 14px rgb(31 138 80 / 0.6);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
+    .index-progress__shine,
     .index-progress__fill {
       animation: none;
     }
