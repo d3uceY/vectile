@@ -12,3 +12,9 @@ export function fmtBytes(n: number): string {
 export function baseName(p: string): string {
   return p.split(/[\\/]/).pop() ?? p;
 }
+
+/** Everything before the last segment, separator included; "" for a bare name. */
+export function dirName(p: string): string {
+  const cut = Math.max(p.lastIndexOf("/"), p.lastIndexOf("\\"));
+  return cut < 0 ? "" : p.slice(0, cut + 1);
+}

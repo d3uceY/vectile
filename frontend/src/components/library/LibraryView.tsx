@@ -1,5 +1,6 @@
 import { createEffect, createSignal, For, Show } from "solid-js";
 import * as api from "../../lib/api";
+import { baseName, dirName } from "../../lib/format";
 import { createPager, withScrollAnchor } from "../../lib/pager";
 import { useAppStore } from "../../lib/store";
 import type { Source } from "../../lib/types";
@@ -16,6 +17,13 @@ function TypeLabel(props: { type: string }) {
     <span class="shrink-0 font-mono text-[11px] text-muted">{props.type}</span>
   );
 }
+
+/* Sources in a collection share a directory prefix, so the path is drawn as
+   directory + separator + file name: only the prefix may be clipped, never the
+   part that tells two rows apart. The separator is its own element, so an
+   ellipsized directory still ends in a readable one. */
+const dirOf = (p: string) => dirName(p).slice(0, -1);
+const sepOf = (p: string) => dirName(p).slice(-1);
 
 export function LibraryView() {
   const store = useAppStore();
@@ -185,8 +193,15 @@ export function LibraryView() {
                                   >
                                     <div class="grid min-w-0 flex-1 grid-cols-12 items-center gap-2 px-4 py-1.5">
                                       <span class="col-span-8 flex min-w-0 items-center gap-2 pl-6 @lg:col-span-6">
-                                        <span class="min-w-0 flex-1 truncate font-mono text-[12px] text-ink-soft">
-                                          {s.path}
+                                        <span
+                                          class="flex min-w-0 flex-1 items-baseline font-mono text-[12px]"
+                                          title={s.path}
+                                        >
+                                          <span class="min-w-0 truncate text-muted">{dirOf(s.path)}</span>
+                                          <span class="shrink-0 text-muted">{sepOf(s.path)}</span>
+                                          <span class="max-w-full shrink-0 truncate text-ink-soft">
+                                            {baseName(s.path)}
+                                          </span>
                                         </span>
                                       </span>
                                       <span class="hidden truncate font-mono text-[12px] text-muted @lg:block @lg:col-span-2">
