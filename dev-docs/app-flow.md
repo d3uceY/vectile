@@ -78,9 +78,13 @@ Indexing turns files into searchable chunks.
 1. You press "Index new" on a collection to pick up changed files, or "Re-index all" to re-embed everything, or Index all / Re-index all in the header for every collection at once. If a kind of source is not set up yet, the footer names it and links to Settings; "Add sources" in the header goes there too.
 2. A background goroutine walks the source. For each file it checks whether the file changed since the last run. Unchanged files are skipped. That is the incremental part.
 3. Each file is parsed into text, then cut into chunks of about 500 words with a small overlap.
-4. Each chunk is embedded. The bge-m3 model turns the text into a list of 1024 numbers that capture its meaning.
-5. The chunk text, its metadata, and its vector are stored in SQLite. Vectors go into a vec0 table for fast similarity search. The text also goes into an FTS5 table for exact-word search.
+4. Each chunk is embedded. The bge-m3 model turns the text into a list of 1024 numbers that capture its meaning. Chunks go to the model in small slices, so the run can react to a cancel quickly.
+5. The chunk text, its metadata, and its vector are stored in SQLite. Vectors go into a vec0 table for fast similarity search. The text also goes into an FTS5 table for exact-word search. A batch of files is written in one transaction, so a file is either fully stored or not stored at all.
 6. Progress events stream to the UI, which shows a progress bar and the current file. A completion event updates the counts and shows a toast.
+
+### Cancelling
+
+The Cancel button on a running collection stops the run at once, after a confirm. Files already indexed are kept. The file that was being indexed is dropped whole: it has no chunks and is not marked as indexed, so the next run picks it up again. A file that was being re-indexed keeps its previous chunks. Cancelling Index all stops the remaining collections too, and the Index view clears every bar and reloads the Library. The button reads "Cancelling…" until the backend confirms with `indexing:cancelled`. Backend details are in [`backend-notes.md`](backend-notes.md).
 
 The completion summary separates two things that are easy to confuse: files
 **skipped** because they were already up to date, and files that **failed**
